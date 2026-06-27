@@ -18,3 +18,19 @@ def ordinal(n: int) -> str:
     else:
         suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
     return f"{n}{suffix}"
+
+
+# Human display labels for card metrics, shared by assess / adjudicate / compare.
+LABELS = {
+    "ev_offence": "Even-strength offence",
+    "ev_defence": "Even-strength defence",
+    "pp": "Power play",
+    "pk": "Penalty kill",
+    "finishing": "Finishing",
+    "penalties": "Discipline (penalties)",
+    "goals": "Goals",
+    "first_assists": "Primary assists",
+    "competition": "Competition faced",
+    "teammates": "Quality of teammates",
+    "proj_war_pct": "Projected WAR",
+}

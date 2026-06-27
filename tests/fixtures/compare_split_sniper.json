@@ -1,0 +1,19 @@
+{
+  "name": "Split Sniper (synthetic)",
+  "team": "TEST",
+  "position": "RW",
+  "age": 24,
+  "toi_role": "1st line",
+  "cap": "$6M x 4",
+  "competition": 55,
+  "teammates": 60,
+  "ev_offence": 90,
+  "ev_defence": 35,
+  "pp": 80,
+  "pk": 30,
+  "finishing": 88,
+  "penalties": 60,
+  "proj_war_pct": 75,
+  "goals": 88,
+  "first_assists": 70
+}

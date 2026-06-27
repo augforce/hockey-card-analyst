@@ -1,0 +1,19 @@
+{
+  "name": "Clear Trailer (synthetic)",
+  "team": "TEST",
+  "position": "LW",
+  "age": 27,
+  "toi_role": "2nd line",
+  "cap": "$4M x 3",
+  "competition": 55,
+  "teammates": 60,
+  "ev_offence": 55,
+  "ev_defence": 50,
+  "pp": 45,
+  "pk": 40,
+  "finishing": 50,
+  "penalties": 55,
+  "proj_war_pct": 52,
+  "goals": 50,
+  "first_assists": 50
+}

@@ -66,6 +66,9 @@ Built one phase at a time (see PLAN section 11 and `DECISIONS.md`).
   `{dimension, direction}` assertions into supported / partial / not_supported /
   unverifiable, with cited values and an overall read. Tested on the section 3
   four-part claim.
-- [ ] Phase 4 — Compare (skater)
+- [x] **Phase 4 — Compare (skater):** `compare_players` with the
+  position-compatibility guard, component-by-component gaps, an overall edge that
+  refuses to crown a winner on a genuine split, and a finishing-driven
+  durability flag. `focus` narrows to offence / defence / overall / a role.
 - [ ] Phase 5 — Goalies through all three tools
 - [ ] Phase 6 — Wrap as a fastmcp server and wire into Claude Desktop

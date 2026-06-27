@@ -1,0 +1,19 @@
+{
+  "name": "Clear Leader (synthetic)",
+  "team": "TEST",
+  "position": "C",
+  "age": 25,
+  "toi_role": "1st line",
+  "cap": "$8M x 5",
+  "competition": 60,
+  "teammates": 55,
+  "ev_offence": 90,
+  "ev_defence": 80,
+  "pp": 85,
+  "pk": 70,
+  "finishing": 85,
+  "penalties": 75,
+  "proj_war_pct": 90,
+  "goals": 88,
+  "first_assists": 85
+}

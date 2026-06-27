@@ -20,28 +20,13 @@ from pydantic import BaseModel
 from typing import Literal
 
 from config import load_config
-from engine.common import STRENGTH_MIN, WEAKNESS_MAX, ordinal
+from engine.common import LABELS, STRENGTH_MIN, WEAKNESS_MAX, ordinal
 from engine.tiers import classify_percentile
 from schemas import DefenseCard, SkaterCard
 
 SkaterLike = Union[SkaterCard, DefenseCard]
 
 Grade = Literal["supported", "partial", "not_supported", "unverifiable"]
-
-# Human labels for the metrics a verdict might cite.
-LABELS = {
-    "ev_offence": "Even-strength offence",
-    "ev_defence": "Even-strength defence",
-    "pp": "Power play",
-    "pk": "Penalty kill",
-    "finishing": "Finishing",
-    "penalties": "Discipline (penalties)",
-    "goals": "Goals",
-    "first_assists": "Primary assists",
-    "competition": "Competition faced",
-    "teammates": "Quality of teammates",
-    "proj_war_pct": "Projected WAR",
-}
 
 
 class Assertion(BaseModel):

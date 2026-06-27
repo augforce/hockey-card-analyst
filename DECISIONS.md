@@ -216,3 +216,52 @@ No commits were made until the Phase 1 checkpoint commit (see git log).
   code), same per-phase pattern as `demo_assess.py`.
 - Goalie dimensions sent with a skater card resolve to a missing metric → None →
   unverifiable; the full goalie path is Phase 5.
+
+## Phase 4 — compare_players for skaters (2026-06-27)
+
+### Order of operations
+`compare_players(card_a, card_b, focus=None)`: (1) position-compatibility check,
+(2) component-by-component, (3) overall edge, (4) durability flag.
+
+### Compatibility guard (first)
+- Pool comes from the card type: `SkaterCard` → forward, `DefenseCard` →
+  defense, `GoalieCard` → goalie. Different pools (forward-vs-D, skater-vs-goalie)
+  → **refused**: `compatible=False`, `edge_kind="incompatible"`,
+  `overall_edge=None`, no components, a `reason`, and the within-position-only
+  caveat. Chose a clean refusal over a heavily-caveated result — clearer.
+
+### Components
+- Each WAR component reports both values, the gap (a − b), and the leader
+  (A/B/tie, or None+note when NA). D-vs-D excludes finishing (`position_rules`).
+  NA components are dropped from area aggregates.
+
+### Overall edge — refuses false winners (the carried-over discipline)
+- Area leaders: offence = avg(ev_offence, pp, finishing); defence =
+  avg(ev_defence, pk); a lead counts only at ≥ `MARGIN` (5).
+- **Genuine split** (areas have opposite leaders) → `overall_edge=None`,
+  `edge_kind="split"`, prose says "better at what" and names the tradeoff —
+  UNLESS projected WAR differs by ≥ `PROJ_DECISIVE` (10), in which case the edge
+  goes to the proj-WAR leader (`edge_kind="proj_war"`) with the tradeoff noted.
+- Not a split: a player leading the area(s) → `broad`; else a proj-WAR gap ≥
+  MARGIN → `proj_war`; else `even` (`overall_edge=None`).
+- `MARGIN=5` / `PROJ_DECISIVE=10` are constants in `compare.py` (tunable).
+
+### Durability flag
+- If the winner's finishing lead exceeds their largest play-driving (EV
+  offence/defence) lead, the edge is "less durable — leans on finishing" and the
+  finishing-volatility caveat is attached; otherwise "durable — play-driving".
+
+### focus
+- `offence`/`defence` narrow to that area and CAN crown a within-area winner even
+  when the overall comparison splits; `overall`/None run the full logic; a
+  role/metric (`pp`, `power play`, `pk`, `penalty kill`, or a metric name) narrows
+  to a single component. `offense`/`defense` normalize to the British spelling.
+
+### Housekeeping
+- Consolidated `LABELS` into `engine/common.py` (now its third user); `assess`
+  and `adjudicate` import it.
+- Synthetic fixtures `compare_clear_leader/trailer.json` and
+  `compare_split_sniper/shutdown.json`, labelled "(synthetic)". Cross-position
+  test reuses `celebrini.json` + `synthetic_dman.json`.
+- Added `examples/demo_compare.py` (split case narrated; clear + cross-position
+  for contrast).

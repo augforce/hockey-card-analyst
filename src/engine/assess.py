@@ -19,7 +19,7 @@ from typing import Any, Optional, Union
 from pydantic import BaseModel
 
 from config import load_config
-from engine.common import STRENGTH_MIN, WEAKNESS_MAX, ordinal
+from engine.common import LABELS, STRENGTH_MIN, WEAKNESS_MAX, ordinal
 from engine.tiers import classify_percentile
 from schemas import DefenseCard, SkaterCard
 
@@ -32,20 +32,6 @@ WAR_COMPONENTS = ["ev_offence", "ev_defence", "pp", "pk", "finishing", "penaltie
 DESCRIPTIVE = ["goals", "first_assists"]
 # Usage metrics — deployment, never a strength or weakness (PLAN section 5).
 DEPLOYMENT = ["competition", "teammates"]
-
-LABELS = {
-    "ev_offence": "Even-strength offence",
-    "ev_defence": "Even-strength defence",
-    "pp": "Power play",
-    "pk": "Penalty kill",
-    "finishing": "Finishing",
-    "penalties": "Discipline (penalties)",
-    "goals": "Goals",
-    "first_assists": "Primary assists",
-    "competition": "Competition faced",
-    "teammates": "Quality of teammates",
-    "proj_war_pct": "Projected WAR",
-}
 
 class ComponentRead(BaseModel):
     """One metric placed in its tier, with any attached note."""

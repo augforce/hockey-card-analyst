@@ -1,0 +1,19 @@
+{
+  "name": "Split Shutdown (synthetic)",
+  "team": "TEST",
+  "position": "C",
+  "age": 29,
+  "toi_role": "2nd line / shutdown",
+  "cap": "$5M x 4",
+  "competition": 70,
+  "teammates": 50,
+  "ev_offence": 40,
+  "ev_defence": 90,
+  "pp": 35,
+  "pk": 85,
+  "finishing": 38,
+  "penalties": 65,
+  "proj_war_pct": 74,
+  "goals": 40,
+  "first_assists": 45
+}
