@@ -1,0 +1,19 @@
+{
+  "name": "Synthetic D (test fixture, not a real player)",
+  "team": "TEST",
+  "position": "D",
+  "age": 26,
+  "toi_role": "2nd pair",
+  "cap": "$2M x 2",
+  "competition": 60,
+  "teammates": 50,
+  "ev_offence": 48,
+  "ev_defence": 52,
+  "pp": 40,
+  "pk": 58,
+  "finishing": 95,
+  "penalties": 50,
+  "proj_war_pct": 57,
+  "goals": 80,
+  "first_assists": 45
+}

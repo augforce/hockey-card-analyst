@@ -112,3 +112,56 @@ accepted as-is.
   needed for Phase 1 loading.
 
 No commits were made until the Phase 1 checkpoint commit (see git log).
+
+## Phase 2 — assess_player for skaters (2026-06-27)
+
+### Output shape
+- `assess_player(card, config=None) -> Assessment` (pydantic), so it serializes
+  cleanly for MCP later. `Assessment` carries: `overall_tier` / `overall_percentile`
+  / `overall_note`, `strengths`, `weaknesses`, `descriptive`, `deployment`,
+  `trajectory`, `caveats`, `summary`. Each metric read is a `ComponentRead`
+  (metric, label, percentile, tier, note).
+
+### What counts as what
+- Three buckets: **WAR components** (`ev_offence`, `ev_defence`, `pp`, `pk`,
+  `finishing`, `penalties`) drive strengths/weaknesses; **descriptive**
+  (`goals`, `first_assists`) is supporting colour only (section 4 "extra
+  descriptive"); **deployment** (`competition`, `teammates`) is never a
+  strength/weakness (section 5).
+- **Strength/weakness thresholds:** strength = percentile ≥ 70 (Strong+),
+  weakness = ≤ 44 (Below average−); 45–69 is neutral and not listed. Constants
+  `STRENGTH_MIN=70` / `WEAKNESS_MAX=44` mirror the config band edges.
+
+### The two load-bearing rules (as flagged)
+- **NA (`pp`/`pk` = None)** becomes a deployment note ("No penalty kill role
+  (NA) — an absence of usage, not a weakness") and never enters strengths,
+  weaknesses, or reads as a zero.
+- **Defenseman finishing** is read from config (`position_rules.defense.war_excludes`),
+  pulled out of the WAR-component ranking, and emitted under `descriptive` with
+  an exclusion note. The finishing-volatility caveat does **not** fire for a D
+  (the verdict isn't built on finishing). Verified by the synthetic-D test:
+  finishing 95 (Elite) present descriptively, `strengths` empty, overall stays
+  Above average (57th).
+
+### Caveat firing
+- `finishing_volatility`: only when a **forward's** verdict leans on finishing
+  (finishing is a strength).
+- `deployment_not_value`: whenever competition/teammates are present.
+- `dangerous_passing`: forwards only, when `first_assists` is borderline (45–69).
+- `within_position_only`: **not** attached in assess — reserved for
+  `compare_players` (Phase 4), where cross-pool comparison is the actual risk.
+
+### Other
+- Metric display labels live in a `LABELS` dict in `assess.py` for now; a fuller
+  glossary (section 7b) can absorb them later.
+- Trajectory from `war_pct_trend`: Δ ≥ 15 "pointing sharply up", ≥ 5 "trending
+  up", symmetric for down, else "holding steady".
+- **Narration stays out of the server** (section 7: server returns structure,
+  Claude narrates). The plain-English paragraph was produced by an illustrative
+  demo (`scratchpad/demo_assess.py`) that derives text purely from the
+  `Assessment` fields; it is not committed. Can be persisted to `examples/` on
+  request.
+- Added synthetic fixture `tests/fixtures/synthetic_dman.json`, clearly labelled
+  not a real player.
+- Fixed an ordinal-formatting bug (was printing "72th"; now "72nd") in the
+  deployment/summary strings.

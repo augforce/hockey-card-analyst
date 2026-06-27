@@ -59,7 +59,9 @@ Built one phase at a time (see PLAN section 11 and `DECISIONS.md`).
 
 - [x] **Phase 1 — Scaffold:** repo, venv, pyproject, config, the three card
   schemas, and the percentile tier logic with tests.
-- [ ] Phase 2 — Assess (skater)
+- [x] **Phase 2 — Assess (skater):** `assess_player` for forwards and
+  defensemen (incl. the defenseman finishing-exclusion and NA-as-deployment
+  rules), tested against the Celebrini fixture and a synthetic D.
 - [ ] Phase 3 — Adjudicate (skater)
 - [ ] Phase 4 — Compare (skater)
 - [ ] Phase 5 — Goalies through all three tools
