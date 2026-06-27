@@ -62,7 +62,10 @@ Built one phase at a time (see PLAN section 11 and `DECISIONS.md`).
 - [x] **Phase 2 — Assess (skater):** `assess_player` for forwards and
   defensemen (incl. the defenseman finishing-exclusion and NA-as-deployment
   rules), tested against the Celebrini fixture and a synthetic D.
-- [ ] Phase 3 — Adjudicate (skater)
+- [x] **Phase 3 — Adjudicate (skater):** `adjudicate_claim` grades decomposed
+  `{dimension, direction}` assertions into supported / partial / not_supported /
+  unverifiable, with cited values and an overall read. Tested on the section 3
+  four-part claim.
 - [ ] Phase 4 — Compare (skater)
 - [ ] Phase 5 — Goalies through all three tools
 - [ ] Phase 6 — Wrap as a fastmcp server and wire into Claude Desktop

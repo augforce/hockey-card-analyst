@@ -19,6 +19,7 @@ from typing import Any, Optional, Union
 from pydantic import BaseModel
 
 from config import load_config
+from engine.common import STRENGTH_MIN, WEAKNESS_MAX, ordinal
 from engine.tiers import classify_percentile
 from schemas import DefenseCard, SkaterCard
 
@@ -45,11 +46,6 @@ LABELS = {
     "teammates": "Quality of teammates",
     "proj_war_pct": "Projected WAR",
 }
-
-# Mirror the config tier edges: Strong starts at 70, Below average ends at 44.
-STRENGTH_MIN = 70
-WEAKNESS_MAX = 44
-
 
 class ComponentRead(BaseModel):
     """One metric placed in its tier, with any attached note."""
@@ -139,7 +135,7 @@ def assess_player(card: SkaterLike, config: Optional[dict[str, Any]] = None) -> 
             continue
         tier = classify_percentile(value, cfg)
         deployment.append(
-            f"{LABELS[metric]}: {_ordinal(value)} percentile ({tier.label}). "
+            f"{LABELS[metric]}: {ordinal(value)} percentile ({tier.label}). "
             "Deployment, not value — already baked into WAR."
         )
 
@@ -176,14 +172,6 @@ def _read(metric: str, value: int, cfg: dict[str, Any]) -> ComponentRead:
         tier=tier.label,
         note=tier.note,
     )
-
-
-def _ordinal(n: int) -> str:
-    if 10 <= n % 100 <= 20:
-        suffix = "th"
-    else:
-        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
-    return f"{n}{suffix}"
 
 
 def _na_note(metric: str) -> str:
@@ -250,7 +238,7 @@ def _summary(
     position = "defenseman" if is_defense else "forward"
     parts = [
         f"{card.name} grades as {_article(overall.label)} {overall.label} {position} "
-        f"({_ordinal(card.proj_war_pct)} percentile projected WAR)"
+        f"({ordinal(card.proj_war_pct)} percentile projected WAR)"
     ]
     if strengths:
         parts.append("strengths: " + ", ".join(s.label.lower() for s in strengths[:3]))

@@ -1,5 +1,240 @@
-"""adjudicate_claim: grade each assertion supported / partial / not_supported / unverifiable.
+"""adjudicate_claim for skaters (PLAN sections 3, 6, 7).
 
-Placeholder — implemented in Phase 3 (PLAN section 11), including the
-`unverifiable` path for net-front and team-context claims.
+Division of labor: the server does NOT parse natural language. Claude Desktop
+decomposes a claim into structured assertions ({dimension, direction}); this
+module grades each one against the card and returns a verdict with the cited
+metric value and a one-line reason, plus an overall read.
+
+Grades:
+- supported     — the metric agrees with the claimed direction.
+- not_supported — the metric contradicts the claimed direction (number is the receipt).
+- partial       — the card half-answers it (team-relative, or right direction but middling).
+- unverifiable  — the card cannot see it (net-front, playing style, team context,
+                  an NA role, or an unknown dimension). First-class, never a guess.
 """
+from __future__ import annotations
+
+from typing import Any, Optional, Union
+
+from pydantic import BaseModel
+from typing import Literal
+
+from config import load_config
+from engine.common import STRENGTH_MIN, WEAKNESS_MAX, ordinal
+from engine.tiers import classify_percentile
+from schemas import DefenseCard, SkaterCard
+
+SkaterLike = Union[SkaterCard, DefenseCard]
+
+Grade = Literal["supported", "partial", "not_supported", "unverifiable"]
+
+# Human labels for the metrics a verdict might cite.
+LABELS = {
+    "ev_offence": "Even-strength offence",
+    "ev_defence": "Even-strength defence",
+    "pp": "Power play",
+    "pk": "Penalty kill",
+    "finishing": "Finishing",
+    "penalties": "Discipline (penalties)",
+    "goals": "Goals",
+    "first_assists": "Primary assists",
+    "competition": "Competition faced",
+    "teammates": "Quality of teammates",
+    "proj_war_pct": "Projected WAR",
+}
+
+
+class Assertion(BaseModel):
+    """One decomposed piece of a claim (Claude Desktop produces these)."""
+
+    dimension: str
+    direction: Literal["high", "low"]
+    text: Optional[str] = None  # the original phrase, echoed back for narration
+
+
+class AssertionVerdict(BaseModel):
+    """The grade for one assertion, with its evidence."""
+
+    dimension: str
+    direction: str
+    grade: Grade
+    metric: Optional[str] = None
+    value: Optional[int] = None
+    tier: Optional[str] = None
+    reason: str
+    caveat: Optional[str] = None
+    text: Optional[str] = None
+
+
+class Adjudication(BaseModel):
+    """The full read on a claim: per-assertion verdicts plus an overall."""
+
+    verdicts: list[AssertionVerdict]
+    overall: str
+
+
+def adjudicate_claim(
+    card: SkaterLike,
+    assertions: list[Union[Assertion, dict]],
+    config: Optional[dict[str, Any]] = None,
+) -> Adjudication:
+    """Grade each decomposed assertion against the card."""
+    cfg = config if config is not None else load_config()
+    verdicts = [_grade(card, _as_assertion(a), cfg) for a in assertions]
+    return Adjudication(verdicts=verdicts, overall=_overall(verdicts))
+
+
+def _as_assertion(a: Union[Assertion, dict]) -> Assertion:
+    return a if isinstance(a, Assertion) else Assertion(**a)
+
+
+def _resolve(dimension: str, cfg: dict[str, Any]) -> Optional[dict[str, Any]]:
+    """Find a dimension-dictionary entry by id, then by alias (case-insensitive)."""
+    key = dimension.strip().lower()
+    dims = cfg.get("dimensions", [])
+    for entry in dims:
+        if entry["id"].lower() == key:
+            return entry
+    for entry in dims:
+        if key in [alias.lower() for alias in entry.get("aliases", [])]:
+            return entry
+    return None
+
+
+def _primary_metric(card: SkaterLike, entry: dict[str, Any]):
+    """First card metric on the entry that has a value; falls back to the first listed."""
+    metrics = entry.get("metrics", []) or []
+    for metric in metrics:
+        if getattr(card, metric, None) is not None:
+            return metric, getattr(card, metric)
+    return (metrics[0] if metrics else None), None
+
+
+def _grade(card: SkaterLike, assertion: Assertion, cfg: dict[str, Any]) -> AssertionVerdict:
+    entry = _resolve(assertion.dimension, cfg)
+
+    def verdict(grade, metric=None, value=None, tier=None, reason="", caveat=None):
+        return AssertionVerdict(
+            dimension=(entry["id"] if entry else assertion.dimension),
+            direction=assertion.direction,
+            grade=grade,
+            metric=metric,
+            value=value,
+            tier=tier,
+            reason=reason,
+            caveat=caveat,
+            text=assertion.text,
+        )
+
+    if entry is None:
+        return verdict(
+            "unverifiable",
+            reason=f"'{assertion.dimension}' is not a recognized card dimension — the card can't speak to it.",
+        )
+
+    answerability = entry.get("answerability", "answerable")
+
+    # Things the card simply cannot see (net-front, playing style, ...).
+    if answerability == "not_answerable":
+        return verdict("unverifiable", reason=entry.get("note", "Not measured on a standard card."))
+
+    metric, value = _primary_metric(card, entry)
+    label = LABELS.get(metric, metric) if metric else "this"
+
+    # Team-relative / context-dependent claims: half-answerable at best.
+    if answerability == "partial":
+        tier = classify_percentile(value, cfg).label if value is not None else None
+        receipt = f"{label} is {ordinal(value)} ({tier})" if value is not None else "the card"
+        note = entry.get("note", "Only partly answerable from the card.")
+        note = note[0].lower() + note[1:] if note else note
+        return verdict("partial", metric=metric, value=value, tier=tier, reason=f"{receipt}, but {note}")
+
+    # Answerable, but the role is NA — no data, so we don't guess.
+    if value is None:
+        return verdict(
+            "unverifiable",
+            metric=metric,
+            reason=f"{label} is NA on this card (no role) — the player isn't used there, so the card can't assess it.",
+        )
+
+    tier = classify_percentile(value, cfg)
+    grade = _direction_grade(assertion.direction, value)
+    reason = _reason(label, assertion.direction, value, tier.label, grade)
+    caveat = _caveat(entry, grade, cfg)
+    return verdict(grade, metric=metric, value=value, tier=tier.label, reason=reason, caveat=caveat)
+
+
+def _direction_grade(direction: str, value: int) -> Grade:
+    if direction == "high":
+        if value >= STRENGTH_MIN:
+            return "supported"
+        if value <= WEAKNESS_MAX:
+            return "not_supported"
+        return "partial"
+    # direction == "low"
+    if value <= WEAKNESS_MAX:
+        return "supported"
+    if value >= STRENGTH_MIN:
+        return "not_supported"
+    return "partial"
+
+
+def _reason(label: str, direction: str, value: int, tier: str, grade: Grade) -> str:
+    claimed = "high" if direction == "high" else "low"
+    receipt = f"{label} is {ordinal(value)} ({tier})"
+    if grade == "supported":
+        return f"{receipt} — backs a '{claimed}' claim."
+    if grade == "not_supported":
+        opposite = "strong" if direction == "low" else "weak"
+        return f"Claim says {claimed}, but {receipt} — the card says the opposite ({opposite} side)."
+    return f"{receipt} — only middling, so a '{claimed}' claim is overstated."
+
+
+def _caveat(entry: dict[str, Any], grade: Grade, cfg: dict[str, Any]) -> Optional[str]:
+    key = entry.get("caveat")
+    if not key:
+        return None
+    caveats = cfg.get("caveats", {})
+    # Dangerous-passing only matters when playmaking is borderline (partial).
+    if key == "dangerous_passing":
+        return caveats.get(key) if grade == "partial" else None
+    # Finishing-volatility / deployment-not-value: when the verdict leans on it.
+    if grade in ("supported", "partial"):
+        return caveats.get(key)
+    return None
+
+
+def _overall(verdicts: list[AssertionVerdict]) -> str:
+    buckets: dict[str, list[str]] = {
+        "supported": [],
+        "not_supported": [],
+        "partial": [],
+        "unverifiable": [],
+    }
+    for v in verdicts:
+        buckets[v.grade].append(v.text or v.dimension)
+
+    parts = []
+    if buckets["supported"]:
+        parts.append("supports " + _join(buckets["supported"]))
+    if buckets["not_supported"]:
+        parts.append("refutes " + _join(buckets["not_supported"]))
+    if buckets["partial"]:
+        parts.append("only partly answers " + _join(buckets["partial"]))
+    if buckets["unverifiable"]:
+        parts.append("is unverifiable on " + _join(buckets["unverifiable"]))
+
+    if not parts:
+        return "No assertions to grade."
+
+    head = ""
+    if buckets["supported"] and buckets["not_supported"]:
+        head = "Half-right claim. "
+    return head + "This card " + "; ".join(parts) + "."
+
+
+def _join(items: list[str]) -> str:
+    items = [f"'{i}'" for i in items]
+    if len(items) == 1:
+        return items[0]
+    return ", ".join(items[:-1]) + " and " + items[-1]

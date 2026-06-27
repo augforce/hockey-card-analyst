@@ -165,3 +165,54 @@ No commits were made until the Phase 1 checkpoint commit (see git log).
   not a real player.
 - Fixed an ordinal-formatting bug (was printing "72th"; now "72nd") in the
   deployment/summary strings.
+
+## Phase 3 — adjudicate_claim for skaters (2026-06-27)
+
+### Division of labor (the thing to get right)
+- The server does **not** parse natural language. `adjudicate_claim(card,
+  assertions, config=None)` receives assertions already decomposed by Claude
+  Desktop into `Assertion(dimension, direction)` (direction is `high`/`low`;
+  optional `text` echoes the original phrase). Dicts or `Assertion` objects both
+  accepted.
+- `dimension` is resolved against the config dimension dictionary by **id first,
+  then alias** (case-insensitive), so Claude can send either.
+
+### The four grades
+- `supported` / `not_supported` via direction vs metric: high → ≥70 supported,
+  ≤44 not_supported; low → inverted. The 45–69 middle is `partial` ("right
+  direction but overstated").
+- `partial` also covers config `answerability: partial` (team-context, e.g.
+  `team_leading_scorer`): grade partial, cite `proj_war_pct`, attach the
+  team-context note.
+- `unverifiable` is **first-class, never a guess**: config
+  `answerability: not_answerable` (net-front, goalie style) → unverifiable with
+  the config note; an **NA role** (primary metric is None) → unverifiable
+  ("no role, the card can't assess it"); an **unknown dimension** → unverifiable.
+- Every verdict cites the metric value as the receipt; `not_supported` puts the
+  contradicting number in the reason.
+
+### Per-verdict caveat
+- `caveat` is attached only when the verdict leans on it: finishing →
+  finishing-volatility (supported/partial); playmaking → dangerous-passing
+  (partial/borderline only); deployment dims → deployment-not-value.
+
+### Overall read
+- Enumerates by grade and never papers over a mix; prefixes "Half-right claim."
+  when both supported and not_supported assertions are present, so it always says
+  which half.
+
+### Test claim decomposition
+- The section 3 four-part claim is decomposed into **five** assertions because
+  "asked to do more" maps to BOTH playmaking and defence (section 3) — and they
+  disagree: playmaking is Elite (95th, refutes "limited") while EV defence is
+  Below average (33rd, supports it). That disagreement is the half-right nuance.
+
+### Refactor / housekeeping
+- Extracted `engine/common.py` (`ordinal`, `STRENGTH_MIN`, `WEAKNESS_MAX`) as a
+  single source of truth; `assess.py` now imports them (no behavior change).
+  Added `tests/test_common.py` with the one small ordinal test — the sanctioned
+  response to the "72th" class of bug now that ordinals recur in claim reasons.
+- Added `examples/demo_adjudicate.py` (illustrative narration window, NOT server
+  code), same per-phase pattern as `demo_assess.py`.
+- Goalie dimensions sent with a skater card resolve to a missing metric → None →
+  unverifiable; the full goalie path is Phase 5.
