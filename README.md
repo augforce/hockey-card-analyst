@@ -70,5 +70,9 @@ Built one phase at a time (see PLAN section 11 and `DECISIONS.md`).
   position-compatibility guard, component-by-component gaps, an overall edge that
   refuses to crown a winner on a genuine split, and a finishing-driven
   durability flag. `focus` narrows to offence / defence / overall / a role.
-- [ ] Phase 5 — Goalies through all three tools
+- [x] **Phase 5 — Goalies through all three tools:** the goalie schema and
+  goalie reading rules (danger split, floor-vs-ceiling start quality,
+  consistency-as-volatility, rebound control) over the same engine. Tested on the
+  Thompson fixture (assess), a mixed goalie claim (adjudicate), and goalie-vs-
+  goalie / goalie-vs-skater (compare).
 - [ ] Phase 6 — Wrap as a fastmcp server and wire into Claude Desktop

@@ -22,6 +22,7 @@ def ordinal(n: int) -> str:
 
 # Human display labels for card metrics, shared by assess / adjudicate / compare.
 LABELS = {
+    # Skater
     "ev_offence": "Even-strength offence",
     "ev_defence": "Even-strength defence",
     "pp": "Power play",
@@ -33,4 +34,16 @@ LABELS = {
     "competition": "Competition faced",
     "teammates": "Quality of teammates",
     "proj_war_pct": "Projected WAR",
+    # Goalie
+    "even_strength": "Even strength",
+    "penalty_kill": "Penalty kill",
+    "high_danger": "High-danger saves",
+    "med_danger": "Mid-danger saves",
+    "low_danger": "Low-danger saves",
+    "quality_starts": "Quality starts",
+    "excellent_starts": "Excellent starts",
+    "bad_starts": "Bad starts (avoided)",
+    "rebound_control": "Rebound control",
+    "consistency": "Consistency",
+    "gp_pct": "Games played",
 }

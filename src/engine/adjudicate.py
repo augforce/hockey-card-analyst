@@ -22,9 +22,10 @@ from typing import Literal
 from config import load_config
 from engine.common import LABELS, STRENGTH_MIN, WEAKNESS_MAX, ordinal
 from engine.tiers import classify_percentile
-from schemas import DefenseCard, SkaterCard
+from schemas import DefenseCard, GoalieCard, SkaterCard
 
 SkaterLike = Union[SkaterCard, DefenseCard]
+CardLike = Union[SkaterCard, DefenseCard, GoalieCard]
 
 Grade = Literal["supported", "partial", "not_supported", "unverifiable"]
 
@@ -59,11 +60,11 @@ class Adjudication(BaseModel):
 
 
 def adjudicate_claim(
-    card: SkaterLike,
+    card: CardLike,
     assertions: list[Union[Assertion, dict]],
     config: Optional[dict[str, Any]] = None,
 ) -> Adjudication:
-    """Grade each decomposed assertion against the card."""
+    """Grade each decomposed assertion against the card (skater or goalie)."""
     cfg = config if config is not None else load_config()
     verdicts = [_grade(card, _as_assertion(a), cfg) for a in assertions]
     return Adjudication(verdicts=verdicts, overall=_overall(verdicts))
@@ -73,17 +74,28 @@ def _as_assertion(a: Union[Assertion, dict]) -> Assertion:
     return a if isinstance(a, Assertion) else Assertion(**a)
 
 
-def _resolve(dimension: str, cfg: dict[str, Any]) -> Optional[dict[str, Any]]:
-    """Find a dimension-dictionary entry by id, then by alias (case-insensitive)."""
+def _claim_pool(card: CardLike) -> str:
+    """The dimension-dictionary pool a card belongs to (matches `applies_to`)."""
+    return "goalie" if isinstance(card, GoalieCard) else "skater"
+
+
+def _resolve(dimension: str, cfg: dict[str, Any], pool: Optional[str] = None) -> Optional[dict[str, Any]]:
+    """Find a dimension entry by id, then by alias. On an alias collision, prefer
+    the entry whose `applies_to` matches the card's pool (e.g. goalie vs skater
+    'shorthanded')."""
     key = dimension.strip().lower()
     dims = cfg.get("dimensions", [])
     for entry in dims:
         if entry["id"].lower() == key:
             return entry
-    for entry in dims:
-        if key in [alias.lower() for alias in entry.get("aliases", [])]:
-            return entry
-    return None
+    alias_matches = [e for e in dims if key in [a.lower() for a in e.get("aliases", [])]]
+    if not alias_matches:
+        return None
+    if pool:
+        for entry in alias_matches:
+            if entry.get("applies_to") in (pool, "both"):
+                return entry
+    return alias_matches[0]
 
 
 def _primary_metric(card: SkaterLike, entry: dict[str, Any]):
@@ -95,8 +107,8 @@ def _primary_metric(card: SkaterLike, entry: dict[str, Any]):
     return (metrics[0] if metrics else None), None
 
 
-def _grade(card: SkaterLike, assertion: Assertion, cfg: dict[str, Any]) -> AssertionVerdict:
-    entry = _resolve(assertion.dimension, cfg)
+def _grade(card: CardLike, assertion: Assertion, cfg: dict[str, Any]) -> AssertionVerdict:
+    entry = _resolve(assertion.dimension, cfg, _claim_pool(card))
 
     def verdict(grade, metric=None, value=None, tier=None, reason="", caveat=None):
         return AssertionVerdict(

@@ -265,3 +265,60 @@ No commits were made until the Phase 1 checkpoint commit (see git log).
   test reuses `celebrini.json` + `synthetic_dman.json`.
 - Added `examples/demo_compare.py` (split case narrated; clear + cross-position
   for contrast).
+
+## Phase 5 — goalies through all three tools (2026-06-27)
+
+Goalies are a new schema + new reading rules over the **same engine**. The tools
+dispatch on card type rather than getting goalie clones: `assess_player`,
+`adjudicate_claim`, and `compare_players` each route a `GoalieCard` to goalie
+logic while reusing tiers, the strength/weakness thresholds, the four grades, the
+split refusal, the position guard, and the durability pattern.
+
+### assess_player (goalie) — `GoalieAssessment`
+- **Danger split is a profile, not three numbers** (`Profile`: the three reads +
+  a `shape`). Heuristic: high ≥70 and high−low ≥20 → "makes the hard saves,
+  ordinary on routine shots"; low ≤44 → leaking-soft-goals flag. Thompson 99/56
+  reads as hard-saves / ordinary-routine.
+- **Floor vs ceiling** is one profile: quality (floor) / excellent (ceiling) /
+  bad (disaster avoided). High floor + modest ceiling → "reliability over
+  game-stealing."
+- **Consistency is a volatility flag** (`ConsistencyRead`), never a
+  strength/weakness; tempered harder when paired with a steep WAR climb.
+- **Rebound control** is one of the discrete skills (even_strength,
+  penalty_kill, rebound_control) that feed strengths/weaknesses, so it gets
+  called out on its own (Thompson 35th → weakness) — never folded into danger.
+- Workload = gp_pct + role (deployment, not value). Caveats always include
+  consistency-volatility, plus save-lines when the sv/xsv trend is present.
+- **Summary holds the tension** (96th WAR AND 23rd consistency, both halves) —
+  the section 12 goalie test.
+
+### Goalie trends (resolves the Phase 1 flag)
+- `war_per60_trend` value is a **percentile rank**: tiered and read as rising
+  standing, not a raw rate.
+- `sv_vs_xsv_trend` is in **percentage points**, read as a GAP (sv − xsv): actual
+  holding while expected falls = beating expectation by more = rising GSAx = what
+  drives WAR up. Never read either line alone.
+
+### adjudicate_claim (goalie)
+- Broadened the card type to `CardLike` (skater or goalie). `_resolve` is now
+  **pool-aware**: on an alias collision it prefers the entry whose `applies_to`
+  matches the card's pool, so a goalie's "shorthanded" resolves to `goalie_pk`,
+  not the skater `pk`. Goalie style claims → unverifiable (like net-front).
+
+### compare_players (goalie)
+- Refactored to be **spec-driven**: `_spec(pool)` returns the component list and
+  the two split-areas. Skaters split offence-vs-defence; goalies split
+  **ceiling** (excellent_starts, high_danger) **vs floor** (quality_starts,
+  low_danger, bad_starts). The split refusal is the same code.
+- Goalie durability is **consistency-based**: an edge resting on a low-consistency
+  goalie is "less durable" with the consistency-volatility caveat (the goalie
+  analog of the skater finishing-volatility flag).
+- Goalie-vs-skater trips the existing position guard — confirmed, not rebuilt.
+
+### Housekeeping
+- Goalie metric labels added to `engine/common.LABELS`.
+- Synthetic fixtures `compare_goalie_peak.json` / `compare_goalie_floor.json`
+  (peak/game-stealer vs floor/reliable, level WAR → split).
+- Goalie tests live in `tests/test_goalies.py` (all three tools in one place).
+  `examples/demo_goalie.py` narrates the Thompson assessment, a mixed claim, and
+  the goalie comparisons.

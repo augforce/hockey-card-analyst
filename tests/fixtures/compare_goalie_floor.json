@@ -1,0 +1,19 @@
+{
+  "name": "Floor Goalie (synthetic)",
+  "team": "TEST",
+  "age": 30,
+  "gp_pct": 72,
+  "role": "Starter",
+  "cap": "$5.5M x 4",
+  "proj_war_pct": 79,
+  "even_strength": 80,
+  "penalty_kill": 72,
+  "high_danger": 55,
+  "med_danger": 75,
+  "low_danger": 90,
+  "quality_starts": 95,
+  "excellent_starts": 45,
+  "bad_starts": 92,
+  "rebound_control": 70,
+  "consistency": 75
+}

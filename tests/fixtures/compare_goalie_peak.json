@@ -1,0 +1,19 @@
+{
+  "name": "Peak Goalie (synthetic)",
+  "team": "TEST",
+  "age": 26,
+  "gp_pct": 70,
+  "role": "1A",
+  "cap": "$5M x 3",
+  "proj_war_pct": 80,
+  "even_strength": 80,
+  "penalty_kill": 70,
+  "high_danger": 95,
+  "med_danger": 70,
+  "low_danger": 45,
+  "quality_starts": 55,
+  "excellent_starts": 90,
+  "bad_starts": 50,
+  "rebound_control": 60,
+  "consistency": 40
+}

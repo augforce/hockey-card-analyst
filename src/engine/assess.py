@@ -21,9 +21,14 @@ from pydantic import BaseModel
 from config import load_config
 from engine.common import LABELS, STRENGTH_MIN, WEAKNESS_MAX, ordinal
 from engine.tiers import classify_percentile
-from schemas import DefenseCard, SkaterCard
+from schemas import DefenseCard, GoalieCard, SkaterCard
 
 SkaterLike = Union[SkaterCard, DefenseCard]
+
+# Goalie metric groupings (PLAN sections 4, 5).
+GOALIE_SKILLS = ["even_strength", "penalty_kill", "rebound_control"]
+GOALIE_DANGER = ["high_danger", "med_danger", "low_danger"]
+GOALIE_START_QUALITY = ["quality_starts", "excellent_starts", "bad_starts"]
 
 # Value-bearing WAR components, in display order. For a defenseman, any metric in
 # `position_rules.defense.war_excludes` (Finishing) is pulled out of this set.
@@ -61,9 +66,51 @@ class Assessment(BaseModel):
     summary: str
 
 
-def assess_player(card: SkaterLike, config: Optional[dict[str, Any]] = None) -> Assessment:
-    """Assess a forward or defenseman card into structured findings."""
+class Profile(BaseModel):
+    """A cluster of metrics read as one shape (danger split, start quality)."""
+
+    label: str
+    reads: list[ComponentRead]
+    shape: str
+
+
+class ConsistencyRead(BaseModel):
+    """Consistency reported as a volatility flag, not a skill (PLAN section 5)."""
+
+    percentile: int
+    tier: str
+    note: str
+
+
+class GoalieAssessment(BaseModel):
+    """Structured assessment of a goalie (the server's goalie return shape)."""
+
+    name: str
+    team: str
+    role: str
+    overall_tier: str
+    overall_percentile: int
+    overall_note: Optional[str] = None
+    danger_profile: Profile
+    start_quality_profile: Profile
+    strengths: list[ComponentRead]
+    weaknesses: list[ComponentRead]
+    consistency: ConsistencyRead
+    workload: str
+    trajectory: Optional[str] = None
+    caveats: list[str]
+    summary: str
+
+
+def assess_player(card, config: Optional[dict[str, Any]] = None):
+    """Assess a card into structured findings; dispatches on card type.
+
+    Returns an Assessment for skaters, or a GoalieAssessment for goalies (goalies
+    run different reading rules over the same tier/threshold machinery).
+    """
     cfg = config if config is not None else load_config()
+    if isinstance(card, GoalieCard):
+        return assess_goalie(card, cfg)
     is_defense = isinstance(card, DefenseCard)
     excluded = set()
     if is_defense:
@@ -187,25 +234,26 @@ def _caveats(
     return caveats
 
 
+def _trend_direction(delta: float) -> str:
+    if delta >= 15:
+        return "pointing sharply up"
+    if delta >= 5:
+        return "trending up"
+    if delta <= -15:
+        return "falling sharply"
+    if delta <= -5:
+        return "trending down"
+    return "holding steady"
+
+
 def _trajectory(card: SkaterLike) -> Optional[str]:
     trend = getattr(card, "war_pct_trend", None)
     if not trend or len(trend) < 2:
         return None
     first, last = trend[0].value, trend[-1].value
-    delta = last - first
-    if delta >= 15:
-        direction = "pointing sharply up"
-    elif delta >= 5:
-        direction = "trending up"
-    elif delta <= -15:
-        direction = "falling sharply"
-    elif delta <= -5:
-        direction = "trending down"
-    else:
-        direction = "holding steady"
     return (
         f"Projected-WAR percentile {first} → {last} over {len(trend)} seasons "
-        f"— {direction}."
+        f"— {_trend_direction(last - first)}."
     )
 
 
@@ -234,3 +282,187 @@ def _summary(
     if trajectory:
         summary += " " + trajectory
     return summary
+
+
+# --- Goalie assessment (PLAN section 5 goalie rules) -----------------------
+
+
+def assess_goalie(card: GoalieCard, cfg: dict[str, Any]) -> GoalieAssessment:
+    """Assess a goalie: danger split + start-quality profiles, consistency as a
+    volatility flag, rebound control called out, trajectory from the two trends."""
+    overall = classify_percentile(card.proj_war_pct, cfg)
+
+    # Discrete skills -> strengths/weaknesses (rebound control is called out here,
+    # never folded into the danger numbers).
+    strengths: list[ComponentRead] = []
+    weaknesses: list[ComponentRead] = []
+    for metric in GOALIE_SKILLS:
+        read = _read(metric, getattr(card, metric), cfg)
+        if read.percentile >= STRENGTH_MIN:
+            strengths.append(read)
+        elif read.percentile <= WEAKNESS_MAX:
+            weaknesses.append(read)
+    strengths.sort(key=lambda r: r.percentile, reverse=True)
+    weaknesses.sort(key=lambda r: r.percentile)
+
+    danger_profile = Profile(
+        label="Danger split",
+        reads=[_read(m, getattr(card, m), cfg) for m in GOALIE_DANGER],
+        shape=_danger_shape(card.high_danger, card.med_danger, card.low_danger, cfg),
+    )
+    start_quality_profile = Profile(
+        label="Start quality",
+        reads=[_read(m, getattr(card, m), cfg) for m in GOALIE_START_QUALITY],
+        shape=_start_quality_shape(card.quality_starts, card.excellent_starts, card.bad_starts, cfg),
+    )
+
+    ctier = classify_percentile(card.consistency, cfg)
+    consistency = ConsistencyRead(
+        percentile=card.consistency,
+        tier=ctier.label,
+        note=_consistency_note(card.consistency, ctier.label, _is_climbing(card.war_per60_trend)),
+    )
+
+    caveats = [cfg["goalie_rules"]["consistency_volatility"]]
+    if card.sv_vs_xsv_trend:
+        caveats.append(cfg["goalie_rules"]["save_lines"])
+
+    return GoalieAssessment(
+        name=card.name,
+        team=card.team,
+        role=card.role,
+        overall_tier=overall.label,
+        overall_percentile=card.proj_war_pct,
+        overall_note=overall.note,
+        danger_profile=danger_profile,
+        start_quality_profile=start_quality_profile,
+        strengths=strengths,
+        weaknesses=weaknesses,
+        consistency=consistency,
+        workload=_workload_note(card, cfg),
+        trajectory=_goalie_trajectory(card),
+        caveats=caveats,
+        summary=_goalie_summary(card, overall, strengths, weaknesses, consistency),
+    )
+
+
+def _danger_shape(high: int, med: int, low: int, cfg: dict[str, Any]) -> str:
+    ht = classify_percentile(high, cfg).label
+    lt = classify_percentile(low, cfg).label
+    if high >= STRENGTH_MIN and high - low >= 20:
+        shape = (
+            f"Makes the hard saves (high-danger {ordinal(high)}, {ht}) but is more "
+            f"ordinary on routine shots (low-danger {ordinal(low)}, {lt})."
+        )
+    elif high >= STRENGTH_MIN and low >= STRENGTH_MIN:
+        shape = (
+            f"Strong across danger levels — high-danger {ordinal(high)} and low-danger "
+            f"{ordinal(low)} both hold up."
+        )
+    elif low <= WEAKNESS_MAX:
+        shape = (
+            f"Weak on routine low-danger shots ({ordinal(low)}, {lt}) — a "
+            f"leaking-soft-goals flag; high-danger sits at {ordinal(high)}."
+        )
+    else:
+        shape = (
+            f"High-danger {ordinal(high)}, mid {ordinal(med)}, low-danger {ordinal(low)} "
+            f"— read where the value comes from."
+        )
+    if low <= WEAKNESS_MAX and "leaking" not in shape:
+        shape += " Low-danger is a soft spot — a leaking-soft-goals risk."
+    return shape
+
+
+def _start_quality_shape(quality: int, excellent: int, bad: int, cfg: dict[str, Any]) -> str:
+    qt = classify_percentile(quality, cfg).label
+    et = classify_percentile(excellent, cfg).label
+    bt = classify_percentile(bad, cfg).label
+    parts = []
+    if quality >= STRENGTH_MIN:
+        parts.append(f"High floor — gives his team a chance most nights (quality starts {ordinal(quality)}, {qt}).")
+    elif quality <= WEAKNESS_MAX:
+        parts.append(f"Low floor (quality starts {ordinal(quality)}, {qt}).")
+    else:
+        parts.append(f"Average floor (quality starts {ordinal(quality)}, {qt}).")
+    if excellent >= STRENGTH_MIN:
+        parts.append(f"Real ceiling — can steal games (excellent starts {ordinal(excellent)}, {et}).")
+    else:
+        parts.append(f"Modest ceiling — not a game-stealer (excellent starts {ordinal(excellent)}, {et}).")
+    if bad >= STRENGTH_MIN:
+        parts.append(f"Rarely a disaster (bad starts {ordinal(bad)}, {bt}).")
+    elif bad <= WEAKNESS_MAX:
+        parts.append(f"Prone to disaster nights (bad starts {ordinal(bad)}, {bt}).")
+    if quality >= STRENGTH_MIN and excellent < STRENGTH_MIN:
+        parts.append("Reliability over game-stealing.")
+    return " ".join(parts)
+
+
+def _consistency_note(value: int, tier: str, climbing: bool) -> str:
+    base = f"Consistency is {ordinal(value)} ({tier}) — a volatility flag, not a skill."
+    if value <= WEAKNESS_MAX and climbing:
+        return base + (
+            " Paired with a steep recent WAR climb, the projection may be riding a "
+            "recent spike rather than a settled level."
+        )
+    if value <= WEAKNESS_MAX:
+        return base + " A low mark means year-to-year results are unpredictable."
+    return base
+
+
+def _is_climbing(trend) -> bool:
+    if not trend or len(trend) < 2:
+        return False
+    return trend[-1].value - trend[0].value >= 15
+
+
+def _workload_note(card: GoalieCard, cfg: dict[str, Any]) -> str:
+    parts = [f"Role: {card.role}."]
+    if card.gp_pct is not None:
+        gt = classify_percentile(card.gp_pct, cfg).label
+        parts.append(f"Games played {ordinal(card.gp_pct)} ({gt}) — workload/deployment, not value.")
+    return " ".join(parts)
+
+
+def _goalie_trajectory(card: GoalieCard) -> Optional[str]:
+    parts = []
+    trend = card.war_per60_trend
+    if trend and len(trend) >= 2:
+        first, last = int(round(trend[0].value)), int(round(trend[-1].value))
+        parts.append(
+            f"WAR-per-60 standing {ordinal(first)} → {ordinal(last)} over {len(trend)} "
+            f"seasons — {_trend_direction(last - first)} (a percentile rank, so read it as "
+            f"rising standing, not a raw rate)."
+        )
+    sv = card.sv_vs_xsv_trend
+    if sv and len(sv) >= 2:
+        first_gap = sv[0].sv - sv[0].xsv
+        last_gap = sv[-1].sv - sv[-1].xsv
+        if last_gap > first_gap:
+            parts.append(
+                f"Actual save % held ({sv[0].sv}→{sv[-1].sv}) while expected save % fell "
+                f"({sv[0].xsv}→{sv[-1].xsv}) — he's beating expectation by more each year "
+                f"(rising goals saved above expected), which is what drives the WAR up."
+            )
+        else:
+            parts.append(
+                f"Save % vs expected gap moved {first_gap:+.1f} → {last_gap:+.1f} points "
+                f"— read the two lines together, never alone."
+            )
+    return " ".join(parts) if parts else None
+
+
+def _goalie_summary(card, overall, strengths, weaknesses, consistency) -> str:
+    strong = [f"{ordinal(card.proj_war_pct)} in projected WAR"]
+    if strengths:
+        strong.append(", ".join(s.label.lower() for s in strengths[:2]))
+    tension = [f"consistency sits at {ordinal(consistency.percentile)}"]
+    if weaknesses:
+        tension.append(", ".join(f"{w.label.lower()} {ordinal(w.percentile)}" for w in weaknesses[:2]))
+    return (
+        f"{card.name} projects as {_article(overall.label)} {overall.label} starter — "
+        f"{'; '.join(strong)}. But hold that against the volatility: {'; '.join(tension)}, "
+        f"and the WAR standing climbed steeply rather than holding. The honest read: a "
+        f"genuinely strong starter whose multi-year track record is short and uneven — "
+        f"reliability over game-stealing, not a settled elite."
+    )

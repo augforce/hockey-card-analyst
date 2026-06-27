@@ -21,7 +21,7 @@ from typing import Any, Optional, Union
 from pydantic import BaseModel
 
 from config import load_config
-from engine.common import LABELS, ordinal
+from engine.common import LABELS, WEAKNESS_MAX, ordinal
 from schemas import DefenseCard, GoalieCard, SkaterCard
 
 SkaterLike = Union[SkaterCard, DefenseCard]
@@ -31,9 +31,18 @@ MARGIN = 5
 # A projected-WAR gap this large can carry an overall edge on its own.
 PROJ_DECISIVE = 10
 
+# Skater components and the two areas that can split (offence vs defence).
 WAR_COMPONENTS = ["ev_offence", "ev_defence", "pp", "pk", "finishing", "penalties"]
 OFFENCE_METRICS = ["ev_offence", "pp", "finishing"]
 DEFENCE_METRICS = ["ev_defence", "pk"]
+# Goalie components and the two areas that can split: ceiling (game-stealing) vs
+# floor (reliability) — the floor-vs-ceiling reading rule (PLAN section 5).
+GOALIE_COMPONENTS = [
+    "even_strength", "penalty_kill", "high_danger", "med_danger", "low_danger",
+    "quality_starts", "excellent_starts", "bad_starts", "rebound_control",
+]
+GOALIE_CEILING = ["excellent_starts", "high_danger"]
+GOALIE_FLOOR = ["quality_starts", "low_danger", "bad_starts"]
 ROLE_TO_METRIC = {
     "pp": "pp",
     "power play": "pp",
@@ -42,6 +51,20 @@ ROLE_TO_METRIC = {
     "penalty kill": "pk",
     "penaltykill": "pk",
 }
+
+
+def _spec(pool: str) -> dict:
+    """Component list and the two split-areas for a pool. Same machinery, different
+    axes: forwards/D split offence-vs-defence, goalies split ceiling-vs-floor."""
+    if pool == "goalie":
+        return {
+            "components": GOALIE_COMPONENTS,
+            "areas": [("ceiling", GOALIE_CEILING), ("floor", GOALIE_FLOOR)],
+        }
+    return {
+        "components": WAR_COMPONENTS,
+        "areas": [("offence", OFFENCE_METRICS), ("defence", DEFENCE_METRICS)],
+    }
 
 
 class ComponentComparison(BaseModel):
@@ -106,11 +129,12 @@ def compare_players(
     if pool == "defense":
         excluded = set(cfg.get("position_rules", {}).get("defense", {}).get("war_excludes", []))
 
-    metrics = _focus_metrics(norm_focus, excluded)
+    spec = _spec(pool)
+    metrics = _focus_metrics(norm_focus, spec, excluded)
     components = [_compare_component(m, card_a, card_b) for m in metrics]
 
     edge, kind, durability, caveats, overall = _decide(
-        card_a, card_b, norm_focus, excluded, cfg
+        card_a, card_b, norm_focus, spec, excluded, cfg, pool
     )
 
     return Comparison(
@@ -145,14 +169,13 @@ def _norm_focus(focus: Optional[str]) -> Optional[str]:
     return {"offense": "offence", "defense": "defence"}.get(f, f)
 
 
-def _focus_metrics(focus: Optional[str], excluded: set) -> list[str]:
-    base = [m for m in WAR_COMPONENTS if m not in excluded]
+def _focus_metrics(focus: Optional[str], spec: dict, excluded: set) -> list[str]:
+    base = [m for m in spec["components"] if m not in excluded]
     if focus in (None, "overall"):
         return base
-    if focus == "offence":
-        return [m for m in OFFENCE_METRICS if m not in excluded]
-    if focus == "defence":
-        return [m for m in DEFENCE_METRICS if m not in excluded]
+    for label, metrics in spec["areas"]:
+        if focus == label:
+            return [m for m in metrics if m not in excluded]
     metric = ROLE_TO_METRIC.get(focus, focus if focus in base else None)
     return [metric] if metric in base else base
 
@@ -191,13 +214,14 @@ def _name(edge: str, a, b) -> str:
     return a.name if edge == "A" else b.name
 
 
-def _decide(a, b, focus, excluded, cfg):
+def _decide(a, b, focus, spec, excluded, cfg, pool):
     """Return (overall_edge, edge_kind, durability, caveats, overall_text)."""
     proj_gap = a.proj_war_pct - b.proj_war_pct
+    area_labels = [label for label, _ in spec["areas"]]
 
-    # --- Focused comparisons crown within the narrowed scope ---
-    if focus == "offence" or focus == "defence":
-        metrics = _focus_metrics(focus, excluded)
+    # --- Focused on one of the split-areas ---
+    if focus in area_labels:
+        metrics = _focus_metrics(focus, spec, excluded)
         leader, a_avg, b_avg = _area_leader(metrics, a, b)
         edge = leader if leader in ("A", "B") else None
         if edge:
@@ -207,11 +231,12 @@ def _decide(a, b, focus, excluded, cfg):
             )
         else:
             text = f"Focused on {focus}: even ({a_avg:.0f} vs {b_avg:.0f} average percentile)."
-        return edge, "focus", _durability(edge, a, b, excluded, cfg)[0], _caveats(edge, a, b, excluded, cfg), text
+        dur, _ = _durability(edge, a, b, spec, excluded, cfg, pool)
+        return edge, "focus", dur, _caveats(edge, a, b, spec, excluded, cfg, pool), text
 
+    # --- Focused on a single role/metric ---
     if focus not in (None, "overall"):
-        # A single role/metric.
-        metrics = _focus_metrics(focus, excluded)
+        metrics = _focus_metrics(focus, spec, excluded)
         if len(metrics) == 1:
             comp = _compare_component(metrics[0], a, b)
             edge = comp.leader if comp.leader in ("A", "B") else None
@@ -225,36 +250,36 @@ def _decide(a, b, focus, excluded, cfg):
             return edge, "focus", None, [], text
 
     # --- Full / overall comparison ---
-    offence_in = [m for m in OFFENCE_METRICS if m not in excluded]
-    defence_in = [m for m in DEFENCE_METRICS if m not in excluded]
-    off_leader, _, _ = _area_leader(offence_in, a, b)
-    def_leader, _, _ = _area_leader(defence_in, a, b)
+    (a_label, a_metrics), (b_label, b_metrics) = spec["areas"][0], spec["areas"][1]
+    a_in = [m for m in a_metrics if m not in excluded]
+    b_in = [m for m in b_metrics if m not in excluded]
+    a_lead, _, _ = _area_leader(a_in, a, b)
+    b_lead, _, _ = _area_leader(b_in, a, b)
 
-    genuine_split = (
-        off_leader in ("A", "B") and def_leader in ("A", "B") and off_leader != def_leader
-    )
+    genuine_split = a_lead in ("A", "B") and b_lead in ("A", "B") and a_lead != b_lead
 
     if genuine_split:
-        off_name = _name(off_leader, a, b)
-        def_name = _name(def_leader, a, b)
+        a_area_name = _name(a_lead, a, b)
+        b_area_name = _name(b_lead, a, b)
         if abs(proj_gap) >= PROJ_DECISIVE:
             edge = "A" if proj_gap > 0 else "B"
             text = (
-                f"{off_name} leads on offence and {def_name} leads on defence — a genuine "
-                f"split — but {_name(edge, a, b)}'s projected WAR is clearly higher "
+                f"{a_area_name} leads on {a_label} and {b_area_name} leads on {b_label} — a "
+                f"genuine split — but {_name(edge, a, b)}'s projected WAR is clearly higher "
                 f"({a.proj_war_pct} vs {b.proj_war_pct}), so the overall edge goes to "
                 f"{_name(edge, a, b)} with that tradeoff noted."
             )
-            return edge, "proj_war", _durability(edge, a, b, excluded, cfg)[0], _caveats(edge, a, b, excluded, cfg), text
+            dur, _ = _durability(edge, a, b, spec, excluded, cfg, pool)
+            return edge, "proj_war", dur, _caveats(edge, a, b, spec, excluded, cfg, pool), text
         text = (
-            f"Better at what, not better overall. {off_name} leads on offence, "
-            f"{def_name} leads on defence; projected WAR is level "
+            f"Better at what, not better overall. {a_area_name} leads on {a_label}, "
+            f"{b_area_name} leads on {b_label}; projected WAR is level "
             f"({a.proj_war_pct} vs {b.proj_war_pct}). No single winner — it's a tradeoff."
         )
         return None, "split", None, [], text
 
     # Not a split: one player leads the areas, or it comes down to projected WAR.
-    area_leaders = [l for l in (off_leader, def_leader) if l in ("A", "B")]
+    area_leaders = [l for l in (a_lead, b_lead) if l in ("A", "B")]
     if area_leaders and all(l == area_leaders[0] for l in area_leaders):
         edge = area_leaders[0]
         kind = "broad"
@@ -265,8 +290,8 @@ def _decide(a, b, focus, excluded, cfg):
         edge = None
         kind = "even"
 
-    durability, _ = _durability(edge, a, b, excluded, cfg)
-    caveats = _caveats(edge, a, b, excluded, cfg)
+    durability, _ = _durability(edge, a, b, spec, excluded, cfg, pool)
+    caveats = _caveats(edge, a, b, spec, excluded, cfg, pool)
 
     if edge is None:
         text = (
@@ -283,10 +308,17 @@ def _decide(a, b, focus, excluded, cfg):
     return edge, kind, durability, caveats, text
 
 
-def _durability(edge: Optional[str], a, b, excluded: set, cfg):
-    """Return (durability_text, attach_finishing_caveat)."""
+def _durability(edge: Optional[str], a, b, spec: dict, excluded: set, cfg, pool: str):
+    """Return (durability_text, attach_caveat). Skaters: finishing-driven edges
+    are less durable. Goalies: an edge resting on a low-consistency goalie is."""
     if edge not in ("A", "B"):
         return None, False
+    if pool == "goalie":
+        return _durability_goalie(edge, a, b)
+    return _durability_skater(edge, a, b, excluded)
+
+
+def _durability_skater(edge: str, a, b, excluded: set):
     winner, loser = (a, b) if edge == "A" else (b, a)
     lead_gaps = {}
     for m in [c for c in WAR_COMPONENTS if c not in excluded]:
@@ -307,8 +339,26 @@ def _durability(edge: Optional[str], a, b, excluded: set, cfg):
     return ("Durable — built mainly on play-driving (the repeatable RAPM components).", False)
 
 
-def _caveats(edge: Optional[str], a, b, excluded: set, cfg) -> list[str]:
-    _, attach_finishing = _durability(edge, a, b, excluded, cfg)
-    if attach_finishing:
-        return [cfg["caveats"]["finishing_volatility"]]
-    return []
+def _durability_goalie(edge: str, a, b):
+    winner = a if edge == "A" else b
+    if winner.consistency <= WEAKNESS_MAX:
+        return (
+            f"Less durable — the edge rests on a goalie whose consistency is "
+            f"{ordinal(winner.consistency)}, and goalie performance is the least stable "
+            f"thing in the model.",
+            True,
+        )
+    return (
+        "Durable enough — the leader's consistency holds up, though goalie projections "
+        "are always the model's least stable.",
+        False,
+    )
+
+
+def _caveats(edge: Optional[str], a, b, spec: dict, excluded: set, cfg, pool: str) -> list[str]:
+    _, attach = _durability(edge, a, b, spec, excluded, cfg, pool)
+    if not attach:
+        return []
+    if pool == "goalie":
+        return [cfg["goalie_rules"]["consistency_volatility"]]
+    return [cfg["caveats"]["finishing_volatility"]]
