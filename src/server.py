@@ -95,6 +95,11 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
     goalie_consistency, goalie_rebounds, goalie_pk, workhorse, overall_goalie.
     Include the original phrase as `text` so it can be echoed back.
 
+    Dimension ids are NOT the card's schema field names. NEVER pass `ev_offence`
+    or `ev_defence` (or any other card field) as a `dimension`; map the claim to a
+    dimension id instead — an offence / scoring claim -> `finishing` or
+    `overall_skater`; a defensive / two-way claim -> `two_way`.
+
     Each verdict comes back as supported / not_supported / partial / unverifiable,
     with the cited metric value and a one-line reason, plus an overall read. Cite
     the returned value in your answer — never substitute your own number.
