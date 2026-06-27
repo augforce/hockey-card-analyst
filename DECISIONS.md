@@ -322,3 +322,45 @@ split refusal, the position guard, and the durability pattern.
 - Goalie tests live in `tests/test_goalies.py` (all three tools in one place).
   `examples/demo_goalie.py` narrates the Thompson assessment, a mixed claim, and
   the goalie comparisons.
+
+## Phase 6 — wrap as a fastmcp server + wire into Claude Desktop (2026-06-27)
+
+Exposure and wiring only — **no `engine/` changes**.
+
+### Server (`src/server.py`)
+- Three fastmcp tools: `assess_player`, `adjudicate_claim`, `compare_players` —
+  thin wrappers that validate input, call the existing engine, and return
+  `result.model_dump()`. The grounding (tiers, reasons, caveats) is already in the
+  model fields, so it travels inline (PLAN 7b).
+- **Card input is a JSON dict**, not a typed union, because the card is polymorphic
+  (three schemas). `_parse_card` discriminates by `position` (skater; `D` →
+  DefenseCard) vs `role` (goalie), then validates with the pydantic schema. On
+  failure it raises `ToolError` with the validation detail — a bad card fails
+  loudly with a clear, actionable message, never a wrong answer. The tool
+  descriptions document the card fields so Claude knows what to extract.
+- **Tool descriptions carry the section 7 guardrails** (Claude does vision +
+  claim-decomposition, the server grades; never invent a stat; route claims
+  through adjudicate; cite the value; never compare across pools; surface
+  unverifiable). These docstrings are the runtime steering, so they're written
+  deliberately.
+- `explain_metric` is **not built** (optional; it needs the metric glossary that
+  was deferred in Phase 1).
+
+### fastmcp 3.4.2 specifics
+- `@mcp.tool` leaves the function callable, so the wrappers are unit-testable
+  directly; `mcp.list_tools()` is async; `mcp.run()` defaults to the **stdio**
+  transport (the FastMCP banner prints to stderr, which is correct for stdio).
+- Running `src/server.py` puts `src/` on `sys.path`, so `engine` / `schemas` /
+  `config` import with no `PYTHONPATH`; the config path resolves relative to the
+  module, independent of CWD. Verified the server launches over stdio cleanly.
+
+### Wiring
+- Claude Desktop config at
+  `~/Library/Application Support/Claude/claude_desktop_config.json`: `command` =
+  the absolute `.venv/bin/python`, `args` = the absolute `src/server.py`. Restart
+  Claude Desktop (⌘Q + reopen) to load it. README has the "Run it" section.
+
+### Tests
+- `tests/test_server.py` smoke-tests registration, skater/goalie dispatch,
+  pass-through structure, and `ToolError` on an unidentifiable / invalid card.
+  98 tests pass.

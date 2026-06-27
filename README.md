@@ -18,10 +18,12 @@ answer.
 **This server** validates the card, maps percentiles to tiers, grades
 assertions, runs comparisons, attaches the right caveats, and decides what is
 **not answerable** from the card. The methodology lives in
-`config/interpretation.yaml` (and a glossary), not in the model's memory — so the
-answers stay grounded and repeatable.
+`config/interpretation.yaml`, not in the model's memory — so the answers stay
+grounded and repeatable.
 
-## Tools (planned)
+## Tools
+
+Exposed over MCP by `src/server.py` (thin wrappers; the engine does the work):
 
 - `assess_player(card)` — overall tier, strengths/weaknesses, deployment,
   trajectory, caveats, one-line summary.
@@ -29,7 +31,9 @@ answers stay grounded and repeatable.
   `partial` / `not_supported` / `unverifiable`, with the cited metric value.
 - `compare_players(card_a, card_b, focus=None)` — position-compatibility check,
   component-by-component edge, and a durability flag.
-- `explain_metric(name)` — plain-English definition plus caveats (optional).
+
+(`explain_metric` from the plan is optional and not built — it needs a metric
+glossary, deferred.)
 
 ## Intellectual property
 
@@ -53,6 +57,50 @@ Run the tests:
 .venv/bin/python -m pytest
 ```
 
+## Run it (Claude Desktop, macOS)
+
+1. **Install** (one time):
+
+   ```bash
+   cd /Users/michael/Desktop/hockey-card-analyst
+   python3 -m venv .venv
+   .venv/bin/python -m pip install fastmcp pydantic PyYAML
+   ```
+
+2. **Register the server.** Open (create the file if it doesn't exist):
+
+   `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+   and add this block (merge into any existing `mcpServers`):
+
+   ```json
+   {
+     "mcpServers": {
+       "hockey-card-analyst": {
+         "command": "/Users/michael/Desktop/hockey-card-analyst/.venv/bin/python",
+         "args": ["/Users/michael/Desktop/hockey-card-analyst/src/server.py"]
+       }
+     }
+   }
+   ```
+
+   It runs over **stdio**; launching `src/server.py` puts `src/` on the import
+   path, so no `PYTHONPATH` is needed. The server never reads card images — Claude
+   Desktop does the vision and passes structured data.
+
+3. **Restart Claude Desktop** — quit it fully (⌘Q) and reopen so it reloads the
+   config. The three tools (`assess_player`, `adjudicate_claim`,
+   `compare_players`) should appear in the 🔨 tools menu.
+
+4. **Test the loop.** Paste a player card image and ask, e.g.:
+
+   > Someone told me this kid is an elite two-way center already — true?
+
+   Claude should extract the card, route it through `adjudicate_claim` /
+   `assess_player`, and narrate a grounded answer — support the offence, push back
+   on the two-way half (EV defence 33rd, no PK role), note the tough competition,
+   and flag the sharply rising trajectory.
+
 ## Build status
 
 Built one phase at a time (see PLAN section 11 and `DECISIONS.md`).
@@ -75,4 +123,6 @@ Built one phase at a time (see PLAN section 11 and `DECISIONS.md`).
   consistency-as-volatility, rebound control) over the same engine. Tested on the
   Thompson fixture (assess), a mixed goalie claim (adjudicate), and goalie-vs-
   goalie / goalie-vs-skater (compare).
-- [ ] Phase 6 — Wrap as a fastmcp server and wire into Claude Desktop
+- [x] **Phase 6 — Wrap & wire:** `src/server.py` exposes the three tools over
+  fastmcp (stdio), with guardrail tool descriptions and strict input validation;
+  registered in Claude Desktop. See "Run it" above.
