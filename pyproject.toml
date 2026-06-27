@@ -1,0 +1,23 @@
+[project]
+name = "hockey-card-analyst"
+version = "0.1.0"
+description = "Local MCP server that turns JFresh / HockeyStats player cards into grounded, plain-English answers about NHL players."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp>=3.0",
+    "pydantic>=2.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+# The repo uses the flat `src/` layout from PLAN section 10 (modules live
+# directly under src/, not in an installable package). Tests import them by
+# putting src/ on the path rather than installing the project.
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,23 @@
+{
+  "name": "Macklin Celebrini",
+  "team": "San Jose Sharks",
+  "position": "C",
+  "age": 20,
+  "toi_role": "1st Liner",
+  "cap": "$1M x 1",
+  "competition": 89,
+  "teammates": 72,
+  "ev_offence": 91,
+  "ev_defence": 33,
+  "pp": 72,
+  "pk": null,
+  "finishing": 92,
+  "penalties": 95,
+  "proj_war_pct": 94,
+  "goals": 91,
+  "first_assists": 95,
+  "war_pct_trend": [
+    {"season": "24-25", "value": 78},
+    {"season": "25-26", "value": 97}
+  ]
+}

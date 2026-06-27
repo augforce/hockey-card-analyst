@@ -1,0 +1,29 @@
+{
+  "name": "Logan Thompson",
+  "team": "Washington Capitals",
+  "age": 27,
+  "gp_pct": 71,
+  "role": "Starter",
+  "cap": "$6M x 5",
+  "proj_war_pct": 96,
+  "even_strength": 96,
+  "penalty_kill": 74,
+  "high_danger": 99,
+  "med_danger": 73,
+  "low_danger": 56,
+  "quality_starts": 99,
+  "excellent_starts": 53,
+  "bad_starts": 92,
+  "rebound_control": 35,
+  "consistency": 23,
+  "war_per60_trend": [
+    {"season": "23-24", "value": 38},
+    {"season": "24-25", "value": 91},
+    {"season": "25-26", "value": 100}
+  ],
+  "sv_vs_xsv_trend": [
+    {"season": "23-24", "sv": 90.8, "xsv": 91.2},
+    {"season": "24-25", "sv": 91.0, "xsv": 89.0},
+    {"season": "25-26", "sv": 91.2, "xsv": 88.5}
+  ]
+}

@@ -1,0 +1,198 @@
+# interpretation.yaml
+# The HockeyStats / JFresh reading methodology, distilled once by hand into
+# deterministic lookups (PLAN sections 5 and 7b). The server's behaviour comes
+# from this file plus the glossary, NOT from any runtime call to an LLM or to
+# HockeyStats.com. Tune the numbers and wording here without touching code.
+
+# --- Percentile tier bands (PLAN section 5) -------------------------------
+# Percentiles are compressed at the top, so the bands are deliberately uneven.
+# Bands are inclusive on both ends and must tile 0..100 with no gaps/overlaps.
+tiers:
+  - {min: 95, max: 100, label: "Elite"}
+  - {min: 85, max: 94,  label: "Excellent"}
+  - {min: 70, max: 84,  label: "Strong"}
+  - {min: 55, max: 69,  label: "Above average"}
+  - {min: 45, max: 54,  label: "Average"}
+  - {min: 30, max: 44,  label: "Below average"}
+  - {min: 15, max: 29,  label: "Weak"}
+  - {min: 0,  max: 14,  label: "Among the worst at the position"}
+
+# Any percentile at or above `threshold` carries this note (PLAN section 5).
+elite_compression:
+  threshold: 95
+  note: >-
+    The top of the percentile scale is compressed: the gap from 95 to true
+    elite (99-100) is large, so a 95 and a 99 are not the same player.
+
+# --- Caveats the engine attaches automatically (PLAN section 5) ------------
+caveats:
+  finishing_volatility: >-
+    Finishing swings year to year, while play-driving (the RAPM components) is
+    more repeatable. A verdict built on finishing is shakier than one built on
+    play-driving.
+  deployment_not_value: >-
+    Competition and Teammates describe how a player is used, not how good he
+    is. They are already baked into WAR, so they are never a strength or a
+    weakness on their own.
+  within_position_only: >-
+    Percentiles are ranked within each position pool. Forward vs forward and D
+    vs D are fair comparisons; skater vs goalie, or forward vs defenseman, is
+    not apples to apples and must be refused or heavily caveated.
+  dangerous_passing: >-
+    This model is known to underrate forwards who make dangerous passes and to
+    overrate shoot-first players. When a playmaking claim is borderline, weight
+    it toward the player.
+
+# --- Position rules (PLAN section 4) ---------------------------------------
+# A defenseman's card may show Finishing, but it is excluded from his projected
+# WAR. The engine must never credit a D's WAR to finishing.
+position_rules:
+  defense:
+    war_excludes: ["finishing"]
+
+# --- Goalie reading rules (PLAN section 5) ---------------------------------
+goalie_rules:
+  danger_split: >-
+    High, Med and Low Danger percentiles show where a goalie's value comes
+    from. Elite on High Danger but only ordinary on Low Danger means he makes
+    the hard saves but is average on routine shots; weak Low Danger is a
+    leaking-soft-goals flag. Read the three together as a profile.
+  floor_vs_ceiling: >-
+    Quality Starts is the floor (gives his team a chance most nights),
+    Excellent Starts is the ceiling (steals games), and Bad Starts is the
+    disaster rate. Report them as one profile, not three separate numbers.
+  consistency_volatility: >-
+    Consistency is a volatility flag, not value. A low Consistency percentile
+    paired with a steep recent WAR climb means the projection may be riding a
+    recent spike rather than a settled level. Goalie performance is the least
+    stable thing in the model, so temper every goalie projection with this.
+  save_lines: >-
+    On the Save% vs Expected Save% chart, read both lines together. When actual
+    save percentage holds while expected save percentage falls, the goalie is
+    increasingly beating expectation (rising goals saved above expected), which
+    is what drives WAR up. Never read either line alone.
+  rebound_control: >-
+    Rebound Control is a discrete skill. Call it out as its own strength or
+    weakness, not folded into the danger numbers.
+
+# --- Dimension dictionary: claim language -> card metric (PLAN section 5) --
+# `applies_to`: skater | goalie | both. `answerability`: answerable | partial |
+# not_answerable. `caveat` references a key under `caveats`. `deployment: true`
+# marks a usage metric that is never itself value. Extendable here in YAML.
+dimensions:
+  - id: finishing
+    applies_to: skater
+    aliases: ["goal scorer", "finisher", "sniper", "scores goals"]
+    metrics: ["finishing", "goals"]
+    answerability: answerable
+    caveat: finishing_volatility
+  - id: playmaking
+    applies_to: skater
+    aliases: ["playmaker", "passer", "vision", "sets up goals"]
+    metrics: ["first_assists"]
+    answerability: answerable
+    caveat: dangerous_passing
+  - id: two_way
+    applies_to: skater
+    aliases: ["two-way", "shutdown", "responsible", "200-foot", "defensively responsible"]
+    metrics: ["ev_defence", "pk"]
+    answerability: answerable
+  - id: power_play
+    applies_to: skater
+    aliases: ["power play weapon", "power play specialist", "man advantage"]
+    metrics: ["pp"]
+    answerability: answerable
+  - id: penalty_kill
+    applies_to: skater
+    aliases: ["penalty killer", "great on the kill", "shorthanded"]
+    metrics: ["pk"]
+    answerability: answerable
+  - id: discipline
+    applies_to: skater
+    aliases: ["disciplined", "takes too many penalties", "undisciplined"]
+    metrics: ["penalties"]
+    answerability: answerable
+  - id: overall_skater
+    applies_to: skater
+    aliases: ["elite", "superstar", "best player", "star"]
+    metrics: ["proj_war_pct"]
+    answerability: answerable
+  - id: competition
+    applies_to: skater
+    aliases: ["plays tough minutes", "matched against top lines", "hard minutes"]
+    metrics: ["competition"]
+    answerability: answerable
+    deployment: true
+    caveat: deployment_not_value
+  - id: teammates
+    applies_to: skater
+    aliases: ["carried by his linemates", "helped by his teammates"]
+    metrics: ["teammates"]
+    answerability: answerable
+    deployment: true
+    caveat: deployment_not_value
+  # --- goalie ---
+  - id: game_stealer
+    applies_to: goalie
+    aliases: ["steals games", "robs people", "highlight reel", "larceny"]
+    metrics: ["excellent_starts", "high_danger"]
+    answerability: answerable
+  - id: soft_goals
+    applies_to: goalie
+    aliases: ["lets in soft ones", "leaks easy goals", "soft goals"]
+    metrics: ["low_danger"]
+    answerability: answerable
+  - id: reliability
+    applies_to: goalie
+    aliases: ["gives you a chance every night", "reliable", "steady"]
+    metrics: ["quality_starts"]
+    answerability: answerable
+  - id: no_stinkers
+    applies_to: goalie
+    aliases: ["never has a stinker", "no bad nights"]
+    metrics: ["bad_starts"]
+    answerability: answerable
+  - id: goalie_consistency
+    applies_to: goalie
+    aliases: ["consistent", "you know what you'll get"]
+    metrics: ["consistency"]
+    answerability: answerable
+  - id: goalie_rebounds
+    applies_to: goalie
+    aliases: ["controls rebounds", "no second chances"]
+    metrics: ["rebound_control"]
+    answerability: answerable
+  - id: goalie_pk
+    applies_to: goalie
+    aliases: ["great on the kill", "shorthanded"]
+    metrics: ["penalty_kill"]
+    answerability: answerable
+  - id: workhorse
+    applies_to: goalie
+    aliases: ["workhorse", "true starter", "handles the load"]
+    metrics: ["gp_pct", "role"]
+    answerability: answerable
+  - id: overall_goalie
+    applies_to: goalie
+    aliases: ["elite goalie", "top tier", "vezina"]
+    metrics: ["proj_war_pct"]
+    answerability: answerable
+  # --- not answerable from a standard card ---
+  - id: goalie_style
+    applies_to: goalie
+    aliases: ["aggressive", "deep in his net", "glove vs blocker", "plays his angles"]
+    metrics: []
+    answerability: not_answerable
+    note: "Goalie playing-style claims are not measured on a standard card."
+  - id: net_front
+    applies_to: skater
+    aliases: ["net-front", "screens", "plays in the blue paint", "sits in front of the net"]
+    metrics: []
+    answerability: not_answerable
+    note: "Shot-location / net-front play is not on a standard card; the $10 microstat card gets closer."
+  - id: team_leading_scorer
+    applies_to: both
+    aliases: ["team's leading scorer", "team's best", "leading scorer next season"]
+    metrics: ["proj_war_pct"]
+    answerability: partial
+    note: "Depends on the player's team context (roster, role), which the card does not know."

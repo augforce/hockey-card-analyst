@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.DS_Store
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Raw HockeyStats card images — not redistributed (PLAN section 9).
+# The derived JSON fixtures in tests/fixtures/ are tracked; the source images
+# are not. Use `git add -f cardExamples/` if you deliberately want them tracked.
+cardExamples/
