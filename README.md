@@ -18,6 +18,13 @@ access to data. It is interpretation.
 It is for the fan who watches the games, trusts what they see, and wants the
 numbers to back that up or check it.
 
+## Query Example
+
+Let's compare the three Hughes' brothers (using Claude Desktop):
+<img width="804" height="641" alt="Screenshot 2026-06-28 at 10 29 55 AM" src="https://github.com/user-attachments/assets/0f392a95-d2eb-4f51-b672-13743d677a07" />
+<img width="764" height="721" alt="Screenshot 2026-06-28 at 10 30 12 AM" src="https://github.com/user-attachments/assets/bfb11593-b0a8-4aa7-b103-b9bfc7943bab" />
+
+
 ## What you can ask it
 
 - A claim gets made about a player ("he's just a net-front guy, can't do more
