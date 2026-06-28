@@ -51,7 +51,10 @@ does the deterministic part: it maps each percentile to a tier, grades claims
 against the numbers, compares two players within the same position pool, attaches
 the methodology caveats, and decides what the card cannot answer. The reading
 rules live in `config/interpretation.yaml`, not in the model's memory, so the
-answers stay consistent. It works for forwards, defensemen, and goalies.
+answers stay consistent. Because the verdict is deterministic, the same card
+values produce identical analysis on any host; what varies between hosts is how
+well each model reads the card image and routes the numbers through the tools. It
+works for forwards, defensemen, and goalies.
 
 Three tools, thin wrappers over the engine:
 
@@ -69,7 +72,7 @@ tool does not fetch, scrape, or store cards. It only interprets a card you
 supply, and the LLM reads the card image at runtime, so the server itself only
 ever sees the numbers.
 
-To run the server you need Python 3.11 or newer (developed and tested on 3.14).
+To run the server you need Python 3.11+ (tested on 3.14).
 
 ## How to run it
 
@@ -117,10 +120,15 @@ command works for other clients; you just put it in that client's MCP config.
    SDK, and similar). Each has its own place to register an MCP server, but the
    entry is the same command and args shown above.
 
-   **ChatGPT.** ChatGPT's connector support targets remote servers rather than
-   local stdio, so to use it there you would run this server over HTTP instead of
-   stdio (FastMCP supports an HTTP transport; see the FastMCP docs). That path is
-   not tested here.
+   **ChatGPT (more involved).** This is a different, heavier deployment than the
+   stdio hosts above. ChatGPT connects to a remote MCP endpoint rather than a
+   local stdio process, so you would run this server as a public HTTP endpoint
+   using FastMCP's HTTP transport. Two things to know going in: FastMCP's HTTP
+   transport enables DNS-rebinding/origin protection by default, which returns 403
+   to every client until you configure the allowed origins and hosts; and exposing
+   a public endpoint is a security responsibility you own. See the FastMCP HTTP
+   transport docs (https://gofastmcp.com) for transport and security
+   configuration. This path is not tested here.
 
 3. Confirm the loop. Start a conversation, give the model a player card image,
    and ask in plain language, for example:
