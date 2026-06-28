@@ -364,3 +364,26 @@ Exposure and wiring only — **no `engine/` changes**.
 - `tests/test_server.py` smoke-tests registration, skater/goalie dispatch,
   pass-through structure, and `ToolError` on an unidentifiable / invalid card.
   98 tests pass.
+
+## Post-v1 — card-bound scope + source honesty (2026-06-28)
+
+Doc/description-only (no `engine/` or schema changes): a card-bound scope + source-
+honesty norm added to all three tool descriptions, and a "Scope and sourcing"
+section added to the README.
+
+- **What:** card-bound interpretation is the default, no-setup behavior — every
+  verdict traces to a percentile on the card, so the audit trail stays clean.
+  Pulling outside context (trades, contracts, roster fit, recent stats) is an
+  **opt-in** the user configures themselves via a Claude Desktop *Project*
+  instruction (verbatim text lives in the README); it labels web-sourced facts as
+  separate from card-derived verdicts. It is not in the MCP config and not in this
+  repo.
+
+- **Why documented, not enforced (the principle behind the whole design):** an MCP
+  server can only expose tools — it cannot install behavior in the host model. So
+  anything *every* user must get has to ride in the tool descriptions or the README
+  (the only channels that reach every caller), and host conversational habits (when
+  to go to the web, how to label it) are the user's to configure, not the server's
+  to impose. That is why scope/sourcing is stated as a norm in the descriptions +
+  README rather than coded as a guardrail — the same reason the section 7 guardrails
+  live in the tool descriptions in the first place.

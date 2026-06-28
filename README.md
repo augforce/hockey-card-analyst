@@ -42,6 +42,41 @@ card, accessed through your own subscription; the server only interprets a card
 you already have. Do not scrape, cache, or redistribute HockeyStats cards or
 their underlying data.
 
+## Scope and sourcing
+
+The tools read the card and **nothing else**. Every verdict traces back to a
+percentile on the card, so the whole answer is auditable — you can check each
+claim against a number you can see.
+
+Team, roster, and contract context — trades, who's on the roster, who leads a
+team in scoring, recent game results — is **out of scope by design**. The tools
+don't fetch it and don't guess it (`adjudicate_claim` returns such claims as
+`unverifiable`). Keeping that context out is what keeps the auditable trail
+clean. This is the default, no-setup behavior: card-bound and honest.
+
+### Optional: let the host model add outside context
+
+If you *want* Claude Desktop to pull outside context (trades, contracts, roster
+fit) and weave it into the answer, you can opt in with a **Claude Desktop Project
+instruction**. This lives in a Claude Desktop *Project* (the app feature:
+Projects → your project → instructions) — **not** in the MCP config JSON, and
+**not** in this repo. Paste this in:
+
+```text
+When assessing hockey cards, anything the card itself can't answer (trades,
+contracts, current team, roster context, recent stats) may be pulled from the
+web. When you do, clearly mark which parts of the answer came from the web
+rather than the card, and add a brief note that web-sourced facts should be
+verified before being taken at face value. Card-derived verdicts come from the
+hockey-card-analyst tools and are traceable to the numbers; web facts are
+supporting context, not tool output. Keep the two visibly separate.
+```
+
+With this in place the model labels web-sourced facts separately from
+card-derived verdicts, so the audit trail stays intact: the card verdicts remain
+traceable to the numbers, and the outside context is clearly flagged as
+unverified. Web augmentation is an opt-in you configure and label yourself.
+
 ## Development
 
 Requires Python 3.11+ (developed on 3.14).

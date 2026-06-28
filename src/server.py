@@ -78,6 +78,13 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
     Guardrails: never invent a stat that isn't on the card; a defenseman's finishing
     is descriptive only (excluded from his WAR); surface the returned caveats rather
     than dropping them.
+
+    Scope: this tool interprets ONLY what's on the card. Anything the card can't see
+    — trades, contracts, current team, roster context, who leads a team in scoring,
+    recent game stats — is out of scope and it does not provide it. If you fill such
+    a gap from outside the card (e.g. the web), mark that content clearly as NOT from
+    the card and note it should be independently verified; keep card-derived verdicts
+    (traceable to the numbers) visibly separate from outside context (unverified).
     """
     return _assess(_parse_card(card)).model_dump()
 
@@ -109,6 +116,13 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
     scorer next season" and other team-context claims) come back unverifiable on
     purpose. A direction that contradicts the metric comes back not_supported with
     the number as the receipt.
+
+    Scope: this tool grades ONLY what's on the card. Beyond the card-can't-see
+    claims above, that also rules out trades, contracts, current team, and recent
+    game stats — out of scope, and `unverifiable` for the same reason. If you fill
+    any such gap from outside the card (e.g. the web), mark it clearly as NOT from
+    the card and flag it for verification; keep card-derived verdicts separate from
+    outside context.
 
     `card`: the same JSON card object as assess_player. `assertions`: a list of
     {dimension, direction, [text]}.
@@ -142,6 +156,12 @@ def compare_players(
     `edge_kind` "split", "better at what"). Do not collapse that into a winner;
     report the tradeoff. An edge built mainly on finishing (skaters) or resting on a
     low-consistency goalie is flagged less durable — pass that along.
+
+    Scope: this tool compares ONLY what's on the cards — it knows nothing about
+    trades, contracts, teams, roster fit, or recent stats. If you add such context
+    from outside the cards (e.g. the web), mark it clearly as NOT from the cards and
+    flag it for independent verification; keep the card-derived comparison separate
+    from outside context.
 
     `card_a`, `card_b`: card JSON objects as in assess_player. `focus` (optional):
     "offence" / "defence" / "overall" / a role (e.g. "power play") to narrow it.
