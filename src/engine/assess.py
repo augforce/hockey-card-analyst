@@ -249,6 +249,14 @@ def _caveats(
     fa = getattr(card, "first_assists", None)
     if not is_defense and fa is not None and STRENGTH_MIN > fa > WEAKNESS_MAX:
         caveats.append(cav["dangerous_passing"])
+    # Young-sample uncertainty: the card is a 3-year weighted average, so a young
+    # skater's number rests on a short, recent, still-developing sample. Pair it
+    # with the trajectory when the trend points up. Position-agnostic.
+    if card.age <= cfg["age_uncertainty"]["max_age"]:
+        note = cav["young_sample"]
+        if _trend_is_up(card):
+            note = note + " " + cav["young_sample_rising"]
+        caveats.append(note)
     return caveats
 
 
@@ -297,6 +305,16 @@ def _trend_direction(delta: float) -> str:
     if delta <= -5:
         return "trending down"
     return "holding steady"
+
+
+def _trend_is_up(card: SkaterLike) -> bool:
+    """True when the projected-WAR trend rises by the margin `_trajectory` reads
+    as 'up' (>= 5 over the span). Used to pair the young-sample caveat with a
+    rising trajectory."""
+    trend = getattr(card, "war_pct_trend", None)
+    if not trend or len(trend) < 2:
+        return False
+    return trend[-1].value - trend[0].value >= 5
 
 
 def _trajectory(card: SkaterLike) -> Optional[str]:

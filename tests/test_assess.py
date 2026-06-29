@@ -214,3 +214,67 @@ def test_defenseman_has_no_scoring_profile(dman):
     # even though the synthetic D shows finishing 95 over ev_offence 48.
     a = assess_player(dman)
     assert a.scoring_profile is None
+
+
+# --- Young-sample uncertainty (the card is a 3-year weighted average) -------
+
+
+def test_young_player_gets_uncertainty_caveat(celebrini):
+    # Celebrini is 20 — under the threshold, so the thin-sample caveat fires.
+    a = assess_player(celebrini)
+    base = load_config()["caveats"]["young_sample"]
+    assert any(base in c for c in a.caveats)
+
+
+def test_young_sample_caveat_pairs_with_rising_trend(celebrini):
+    # Celebrini's WAR trend points up (78 -> 97), so the caveat is paired with it.
+    a = assess_player(celebrini)
+    rising = load_config()["caveats"]["young_sample_rising"]
+    assert any(rising in c for c in a.caveats)
+
+
+def test_uncertainty_caveat_does_not_change_tier_or_verdict(celebrini):
+    # Articulation only — the caveat must not move the tier or the WAR verdict.
+    a = assess_player(celebrini)
+    assert a.overall_percentile == 94
+    assert a.overall_tier == "Excellent"
+
+
+def test_older_player_gets_no_uncertainty_caveat():
+    card = SkaterCard(
+        name="Synthetic vet (test fixture, not a real player)",
+        team="TEST",
+        position="C",
+        age=28,
+        ev_offence=70,
+        ev_defence=60,
+        finishing=55,
+        penalties=50,
+        proj_war_pct=72,
+        war_pct_trend=[
+            {"season": "24-25", "value": 60},
+            {"season": "25-26", "value": 80},
+        ],
+    )
+    a = assess_player(card)
+    base = load_config()["caveats"]["young_sample"]
+    assert not any(base in c for c in a.caveats)
+
+
+def test_young_without_rising_trend_omits_the_pairing():
+    # Young, but no upward trend — the base caveat fires without the paired clause.
+    card = SkaterCard(
+        name="Synthetic kid (test fixture, not a real player)",
+        team="TEST",
+        position="C",
+        age=21,
+        ev_offence=60,
+        ev_defence=58,
+        finishing=55,
+        penalties=50,
+        proj_war_pct=55,
+    )
+    a = assess_player(card)
+    cfg = load_config()
+    assert any(cfg["caveats"]["young_sample"] in c for c in a.caveats)
+    assert not any(cfg["caveats"]["young_sample_rising"] in c for c in a.caveats)

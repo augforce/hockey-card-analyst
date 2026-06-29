@@ -42,6 +42,23 @@ caveats:
     This model is known to underrate forwards who make dangerous passes and to
     overrate shoot-first players. When a playmaking claim is borderline, weight
     it toward the player.
+  young_sample: >-
+    The card is a three-year weighted average, so a young player's projection
+    rests on a short, recent, still-developing sample. Read both the upside and
+    the uncertainty as larger than the point estimate suggests — there is more
+    room to grow, and less settled evidence underneath, than the single number
+    shows.
+  young_sample_rising: >-
+    And the trend is pointing up, so the recent, heavier-weighted seasons are
+    pulling the projection higher: the upside is real, but lean on it knowing the
+    number may be running ahead of a fully settled level.
+
+# --- Young-sample uncertainty (the card is a 3-year weighted average) -------
+# A young skater's number rests on a short, recent, still-developing sample, so
+# the engine attaches the `young_sample` caveat at or below `max_age` (and pairs
+# it with the rising-trend clause when the trajectory points up). Tunable.
+age_uncertainty:
+  max_age: 22
 
 # --- Scoring profile: EV offence vs finishing (articulation only) ----------
 # Reads play-driving (EV offence — repeatable) against finishing (conversion —

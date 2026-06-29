@@ -423,3 +423,36 @@ and the server wrapper untouched; the new optional field rides through `model_du
   fin 97; real player, illustrative card) → negative_regression (reinforced);
   synthetic-D → no profile (the exclusion holds). `demo_assess.py` narrates the
   profile for both forwards. Full suite 106 passed.
+
+## Post-v1 — young-sample uncertainty caveat (2026-06-29)
+
+Engine + config enhancement to `assess_player`, skaters only (goalie path and schemas
+untouched). The card is a three-year weighted average.
+
+### The read
+- The card being a three-year weighted average is the whole point: a young skater's
+  number rests on a short, recent, still-developing sample. `_caveats` attaches the
+  `young_sample` caveat when `card.age <= age_uncertainty.max_age` (config, starts at
+  22, tunable) — both the upside and the uncertainty are larger than the point
+  estimate suggests. **Position-agnostic** (forward or D): a thin sample is thin
+  regardless of position, so unlike finishing-volatility / dangerous-passing this one
+  is not gated on `is_defense`.
+- **Paired with the trajectory** when the trend points up: `_trend_is_up` (≥ 5 over
+  the span — the same margin `_trajectory` reads as "up") appends the
+  `young_sample_rising` clause, tying the youth uncertainty to the rising number (the
+  recent, heavier-weighted seasons are pulling it higher, so the upside is real but
+  may be running ahead of a settled level). Young + flat/down/no-trend → base caveat
+  only.
+
+### Why articulation-only
+- It never moves the tier or the WAR verdict — it is one more string in `caveats`,
+  same as the other auto-attached caveats. The projection is what it is; this only
+  frames *how much weight the point estimate can bear* for a young player, which is a
+  reading instruction, not a re-scoring.
+
+### Tests / demo
+- TDD, 5 tests against the Celebrini fixture (age 20, trend up): caveat fires, pairs
+  with the rising trend, and leaves tier/verdict at Excellent/94. Negative controls:
+  an inline vet (age 28) gets nothing; an inline young player with no upward trend
+  gets the base caveat without the pairing. `demo_assess.py` shows it on Celebrini
+  (Dorofeyev/synthetic-D, both 26, correctly get nothing). Full suite 111 passed.
