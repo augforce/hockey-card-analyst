@@ -456,3 +456,50 @@ untouched). The card is a three-year weighted average.
   an inline vet (age 28) gets nothing; an inline young player with no upward trend
   gets the base caveat without the pairing. `demo_assess.py` shows it on Celebrini
   (Dorofeyev/synthetic-D, both 26, correctly get nothing). Full suite 111 passed.
+
+## Post-v1 — metric glossary + explain_metric (2026-06-29)
+
+A data file and a fourth tool. Skater and goalie. The analysis engines
+(`assess`/`adjudicate`/`compare`) were left **untouched** — this only adds a lookup.
+
+### The glossary (`config/glossary.yaml`)
+- One entry for every card metric — 22, spanning the skater and goalie cards — each
+  with a plain-language `definition` and its single most important interpretive
+  `caveat`, plus `aliases` for lookup. Written in our own words, **not** copied from
+  hockeystats.com (the IP line in the README). Faithfulness verified against the
+  site's own player-card page and the JFresh explainer; the goalie start-quality
+  metrics are **goals-saved-above-expected** based (quality = saved 0+, excellent =
+  saved 2+, bad = allowed 2+), NOT save percentage — a first draft got `excellent_starts`
+  wrong and it was corrected.
+
+### `explain_metric(metric)` (`engine/glossary.py`, 4th server tool)
+- A thin lookup returning `{query, found, metric, label, definition, caveat, message}`.
+  Resolves the schema field name or a natural alias (case/space/underscore folded;
+  `defense`→`defence`, `offense`→`offence`). Unknown input → `found: false` with a
+  clear "not a card metric" message; it never guesses.
+- Scope is fixed in the tool description: it **defines** a metric, it does not reason
+  about a player. "Why is this a risk for HIM" is the host's job (these definitions +
+  that player's `assess_player` result), not this tool's to compute.
+
+### Single source of truth (the dedup — why it matters later)
+- The caveats the engine already attaches are **not retyped** in the glossary. The
+  entries for finishing, competition/teammates, first_assists, rebound_control, and
+  goalie consistency use `caveat_ref` — a dotted path into `interpretation.yaml` — so
+  each caveat sentence lives in exactly one place. `explain_metric("finishing").caveat`
+  **is** the `finishing_volatility` sentence `assess` attaches, asserted by test. Chose
+  reference-into-`interpretation.yaml` over moving the text into the glossary precisely
+  so the engines (including `compare`, which reads those keys) stay untouched.
+- Per the chosen design there is **no** new grounding field on the `assess`/`adjudicate`
+  output; definitions are reachable via `explain_metric`, not embedded in verdicts.
+
+### Lookup hygiene
+- An alias index built at load **raises on any collision**, so two metrics can never
+  silently share a normalized key. This caught the one real clash: the goalie field
+  `penalty_kill` normalizes to "penalty kill", which the skater `pk` also wanted — the
+  goalie field (its literal name) wins the bare phrase, and the skater PK is reached
+  via "pk". The guard is itself a test.
+
+### Tests
+- TDD. `tests/test_glossary.py` — lookup by field name and alias, normalization, the
+  honest not-found path, full 22-metric coverage, the single-source dedup, and the
+  no-collision guard — plus two server smoke tests. Full suite 145 passed.

@@ -21,10 +21,10 @@ def _load(name):
     return json.loads((FIXTURES / name).read_text())
 
 
-def test_three_tools_are_registered():
+def test_all_tools_are_registered():
     tools = asyncio.run(server.mcp.list_tools())
     names = {t.name for t in tools}
-    assert {"assess_player", "adjudicate_claim", "compare_players"} <= names
+    assert {"assess_player", "adjudicate_claim", "compare_players", "explain_metric"} <= names
 
 
 def test_assess_player_returns_structured_skater():
@@ -51,6 +51,19 @@ def test_compare_players_cross_pool_refused():
     out = server.compare_players(_load("celebrini.json"), _load("synthetic_dman.json"))
     assert out["compatible"] is False
     assert out["edge_kind"] == "incompatible"
+
+
+def test_explain_metric_passes_through():
+    out = server.explain_metric("even strength defense")
+    assert out["found"] is True
+    assert out["metric"] == "ev_defence"
+    assert out["definition"] and out["caveat"]
+
+
+def test_explain_metric_unknown_is_not_found():
+    out = server.explain_metric("grit")
+    assert out["found"] is False
+    assert "not a card metric" in out["message"].lower()
 
 
 def test_unidentifiable_card_raises_toolerror():

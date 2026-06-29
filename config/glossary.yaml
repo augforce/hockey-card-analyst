@@ -1,0 +1,264 @@
+# glossary.yaml
+# Plain-language meaning for every card metric — skater and goalie — written in
+# OUR OWN WORDS. Nothing here is copied from hockeystats.com; it is the reading
+# methodology distilled by hand, the same as interpretation.yaml.
+#
+# One entry per card metric. Each entry has two content fields:
+#   definition — what the metric measures, in plain language.
+#   caveat     — the single most important interpretive note for it.
+# `aliases` are lookup keys for explain_metric (the schema field name plus common
+# natural phrasings); the canonical field name itself always resolves.
+#
+# Single source of truth: where a metric's most important caveat is one the engine
+# already attaches (finishing volatility, goalie consistency, deployment, dangerous
+# passing, rebound control), the entry uses `caveat_ref` — a dotted path into
+# interpretation.yaml — instead of retyping the sentence. The caveat lives in one
+# place and the glossary points at it. Every entry has exactly one of `caveat` /
+# `caveat_ref`.
+
+metrics:
+  # --- Shared ---------------------------------------------------------------
+  proj_war_pct:
+    aliases:
+      ["war", "proj war", "projected war", "projected war percentile",
+       "overall value", "wins above replacement", "overall rating", "how good is he"]
+    definition: >-
+      His projected Wins Above Replacement as a percentile against others at his
+      position — the model's single best estimate of total on-ice value for next
+      season, blending every component below into one number.
+    caveat: >-
+      A projection, not a result: it is a forward-looking weighted blend, so read
+      it as a central estimate with a range around it, and only ever within his
+      own position pool.
+
+  # --- Skater: deployment (context, not value) ------------------------------
+  competition:
+    aliases:
+      ["competition", "competition faced", "quality of competition", "opposition",
+       "tough minutes", "who he plays against", "matched against top lines"]
+    definition: >-
+      The quality of the opposition he is matched against — how tough the players
+      he lines up against are, as a percentile.
+    caveat_ref: caveats.deployment_not_value
+  teammates:
+    aliases:
+      ["teammates", "quality of teammates", "linemates", "who he plays with",
+       "help", "carried by his linemates"]
+    definition: >-
+      The quality of the linemates and partners he plays with — how much on-ice
+      help he gets, as a percentile.
+    caveat_ref: caveats.deployment_not_value
+
+  # --- Skater: WAR components -----------------------------------------------
+  ev_offence:
+    aliases:
+      ["ev offence", "even strength offence", "5v5 offence", "play driving offense",
+       "offensive impact", "drives offense", "even strength offensive impact"]
+    definition: >-
+      His five-on-five offensive impact — his isolated effect on the expected
+      goals (scoring chances) his team creates while he is on the ice, adjusted
+      for teammates and competition (RAPM). Play-driving, not his own point total.
+    caveat: >-
+      Repeatable play-driving (the part that carries year to year) and an on-ice
+      impact, not individual scoring — he can drive offence without filling his
+      own scoresheet.
+  ev_defence:
+    aliases:
+      ["ev defence", "even strength defence", "5v5 defense", "defensive impact",
+       "two way", "shutdown", "defensive play driving", "suppresses chances"]
+    definition: >-
+      His five-on-five defensive impact — his isolated effect on the expected
+      goals (scoring chances) his team allows while he is on the ice, adjusted for
+      teammates and competition (RAPM).
+    caveat: >-
+      This is play-driving suppression of chances against — a measure of impact,
+      not hits or blocked shots. A quiet, position-sound defender can rate higher
+      than a big-hitter.
+  pp:
+    aliases:
+      ["pp", "power play", "power play offense", "man advantage",
+       "on the power play", "pp1", "special teams offense"]
+    definition: >-
+      His on-ice value on the power play — how much he adds to the team's
+      man-advantage offence, as a percentile (NA when he has no power-play role).
+    caveat: >-
+      A role stat: NA means he does not play the power play — an absence of usage,
+      not a weakness — and never a zero. Already part of WAR.
+  pk:
+    # "penalty kill" (the bare phrase) resolves to the goalie `penalty_kill` metric,
+    # which is literally named that; a skater's PK role is reached here via "pk".
+    aliases:
+      ["pk", "shorthanded", "kills penalties", "penalty killer", "pk role"]
+    definition: >-
+      His on-ice value killing penalties — how much he helps suppress chances
+      shorthanded, as a percentile (NA when he has no penalty-kill role).
+    caveat: >-
+      A role stat: NA means no penalty-kill role — an absence of usage, not a
+      weakness. Do not read a missing PK as a zero.
+  finishing:
+    aliases:
+      ["finishing", "finish", "finisher", "sniper", "conversion",
+       "shooting talent", "scores goals", "goal scorer", "shooting percentage skill"]
+    definition: >-
+      How well he converts his chances into goals relative to an average shooter
+      from the same locations — finishing talent layered on top of shot volume,
+      not the volume itself.
+    caveat_ref: caveats.finishing_volatility
+  penalties:
+    aliases:
+      ["penalties", "discipline", "penalty differential", "takes too many penalties",
+       "undisciplined", "draws penalties", "stays out of the box"]
+    definition: >-
+      His discipline — his penalty differential (the non-offsetting penalties he
+      draws versus the ones he takes), as a percentile, where a higher mark helps
+      his team's special-teams margin.
+    caveat: >-
+      Oriented so higher is better (more disciplined, draws more than he takes); a
+      low mark is an undisciplined flag, not a lack of physicality. Do not invert
+      it.
+
+  # --- Skater: descriptive colour -------------------------------------------
+  goals:
+    aliases:
+      ["goals", "goal rate", "goal scoring", "how many goals", "individual goals",
+       "goals per 60"]
+    definition: >-
+      His individual goal-scoring rate as a percentile — how often he personally
+      scores, before any teammate or competition adjustment.
+    caveat: >-
+      Descriptive colour, not a value verdict — raw output that does not separate
+      his own finishing from the chances his linemates create. Read it alongside
+      EV offence and finishing, never alone.
+  first_assists:
+    aliases:
+      ["first assists", "primary assists", "playmaking", "passer", "setup passes",
+       "the last pass", "sets up goals", "vision", "primary helpers"]
+    definition: >-
+      His primary-assist rate as a percentile — how often he makes the pass that
+      directly sets up a goal (the last pass before the shot).
+    caveat_ref: caveats.dangerous_passing
+
+  # --- Goalie: workload ------------------------------------------------------
+  gp_pct:
+    aliases:
+      ["gp", "games played", "workload", "starts", "how much he plays",
+       "games played percentile", "workhorse load"]
+    definition: >-
+      His games-played percentile — how much of the net he actually carries, a
+      workload marker for the role he is given.
+    caveat: >-
+      Workload and deployment, not quality — a heavy or light load describes how
+      he is used, not how well he stops pucks. Kept separate from the value
+      metrics.
+
+  # --- Goalie: save performance by game state -------------------------------
+  even_strength:
+    aliases:
+      ["even strength saves", "5v5 saves", "even strength save performance",
+       "even strength goaltending", "saves at even strength"]
+    definition: >-
+      His save performance at five-on-five — goals saved above expected on
+      even-strength shots, as a percentile.
+    caveat: >-
+      Built on goals saved above expected (shot quality already accounted for),
+      not raw save percentage — it credits the difficulty of what he faced.
+  penalty_kill:
+    aliases:
+      ["penalty kill saves", "shorthanded saves", "pk save performance",
+       "saves on the penalty kill", "shorthanded goaltending", "pk save rate"]
+    definition: >-
+      His save performance while shorthanded — goals saved above expected on the
+      penalty kill, as a percentile.
+    caveat: >-
+      A goaltending metric (goals saved above expected shorthanded), not the
+      skaters' penalty kill — it isolates the goalie's own part of killing
+      penalties.
+
+  # --- Goalie: save performance by shot danger ------------------------------
+  high_danger:
+    aliases:
+      ["high danger", "high danger saves", "high danger save percentage",
+       "hard saves", "dangerous chances", "slot saves", "in tight saves"]
+    definition: >-
+      His save performance on high-danger shots — goals saved above expected on
+      the most dangerous chances (slot, rebounds, in-tight), as a percentile.
+    caveat: >-
+      One leg of the danger profile: strong high-danger with ordinary low-danger
+      means he makes the hard saves but is average on routine ones. Read the three
+      danger levels together.
+  med_danger:
+    aliases:
+      ["med danger", "medium danger", "mid danger saves", "medium danger saves",
+       "middle danger"]
+    definition: >-
+      His save performance on medium-danger shots — goals saved above expected on
+      the middle band of chance quality, as a percentile.
+    caveat: >-
+      The middle of the danger profile — most useful read next to high- and
+      low-danger, not on its own.
+  low_danger:
+    aliases:
+      ["low danger", "low danger saves", "routine shots", "easy saves",
+       "soft goals", "leaks easy goals", "low danger save percentage"]
+    definition: >-
+      His save performance on low-danger shots — goals saved above expected on the
+      routine, lower-quality shots he is expected to stop, as a percentile.
+    caveat: >-
+      Weak low-danger is a leaking-soft-goals flag — those are the shots a goalie
+      should handle, so a low mark here matters more than the shot quality
+      suggests.
+
+  # --- Goalie: start quality -------------------------------------------------
+  quality_starts:
+    aliases:
+      ["quality starts", "floor", "reliability", "gives you a chance", "steady",
+       "dependable starts", "reliable"]
+    definition: >-
+      How often he gives his team a fair chance to win — his rate of starts where
+      he saved at least as many goals as expected (goals saved above expected at
+      or above zero), as a percentile. The floor of his game.
+    caveat: >-
+      The floor of the start-quality profile (reliability), distinct from the
+      ceiling — pair it with excellent and bad starts; a high floor with a modest
+      ceiling is reliability over game-stealing.
+  excellent_starts:
+    aliases:
+      ["excellent starts", "ceiling", "game stealer", "steals games", "robs people",
+       "highlight reel", "larceny", "stolen games"]
+    definition: >-
+      His rate of game-stealing starts — nights he saved roughly two or more goals
+      above expected, strong enough to win his team a game on his own, as a
+      percentile. The ceiling.
+    caveat: >-
+      The ceiling of the start-quality profile (can he steal games), not the
+      floor — a modest mark means dependable but not a game-stealer. Read it with
+      quality starts.
+  bad_starts:
+    aliases:
+      ["bad starts", "bad starts avoided", "no stinkers", "never has a stinker",
+       "disaster rate", "blowups", "no bad nights", "avoids disasters"]
+    definition: >-
+      How rarely he has a disaster outing — his rate of bad starts (nights he
+      allowed about two or more goals above expected), oriented so a higher
+      percentile means fewer of them.
+    caveat: >-
+      Oriented so higher is better — a high mark means he rarely melts down, NOT
+      that he has many bad nights. Do not invert it.
+
+  # --- Goalie: reliability and puck handling --------------------------------
+  rebound_control:
+    aliases:
+      ["rebound control", "rebounds", "controls rebounds", "second chances",
+       "no second chances", "puck control", "rebound suppression"]
+    definition: >-
+      How well he controls rebounds — steering pucks to safe areas and limiting
+      second-chance shots, as a percentile.
+    caveat_ref: goalie_rules.rebound_control
+  consistency:
+    aliases:
+      ["consistency", "consistent", "predictability", "you know what you'll get",
+       "stable", "volatility", "predictable year to year"]
+    definition: >-
+      How predictable he is from year to year — a percentile for the stability of
+      his results, not how good those results are.
+    caveat_ref: goalie_rules.consistency_volatility

@@ -50,13 +50,14 @@ talking to (the LLM) reads the card image and handles the language. The server
 does the deterministic part: it maps each percentile to a tier, grades claims
 against the numbers, compares two players within the same position pool, attaches
 the methodology caveats, and decides what the card cannot answer. The reading
-rules live in `config/interpretation.yaml`, not in the model's memory, so the
-answers stay consistent. Because the verdict is deterministic, the same card
+rules live in `config/interpretation.yaml` and the metric definitions in
+`config/glossary.yaml`, not in the model's memory, so the answers stay
+consistent. Because the verdict is deterministic, the same card
 values produce identical analysis on any host; what varies between hosts is how
 well each model reads the card image and routes the numbers through the tools. It
 works for forwards, defensemen, and goalies.
 
-Three tools, thin wrappers over the engine:
+Four tools, thin wrappers over the engine:
 
 - `assess_player(card)`: overall tier, strengths and weaknesses, deployment,
   trajectory, caveats, a one-line summary.
@@ -64,6 +65,9 @@ Three tools, thin wrappers over the engine:
   `partial` / `not_supported` / `unverifiable`, with the cited number.
 - `compare_players(card_a, card_b, focus)`: component by component, an overall
   edge or an honest split, and a durability flag.
+- `explain_metric(metric)`: a plain-language definition of any card metric
+  (skater or goalie), plus its single most important interpretive caveat. It
+  defines a metric in the abstract; it does not reason about a specific player.
 
 ## What you need
 
@@ -198,5 +202,6 @@ design rationale behind the reading rules.
 
 ## Status
 
-v1.0: all three tools for forwards, defensemen, and goalies, served over MCP, and
-tested end to end on Claude Desktop. See `DECISIONS.md` for the full build log.
+v1.0: the three analysis tools plus `explain_metric`, for forwards, defensemen,
+and goalies, served over MCP, and tested end to end on Claude Desktop. See
+`DECISIONS.md` for the full build log.

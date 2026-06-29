@@ -22,6 +22,7 @@ from pydantic import ValidationError
 from engine.adjudicate import adjudicate_claim as _adjudicate
 from engine.assess import assess_player as _assess
 from engine.compare import compare_players as _compare
+from engine.glossary import explain_metric as _explain_metric
 from schemas import DefenseCard, GoalieCard, SkaterCard
 
 mcp = FastMCP("hockey-card-analyst")
@@ -167,6 +168,28 @@ def compare_players(
     "offence" / "defence" / "overall" / a role (e.g. "power play") to narrow it.
     """
     return _compare(_parse_card(card_a, "card_a"), _parse_card(card_b, "card_b"), focus).model_dump()
+
+
+@mcp.tool
+def explain_metric(metric: str) -> dict[str, Any]:
+    """Define a single card metric: what it measures, plus its one most important interpretive caveat.
+
+    A thin dictionary lookup over the card's percentile boxes (skater and goalie).
+    Pass the schema field name (e.g. `ev_defence`, `bad_starts`) or a natural
+    phrase (e.g. "even strength defense", "no stinkers"); it resolves both. An
+    input that isn't a card metric comes back with `found` false and a clear
+    message — it never guesses.
+
+    Returns: {query, found, metric, label, definition, caveat, message}. The
+    `caveat` is the same one the other tools attach, served from one source.
+
+    Scope: this tool DEFINES metrics in the abstract — it does NOT reason about any
+    specific player. A deeper "why is this a risk for HIM" question is yours to
+    answer from these definitions plus that player's assess_player result; it is
+    not something this tool computes. Use it to ground your narration of a metric's
+    meaning, not as a verdict.
+    """
+    return _explain_metric(metric).model_dump()
 
 
 if __name__ == "__main__":
