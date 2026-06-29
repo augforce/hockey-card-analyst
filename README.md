@@ -32,6 +32,20 @@ Let's compare the three Hughes' brothers (using Claude Desktop):
 - You have an eye-test read and want to see if the metrics confirm it or
   complicate it.
 - A trade gets floated and you want an honest answer to "is X an upgrade on Y."
+- A young player breaks out and you want to know how far to trust it ("he's only
+  20 — is this real, or too early to bank on?"). The card is a three-year weighted
+  average, so a young number rests on a short, recent sample: the upside and the
+  uncertainty are both bigger than the single percentile lets on.
+- A scorer's goal total looks unsustainable ("is he due to regress?") and you want
+  to know whether the scoring rests on repeatable play-driving or leans on hot
+  finishing that tends to cool.
+- The flip side ("is he actually better than his goals say?"): a player who drives
+  play but hasn't been finishing may have scoring that's understated — a
+  positive-regression candidate rather than a fluke.
+- You hit a metric you don't know ("what does EV defence actually measure, and
+  what's the catch?") and you want a plain-language definition plus the one caveat
+  that keeps you from misreading it — for the metric itself, not a verdict on a
+  player.
 
 ## Why you can trust it
 
