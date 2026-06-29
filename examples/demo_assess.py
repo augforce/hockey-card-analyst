@@ -80,6 +80,12 @@ def narrate(a):
     if a.weaknesses:
         label = "soft spots" if len(a.weaknesses) > 1 else "soft spot"
         out.append(f"The {label}: " + "; ".join(phrase(r) for r in a.weaknesses) + ".")
+    if a.scoring_profile:
+        sp = a.scoring_profile
+        out.append(
+            f"Scoring profile — {sp.label.lower()}: EV offence {ordinal(sp.ev_offence)} "
+            f"vs finishing {ordinal(sp.finishing)}. {sp.note}"
+        )
     if a.deployment:
         out.append(" ".join(a.deployment))
     if a.trajectory:
@@ -102,5 +108,6 @@ def show(title, card):
 
 
 if __name__ == "__main__":
-    show("CELEBRINI (forward) — golden fixture", SkaterCard(**_load("celebrini.json")))
-    show("SYNTHETIC D — finishing-exclusion proof", DefenseCard(**_load("synthetic_dman.json")))
+    show("CELEBRINI (forward) — golden fixture; scoring profile = both-high", SkaterCard(**_load("celebrini.json")))
+    show("DOROFEYEV (forward) — scoring profile = negative-regression (conversion-led)", SkaterCard(**_load("dorofeyev.json")))
+    show("SYNTHETIC D — finishing-exclusion proof; no scoring profile", DefenseCard(**_load("synthetic_dman.json")))

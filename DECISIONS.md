@@ -387,3 +387,39 @@ section added to the README.
   to impose. That is why scope/sourcing is stated as a norm in the descriptions +
   README rather than coded as a guardrail — the same reason the section 7 guardrails
   live in the tool descriptions in the first place.
+
+## Post-v1 — scoring profile (EV offence vs finishing) (2026-06-29)
+
+Engine + config enhancement to `assess_player`, skaters only (goalie path, schemas,
+and the server wrapper untouched; the new optional field rides through `model_dump()`).
+
+### The read
+- Reads EV offence (play-driving, repeatable) against finishing (conversion,
+  volatile) — both already on the card — and attaches a `scoring_profile` insight to
+  the `Assessment`. `scoring_profile.high_min: 70` (the Strong cutoff) and `gap: 10`
+  live in config, tunable. Precedence: **both_high** (both ≥ high — generates and
+  converts, the durable profile) → **positive_regression** (EV ≥ high, EV − fin ≥
+  gap — generates chances he isn't converting, scoring may be understated) →
+  **negative_regression** (fin ≥ high, fin − EV ≥ gap — conversion-led, regression
+  risk) → else `None`. Forwards only: a D's finishing is excluded from his value, so
+  reading a scoring profile off it would contradict that exclusion.
+
+### Why articulation-only, and why it shares the finishing caveat's voice (the reason this entry is worth reading)
+- The profile flags the *direction* of regression; it never moves the tier or the
+  WAR verdict, because the model already prices EV offence and finishing into WAR —
+  re-scoring off them would double-count what WAR already counted. It is a separate
+  insight beside the verdict, not an input to it.
+- It deliberately speaks as **one voice** with the `finishing_volatility` caveat
+  rather than duplicating it. The caveat's firing rule is unchanged (it fires when
+  finishing is a strength); the profile note **tempers** it when play-driving backs
+  the scoring (`both_high` — Celebrini: "well-supported, so the caveat is tempered")
+  and **reinforces** it when it doesn't (`negative_regression` — Dorofeyev: "this
+  reinforces the finishing-volatility caveat"). So the two are **not** redundant and
+  neither should be cut: the caveat says *finishing is volatile*, the profile says
+  *and here is which way that volatility points*. Future-you: leave both in.
+
+### Tests / demo
+- TDD, 8 tests. Celebrini → both_high (tempered); new `dorofeyev.json` (EV 61 /
+  fin 97; real player, illustrative card) → negative_regression (reinforced);
+  synthetic-D → no profile (the exclusion holds). `demo_assess.py` narrates the
+  profile for both forwards. Full suite 106 passed.

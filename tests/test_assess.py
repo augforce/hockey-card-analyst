@@ -25,6 +25,11 @@ def celebrini():
 
 
 @pytest.fixture
+def dorofeyev():
+    return SkaterCard(**_load("dorofeyev.json"))
+
+
+@pytest.fixture
 def dman():
     return DefenseCard(**_load("synthetic_dman.json"))
 
@@ -119,3 +124,93 @@ def test_defenseman_no_finishing_volatility_caveat(dman):
     a = assess_player(dman)
     # The verdict is not built on finishing, so that caveat must not fire.
     assert load_config()["caveats"]["finishing_volatility"] not in a.caveats
+
+
+# --- Scoring profile: EV offence (play-driving) vs finishing (conversion) ---
+
+
+def test_dorofeyev_scoring_profile_is_negative_regression(dorofeyev):
+    a = assess_player(dorofeyev)
+    sp = a.scoring_profile
+    assert sp is not None
+    assert sp.shape == "negative_regression"
+    # The read carries the two card numbers it weighs, unchanged.
+    assert sp.ev_offence == 61
+    assert sp.finishing == 97
+
+
+def test_scoring_profile_does_not_change_tier_or_war(dorofeyev):
+    # Articulation only: the read must not move the tier or the WAR verdict.
+    a = assess_player(dorofeyev)
+    assert a.overall_percentile == 94
+    assert a.overall_tier == "Excellent"
+    # finishing is still a genuine strength on the card; the read doesn't demote it.
+    assert "finishing" in _metrics(a.strengths)
+
+
+def test_negative_regression_reinforces_finishing_volatility(dorofeyev):
+    a = assess_player(dorofeyev)
+    cfg = load_config()
+    # The verdict leans on finishing, so the existing caveat still fires...
+    assert cfg["caveats"]["finishing_volatility"] in a.caveats
+    # ...and the scoring profile is worded to reinforce it, not contradict it.
+    assert "finishing-volatility" in a.scoring_profile.note.lower()
+
+
+def test_celebrini_scoring_profile_is_both_high(celebrini):
+    a = assess_player(celebrini)
+    sp = a.scoring_profile
+    assert sp is not None
+    assert sp.shape == "both_high"
+    assert sp.ev_offence == 91
+    assert sp.finishing == 92
+
+
+def test_both_high_tempers_finishing_volatility(celebrini):
+    a = assess_player(celebrini)
+    cfg = load_config()
+    # finishing is a strength, so the caveat still fires...
+    assert cfg["caveats"]["finishing_volatility"] in a.caveats
+    # ...but the both-high read tempers it (scoring is well-supported).
+    assert "temper" in a.scoring_profile.note.lower()
+
+
+def test_positive_regression_when_ev_offence_leads_finishing():
+    # High play-driving, finishing lagging — generates chances he isn't converting.
+    card = SkaterCard(
+        name="Synthetic PR (test fixture, not a real player)",
+        team="TEST",
+        position="C",
+        age=24,
+        ev_offence=88,
+        ev_defence=60,
+        finishing=60,
+        penalties=50,
+        proj_war_pct=75,
+    )
+    a = assess_player(card)
+    assert a.scoring_profile is not None
+    assert a.scoring_profile.shape == "positive_regression"
+
+
+def test_no_scoring_profile_when_neither_dimension_is_high():
+    card = SkaterCard(
+        name="Synthetic mid (test fixture, not a real player)",
+        team="TEST",
+        position="C",
+        age=24,
+        ev_offence=55,
+        ev_defence=58,
+        finishing=58,
+        penalties=50,
+        proj_war_pct=52,
+    )
+    a = assess_player(card)
+    assert a.scoring_profile is None
+
+
+def test_defenseman_has_no_scoring_profile(dman):
+    # Finishing is excluded from a D's value, so the scoring read must not fire
+    # even though the synthetic D shows finishing 95 over ev_offence 48.
+    a = assess_player(dman)
+    assert a.scoring_profile is None

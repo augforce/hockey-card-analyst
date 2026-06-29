@@ -48,6 +48,21 @@ class ComponentRead(BaseModel):
     note: Optional[str] = None
 
 
+class ScoringProfileRead(BaseModel):
+    """EV offence (play-driving) read against finishing (conversion).
+
+    Articulation only — never moves the tier or the WAR verdict. `shape` is one
+    of both_high / positive_regression / negative_regression; the two percentiles
+    it weighs are carried alongside the note so a narrator can cite them.
+    """
+
+    shape: str
+    label: str
+    ev_offence: int
+    finishing: int
+    note: str
+
+
 class Assessment(BaseModel):
     """Structured assessment of a single skater (the server's return shape)."""
 
@@ -61,6 +76,7 @@ class Assessment(BaseModel):
     weaknesses: list[ComponentRead]
     descriptive: list[ComponentRead]
     deployment: list[str]
+    scoring_profile: Optional[ScoringProfileRead] = None
     trajectory: Optional[str] = None
     caveats: list[str]
     summary: str
@@ -176,6 +192,7 @@ def assess_player(card, config: Optional[dict[str, Any]] = None):
     weaknesses.sort(key=lambda r: r.percentile)
 
     caveats = _caveats(card, strengths, is_defense, cfg)
+    scoring_profile = _scoring_profile(card, is_defense, cfg)
     trajectory = _trajectory(card)
     summary = _summary(card, overall, strengths, weaknesses, trajectory, is_defense)
 
@@ -190,6 +207,7 @@ def assess_player(card, config: Optional[dict[str, Any]] = None):
         weaknesses=weaknesses,
         descriptive=descriptive,
         deployment=deployment,
+        scoring_profile=scoring_profile,
         trajectory=trajectory,
         caveats=caveats,
         summary=summary,
@@ -232,6 +250,41 @@ def _caveats(
     if not is_defense and fa is not None and STRENGTH_MIN > fa > WEAKNESS_MAX:
         caveats.append(cav["dangerous_passing"])
     return caveats
+
+
+def _scoring_profile(
+    card: SkaterLike, is_defense: bool, cfg: dict[str, Any]
+) -> Optional[ScoringProfileRead]:
+    """Read EV offence (play-driving, repeatable) against finishing (conversion,
+    volatile). Articulation only — it never feeds the tier or the WAR verdict.
+
+    Forwards only: a defenseman's finishing is excluded from his value, so a
+    scoring read off it would contradict that exclusion. Returns None when
+    neither dimension is high enough (by `gap`) to tell a story.
+    """
+    if is_defense:
+        return None
+    spec = cfg.get("scoring_profile")
+    if not spec:
+        return None
+    evo, fin = card.ev_offence, card.finishing
+    high, gap = spec["high_min"], spec["gap"]
+    if evo >= high and fin >= high:
+        shape = "both_high"
+    elif evo >= high and evo - fin >= gap:
+        shape = "positive_regression"
+    elif fin >= high and fin - evo >= gap:
+        shape = "negative_regression"
+    else:
+        return None
+    band = spec["shapes"][shape]
+    return ScoringProfileRead(
+        shape=shape,
+        label=band["label"],
+        ev_offence=evo,
+        finishing=fin,
+        note=band["note"],
+    )
 
 
 def _trend_direction(delta: float) -> str:

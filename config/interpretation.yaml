@@ -43,6 +43,38 @@ caveats:
     overrate shoot-first players. When a playmaking claim is borderline, weight
     it toward the player.
 
+# --- Scoring profile: EV offence vs finishing (articulation only) ----------
+# Reads play-driving (EV offence — repeatable) against finishing (conversion —
+# volatile), both already on the card. This NEVER changes the tier or the WAR
+# verdict; it only adds a regression read as an insight. `high_min` is the "high"
+# cutoff (matches the Strong band / STRENGTH_MIN); `gap` is the minimum spread
+# before a profile is called lop-sided. Tune the numbers and wording here.
+scoring_profile:
+  high_min: 70
+  gap: 10
+  shapes:
+    both_high:
+      label: "Generates and converts — durable"
+      note: >-
+        High EV offence (play-driving, the repeatable part) sitting under high
+        finishing — he generates chances and converts them. The most durable
+        offensive profile: the scoring is well-supported by play-driving, so the
+        finishing-volatility caveat is tempered here rather than alarming.
+    positive_regression:
+      label: "Play-driving ahead of finishing — positive-regression candidate"
+      note: >-
+        High EV offence with finishing lagging behind — he generates chances he
+        isn't fully converting. His scoring may be understated; a
+        positive-regression candidate if the finishing climbs toward the
+        play-driving it already supports.
+    negative_regression:
+      label: "Conversion-led — negative-regression risk"
+      note: >-
+        High finishing over only modest EV offence — the scoring leans on
+        conversion, which swings year to year. A negative-regression risk if the
+        finishing cools, since the play-driving underneath is only ordinary. This
+        reinforces the finishing-volatility caveat.
+
 # --- Position rules (PLAN section 4) ---------------------------------------
 # A defenseman's card may show Finishing, but it is excluded from his projected
 # WAR. The engine must never credit a D's WAR to finishing.
