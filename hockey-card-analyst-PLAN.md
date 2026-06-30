@@ -25,7 +25,7 @@ This is the headline feature, so it gets its own section.
 A claim is rarely one thing. Example: "sits in front of the net and scores goals, you'll love him unless he's asked to do more, probably your leading scorer next season." That is four separate assertions:
 
 - "scores goals" maps to Finishing and Goals. Checkable.
-- "asked to do more" maps to whether playmaking (1st Assists) and defence (EV Defence, PK) are weak. Checkable.
+- "asked to do more" maps to whether playmaking (1st Assists) and defense (EV Defense, PK) are weak. Checkable.
 - "sits in front of the net" is a playing-style claim about shot location. A standard card does not measure this. It goes in the **not answerable** bucket, with a note that the $10 microstat card gets closer.
 - "leading scorer next season" depends on his new team's roster, which the card does not know. **Partly supported** at best, with a team-context caveat.
 
@@ -39,7 +39,7 @@ Claude extracts these from the card image via vision and passes them to the serv
 
 ### Skater (forward)
 - Context (does not affect value): `name`, `team`, `position`, `age`, `toi_role`, `cap`, `competition`, `teammates`
-- WAR components (percentiles): `ev_offence`, `ev_defence`, `pp` (nullable / NA), `pk` (nullable / NA), `finishing`, `penalties`
+- WAR components (percentiles): `ev_offense`, `ev_defense`, `pp` (nullable / NA), `pk` (nullable / NA), `finishing`, `penalties`
 - Headline: `proj_war_pct`
 - Extra descriptive: `goals`, `first_assists`
 - Trends (optional): `war_pct_trend` as a list of `{season, value}`
@@ -100,7 +100,7 @@ Helps Claude map hockey-talk consistently. Extendable in YAML. Representative en
 
 - goal scorer / finisher / sniper -> `finishing`, `goals`
 - playmaker / passer / vision -> `first_assists` (attach dangerous-passing caveat)
-- two-way / shutdown / responsible / 200-foot -> `ev_defence`, `pk`
+- two-way / shutdown / responsible / 200-foot -> `ev_defense`, `pk`
 - power play weapon -> `pp`
 - penalty killer -> `pk`
 - disciplined / takes too many penalties -> `penalties`
@@ -126,7 +126,7 @@ Three tools, plus one optional helper. Each takes structured input and returns s
 
 - `assess_player(card)` -> overall tier, top strengths, top weaknesses, deployment note, trajectory from trend, attached caveats, one-line summary.
 - `adjudicate_claim(card, assertions)` where `assertions` is the list Claude extracted. Returns, per assertion: grade (`supported` / `partial` / `not_supported` / `unverifiable`), the metric value cited, and a one-line reason. Plus an overall read.
-- `compare_players(card_a, card_b, focus=None)` -> position-compatibility check first (refuse or caveat if pools differ), then component-by-component, overall edge, and a durability flag (finishing-driven edge = less durable). `focus` can narrow to offence, defence, overall, or a role.
+- `compare_players(card_a, card_b, focus=None)` -> position-compatibility check first (refuse or caveat if pools differ), then component-by-component, overall edge, and a durability flag (finishing-driven edge = less durable). `focus` can narrow to offense, defense, overall, or a role.
 - `explain_metric(name)` (optional) -> plain-English definition plus caveats for any card metric, so the tool can also teach.
 
 ## 7. What Claude Desktop does vs what the server does
@@ -206,7 +206,7 @@ Keep a `DECISIONS.md` log, same habit as career-intelligence.
 
 ## 12. How to know it works
 
-A good end-to-end test: paste the Celebrini card and say "someone told me this kid is an elite two-way center already, true?" The tool should support the offensive half loudly (elite EV offence, finishing, primary assists), push back on the two-way half (EV defence sits at 33, below average, no PK role), note he does it against tough competition, and flag that his arrow is pointing sharply up. That is the kind of honest, sourced answer the whole thing exists to produce.
+A good end-to-end test: paste the Celebrini card and say "someone told me this kid is an elite two-way center already, true?" The tool should support the offensive half loudly (elite EV offense, finishing, primary assists), push back on the two-way half (EV defense sits at 33, below average, no PK role), note he does it against tough competition, and flag that his arrow is pointing sharply up. That is the kind of honest, sourced answer the whole thing exists to produce.
 
 The goalie equivalent, using the Thompson card: paste it and say "is this guy a top-tier starter or is he riding a hot streak?" The tool should support the top-tier read (96th in projected WAR, 99th high danger, 99th quality starts, rarely a bad night at 92nd), but also surface the real tension: Consistency sits at 23, his WAR per 60 climbed steeply over three years rather than holding, Rebound Control is a weak 35, and his Excellent Starts are only middling at 53, so the ceiling is reliability rather than game-stealing. The honest verdict is a genuinely strong starter whose three-year track record is short and uneven, which is exactly the volatility goalies are known for. Both halves true at once is the point.
 

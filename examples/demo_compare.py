@@ -2,7 +2,7 @@
 
 Renders the structured `compare_players()` output AND the plain-English answer a
 human (Claude Desktop) would narrate from it. The headline is the GENUINE SPLIT
-case: two forwards who are close, one better on offence, the other on defence,
+case: two forwards who are close, one better on offense, the other on defense,
 with level projected WAR. The point is to read whether compare says "here's the
 tradeoff" instead of pretending the numbers settled it. The clear-winner and
 cross-position cases are printed briefly for contrast.

@@ -22,12 +22,12 @@ def celebrini():
 
 
 # The section 3 four-part claim, decomposed the way Claude Desktop would.
-# "asked to do more" maps to BOTH playmaking and defence (section 3), so it
+# "asked to do more" maps to BOTH playmaking and defense (section 3), so it
 # yields two assertions — and they disagree, which is the point.
 FOUR_PART = [
     {"dimension": "finishing", "direction": "high", "text": "scores goals"},
     {"dimension": "playmaking", "direction": "low", "text": "limited if asked to do more"},
-    {"dimension": "two_way", "direction": "low", "text": "limited if asked to do more (defence)"},
+    {"dimension": "two_way", "direction": "low", "text": "limited if asked to do more (defense)"},
     {"dimension": "net_front", "direction": "high", "text": "sits in front of the net"},
     {"dimension": "team_leading_scorer", "direction": "high", "text": "leading scorer next season"},
 ]
@@ -52,7 +52,7 @@ def test_four_part_individual_grades(celebrini):
     v = _by_dim(adjudicate_claim(celebrini, FOUR_PART))
     assert v["finishing"].grade == "supported"          # finishing 92nd
     assert v["playmaking"].grade == "not_supported"     # claim low, but 95th
-    assert v["two_way"].grade == "supported"            # ev_defence 33rd, low
+    assert v["two_way"].grade == "supported"            # ev_defense 33rd, low
     assert v["net_front"].grade == "unverifiable"       # not on the card
     assert v["team_leading_scorer"].grade == "partial"  # needs team context
 

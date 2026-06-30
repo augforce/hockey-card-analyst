@@ -32,7 +32,7 @@ GOALIE_START_QUALITY = ["quality_starts", "excellent_starts", "bad_starts"]
 
 # Value-bearing WAR components, in display order. For a defenseman, any metric in
 # `position_rules.defense.war_excludes` (Finishing) is pulled out of this set.
-WAR_COMPONENTS = ["ev_offence", "ev_defence", "pp", "pk", "finishing", "penalties"]
+WAR_COMPONENTS = ["ev_offense", "ev_defense", "pp", "pk", "finishing", "penalties"]
 # Extra descriptive metrics — never themselves the WAR verdict (PLAN section 4).
 DESCRIPTIVE = ["goals", "first_assists"]
 # Usage metrics — deployment, never a strength or weakness (PLAN section 5).
@@ -49,7 +49,7 @@ class ComponentRead(BaseModel):
 
 
 class ScoringProfileRead(BaseModel):
-    """EV offence (play-driving) read against finishing (conversion).
+    """EV offense (play-driving) read against finishing (conversion).
 
     Articulation only — never moves the tier or the WAR verdict. `shape` is one
     of both_high / positive_regression / negative_regression; the two percentiles
@@ -58,7 +58,7 @@ class ScoringProfileRead(BaseModel):
 
     shape: str
     label: str
-    ev_offence: int
+    ev_offense: int
     finishing: int
     note: str
 
@@ -263,7 +263,7 @@ def _caveats(
 def _scoring_profile(
     card: SkaterLike, is_defense: bool, cfg: dict[str, Any]
 ) -> Optional[ScoringProfileRead]:
-    """Read EV offence (play-driving, repeatable) against finishing (conversion,
+    """Read EV offense (play-driving, repeatable) against finishing (conversion,
     volatile). Articulation only — it never feeds the tier or the WAR verdict.
 
     Forwards only: a defenseman's finishing is excluded from his value, so a
@@ -275,7 +275,7 @@ def _scoring_profile(
     spec = cfg.get("scoring_profile")
     if not spec:
         return None
-    evo, fin = card.ev_offence, card.finishing
+    evo, fin = card.ev_offense, card.finishing
     high, gap = spec["high_min"], spec["gap"]
     if evo >= high and fin >= high:
         shape = "both_high"
@@ -289,7 +289,7 @@ def _scoring_profile(
     return ScoringProfileRead(
         shape=shape,
         label=band["label"],
-        ev_offence=evo,
+        ev_offense=evo,
         finishing=fin,
         note=band["note"],
     )

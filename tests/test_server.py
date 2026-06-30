@@ -56,7 +56,7 @@ def test_compare_players_cross_pool_refused():
 def test_explain_metric_passes_through():
     out = server.explain_metric("even strength defense")
     assert out["found"] is True
-    assert out["metric"] == "ev_defence"
+    assert out["metric"] == "ev_defense"
     assert out["definition"] and out["caveat"]
 
 
@@ -73,6 +73,6 @@ def test_unidentifiable_card_raises_toolerror():
 
 def test_invalid_percentile_raises_toolerror():
     bad = _load("celebrini.json")
-    bad["ev_offence"] = 150  # out of 0-100 range
+    bad["ev_offense"] = 150  # out of 0-100 range
     with pytest.raises(ToolError):
         server.assess_player(bad)

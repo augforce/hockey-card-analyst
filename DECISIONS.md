@@ -40,7 +40,7 @@ accepted as-is.
 - `Percentile = int` constrained to `0..100` (cards show integer percentiles).
 - **Strict models**: `extra="forbid"` so a mis-extracted card fails loudly.
 - Required vs optional split: `name`, `team`, `position`/`role`, `age`, the WAR
-  components (`ev_offence`, `ev_defence`, `finishing`, `penalties`) and
+  components (`ev_offense`, `ev_defense`, `finishing`, `penalties`) and
   `proj_war_pct` are required. `pp`/`pk` are nullable (NA when no PP/PK role).
   `toi_role`, `cap`, `competition`, `teammates`, `goals`, `first_assists`,
   `gp_pct` are optional. For goalies, all ten percentile boxes are required.
@@ -98,7 +98,7 @@ accepted as-is.
 - **NA (`pp`/`pk` = None) is the absence of a role, not a weakness.** Assess must
   report it as deployment context and must never let it read as a zero or pull a
   verdict down. Celebrini has no PK; that does not make him defensively bad, it
-  means he is not used there. (`ev_defence` = 33 is the actual defensive read;
+  means he is not used there. (`ev_defense` = 33 is the actual defensive read;
   `pk` = NA is separate.)
 - **Defenseman finishing is descriptive only.** Finishing appears on a D card but
   is excluded from projected WAR (`position_rules.defense.war_excludes`). Assess
@@ -123,7 +123,7 @@ No commits were made until the Phase 1 checkpoint commit (see git log).
   (metric, label, percentile, tier, note).
 
 ### What counts as what
-- Three buckets: **WAR components** (`ev_offence`, `ev_defence`, `pp`, `pk`,
+- Three buckets: **WAR components** (`ev_offense`, `ev_defense`, `pp`, `pk`,
   `finishing`, `penalties`) drive strengths/weaknesses; **descriptive**
   (`goals`, `first_assists`) is supporting colour only (section 4 "extra
   descriptive"); **deployment** (`competition`, `teammates`) is never a
@@ -203,8 +203,8 @@ No commits were made until the Phase 1 checkpoint commit (see git log).
 
 ### Test claim decomposition
 - The section 3 four-part claim is decomposed into **five** assertions because
-  "asked to do more" maps to BOTH playmaking and defence (section 3) — and they
-  disagree: playmaking is Elite (95th, refutes "limited") while EV defence is
+  "asked to do more" maps to BOTH playmaking and defense (section 3) — and they
+  disagree: playmaking is Elite (95th, refutes "limited") while EV defense is
   Below average (33rd, supports it). That disagreement is the half-right nuance.
 
 ### Refactor / housekeeping
@@ -236,8 +236,8 @@ No commits were made until the Phase 1 checkpoint commit (see git log).
   NA components are dropped from area aggregates.
 
 ### Overall edge — refuses false winners (the carried-over discipline)
-- Area leaders: offence = avg(ev_offence, pp, finishing); defence =
-  avg(ev_defence, pk); a lead counts only at ≥ `MARGIN` (5).
+- Area leaders: offense = avg(ev_offense, pp, finishing); defense =
+  avg(ev_defense, pk); a lead counts only at ≥ `MARGIN` (5).
 - **Genuine split** (areas have opposite leaders) → `overall_edge=None`,
   `edge_kind="split"`, prose says "better at what" and names the tradeoff —
   UNLESS projected WAR differs by ≥ `PROJ_DECISIVE` (10), in which case the edge
@@ -248,11 +248,11 @@ No commits were made until the Phase 1 checkpoint commit (see git log).
 
 ### Durability flag
 - If the winner's finishing lead exceeds their largest play-driving (EV
-  offence/defence) lead, the edge is "less durable — leans on finishing" and the
+  offense/defense) lead, the edge is "less durable — leans on finishing" and the
   finishing-volatility caveat is attached; otherwise "durable — play-driving".
 
 ### focus
-- `offence`/`defence` narrow to that area and CAN crown a within-area winner even
+- `offense`/`defense` narrow to that area and CAN crown a within-area winner even
   when the overall comparison splits; `overall`/None run the full logic; a
   role/metric (`pp`, `power play`, `pk`, `penalty kill`, or a metric name) narrows
   to a single component. `offense`/`defense` normalize to the British spelling.
@@ -307,7 +307,7 @@ split refusal, the position guard, and the durability pattern.
 
 ### compare_players (goalie)
 - Refactored to be **spec-driven**: `_spec(pool)` returns the component list and
-  the two split-areas. Skaters split offence-vs-defence; goalies split
+  the two split-areas. Skaters split offense-vs-defense; goalies split
   **ceiling** (excellent_starts, high_danger) **vs floor** (quality_starts,
   low_danger, bad_starts). The split refusal is the same code.
 - Goalie durability is **consistency-based**: an edge resting on a low-consistency
@@ -388,13 +388,13 @@ section added to the README.
   README rather than coded as a guardrail — the same reason the section 7 guardrails
   live in the tool descriptions in the first place.
 
-## Post-v1 — scoring profile (EV offence vs finishing) (2026-06-29)
+## Post-v1 — scoring profile (EV offense vs finishing) (2026-06-29)
 
 Engine + config enhancement to `assess_player`, skaters only (goalie path, schemas,
 and the server wrapper untouched; the new optional field rides through `model_dump()`).
 
 ### The read
-- Reads EV offence (play-driving, repeatable) against finishing (conversion,
+- Reads EV offense (play-driving, repeatable) against finishing (conversion,
   volatile) — both already on the card — and attaches a `scoring_profile` insight to
   the `Assessment`. `scoring_profile.high_min: 70` (the Strong cutoff) and `gap: 10`
   live in config, tunable. Precedence: **both_high** (both ≥ high — generates and
@@ -406,7 +406,7 @@ and the server wrapper untouched; the new optional field rides through `model_du
 
 ### Why articulation-only, and why it shares the finishing caveat's voice (the reason this entry is worth reading)
 - The profile flags the *direction* of regression; it never moves the tier or the
-  WAR verdict, because the model already prices EV offence and finishing into WAR —
+  WAR verdict, because the model already prices EV offense and finishing into WAR —
   re-scoring off them would double-count what WAR already counted. It is a separate
   insight beside the verdict, not an input to it.
 - It deliberately speaks as **one voice** with the `finishing_volatility` caveat
@@ -475,8 +475,8 @@ A data file and a fourth tool. Skater and goalie. The analysis engines
 ### `explain_metric(metric)` (`engine/glossary.py`, 4th server tool)
 - A thin lookup returning `{query, found, metric, label, definition, caveat, message}`.
   Resolves the schema field name or a natural alias (case/space/underscore folded;
-  `defense`→`defence`, `offense`→`offence`). Unknown input → `found: false` with a
-  clear "not a card metric" message; it never guesses.
+  British spellings accepted: `defence`→`defense`, `offence`→`offense`). Unknown input
+  → `found: false` with a clear "not a card metric" message; it never guesses.
 - Scope is fixed in the tool description: it **defines** a metric, it does not reason
   about a player. "Why is this a risk for HIM" is the host's job (these definitions +
   that player's `assess_player` result), not this tool's to compute.
@@ -503,3 +503,25 @@ A data file and a fourth tool. Skater and goalie. The analysis engines
 - TDD. `tests/test_glossary.py` — lookup by field name and alias, normalization, the
   honest not-found path, full 22-metric coverage, the single-source dedup, and the
   no-collision guard — plus two server smoke tests. Full suite 145 passed.
+
+## Post-v1 — American spelling (offense / defense) (2026-06-30)
+- **Symptom.** Host narrations kept reading "EV offence" / "EV defence". The codebase
+  had standardized on British spelling as canonical — schema field keys (`ev_offence`,
+  `ev_defence`), `LABELS` values, config caveat/definition prose, `compare` focus
+  values, and the two normalizers (`glossary._normalize`, `compare._norm_focus`) which
+  actively converted American *input* → British. The host LLM sees those field keys and
+  labels and echoes them, so the British spelling leaked straight into the prose.
+- **Decision.** Flip canonical to **American everywhere** — field keys are now
+  `ev_offense` / `ev_defense`; labels, config text, focus values, fixtures, tests,
+  demos, and docs all read offense/defense. A prose-only patch was rejected: leaving the
+  British field keys visible in the schema/server docstrings would keep priming the host
+  to echo British. Safe to rename the keys because this is a local single-user server
+  with no external caller — the host is driven by the live tool schema.
+- **Graceful input.** The two normalizers were flipped, not deleted: British spellings
+  are still accepted as aliases and folded to the American canonical (`offence`→`offense`,
+  `defence`→`defense`), so a host or user typing "ev defence" or `focus="defence"` still
+  resolves. Asserted by the existing glossary normalization test (which now exercises
+  `EVEN-STRENGTH DEFENCE` → `ev_defense`).
+- **Invariant unchanged.** Pure spelling/identifier rename — no reading rule, tier band,
+  or verdict changed. Full suite 145 passed; the four narration demos re-run clean with
+  zero British spelling in any output.

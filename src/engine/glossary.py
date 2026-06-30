@@ -37,13 +37,13 @@ class MetricExplanation(BaseModel):
 
 def _normalize(text: str) -> str:
     """Fold a query to a canonical lookup key: lowercase, strip surrounding
-    quotes/space, unify separators, and normalize American spellings to the
-    card's British ones (defense -> defence, offense -> offence)."""
+    quotes/space, unify separators, and normalize British spellings to the
+    card's American ones (defence -> defense, offence -> offense)."""
     key = text.strip().strip("\"'").lower()
     for ch in ("_", "-", "/"):
         key = key.replace(ch, " ")
     key = " ".join(key.split())
-    return key.replace("offense", "offence").replace("defense", "defence")
+    return key.replace("offence", "offense").replace("defence", "defense")
 
 
 def _alias_index(glossary: dict[str, Any]) -> dict[str, str]:

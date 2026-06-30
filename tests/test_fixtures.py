@@ -25,8 +25,8 @@ def test_celebrini_fixture_loads_with_verified_values():
     assert card.age == 20
 
     # Exact, legible box percentiles.
-    assert card.ev_offence == 91
-    assert card.ev_defence == 33
+    assert card.ev_offense == 91
+    assert card.ev_defense == 33
     assert card.pp == 72
     assert card.finishing == 92
     assert card.penalties == 95

@@ -48,20 +48,20 @@ def test_overall_tier_from_proj_war(celebrini):
     assert a.overall_tier == "Excellent"
 
 
-def test_offence_and_finishing_are_strengths(celebrini):
+def test_offense_and_finishing_are_strengths(celebrini):
     a = assess_player(celebrini)
     metrics = _metrics(a.strengths)
-    assert "ev_offence" in metrics
+    assert "ev_offense" in metrics
     assert "finishing" in metrics
     assert "penalties" in metrics  # 95th = elite discipline
 
 
-def test_ev_defence_is_a_weakness(celebrini):
+def test_ev_defense_is_a_weakness(celebrini):
     a = assess_player(celebrini)
     weak = {r.metric: r for r in a.weaknesses}
-    assert "ev_defence" in weak
-    assert weak["ev_defence"].percentile == 33
-    assert weak["ev_defence"].tier == "Below average"
+    assert "ev_defense" in weak
+    assert weak["ev_defense"].percentile == 33
+    assert weak["ev_defense"].tier == "Below average"
 
 
 def test_na_pk_is_deployment_not_a_weakness(celebrini):
@@ -126,7 +126,7 @@ def test_defenseman_no_finishing_volatility_caveat(dman):
     assert load_config()["caveats"]["finishing_volatility"] not in a.caveats
 
 
-# --- Scoring profile: EV offence (play-driving) vs finishing (conversion) ---
+# --- Scoring profile: EV offense (play-driving) vs finishing (conversion) ---
 
 
 def test_dorofeyev_scoring_profile_is_negative_regression(dorofeyev):
@@ -135,7 +135,7 @@ def test_dorofeyev_scoring_profile_is_negative_regression(dorofeyev):
     assert sp is not None
     assert sp.shape == "negative_regression"
     # The read carries the two card numbers it weighs, unchanged.
-    assert sp.ev_offence == 61
+    assert sp.ev_offense == 61
     assert sp.finishing == 97
 
 
@@ -162,7 +162,7 @@ def test_celebrini_scoring_profile_is_both_high(celebrini):
     sp = a.scoring_profile
     assert sp is not None
     assert sp.shape == "both_high"
-    assert sp.ev_offence == 91
+    assert sp.ev_offense == 91
     assert sp.finishing == 92
 
 
@@ -175,15 +175,15 @@ def test_both_high_tempers_finishing_volatility(celebrini):
     assert "temper" in a.scoring_profile.note.lower()
 
 
-def test_positive_regression_when_ev_offence_leads_finishing():
+def test_positive_regression_when_ev_offense_leads_finishing():
     # High play-driving, finishing lagging — generates chances he isn't converting.
     card = SkaterCard(
         name="Synthetic PR (test fixture, not a real player)",
         team="TEST",
         position="C",
         age=24,
-        ev_offence=88,
-        ev_defence=60,
+        ev_offense=88,
+        ev_defense=60,
         finishing=60,
         penalties=50,
         proj_war_pct=75,
@@ -199,8 +199,8 @@ def test_no_scoring_profile_when_neither_dimension_is_high():
         team="TEST",
         position="C",
         age=24,
-        ev_offence=55,
-        ev_defence=58,
+        ev_offense=55,
+        ev_defense=58,
         finishing=58,
         penalties=50,
         proj_war_pct=52,
@@ -211,7 +211,7 @@ def test_no_scoring_profile_when_neither_dimension_is_high():
 
 def test_defenseman_has_no_scoring_profile(dman):
     # Finishing is excluded from a D's value, so the scoring read must not fire
-    # even though the synthetic D shows finishing 95 over ev_offence 48.
+    # even though the synthetic D shows finishing 95 over ev_offense 48.
     a = assess_player(dman)
     assert a.scoring_profile is None
 
@@ -246,8 +246,8 @@ def test_older_player_gets_no_uncertainty_caveat():
         team="TEST",
         position="C",
         age=28,
-        ev_offence=70,
-        ev_defence=60,
+        ev_offense=70,
+        ev_defense=60,
         finishing=55,
         penalties=50,
         proj_war_pct=72,
@@ -268,8 +268,8 @@ def test_young_without_rising_trend_omits_the_pairing():
         team="TEST",
         position="C",
         age=21,
-        ev_offence=60,
-        ev_defence=58,
+        ev_offense=60,
+        ev_defense=58,
         finishing=55,
         penalties=50,
         proj_war_pct=55,

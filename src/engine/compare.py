@@ -6,13 +6,13 @@ Order of operations:
    goalie is not, and is refused (never a clean winner across pools).
 2. Component-by-component, each with both values and the gap.
 3. Overall edge — but it REFUSES to crown a single winner when the components
-   genuinely split (A ahead on offence while B is ahead on defence). It only
+   genuinely split (A ahead on offense while B is ahead on defense). It only
    calls an edge when one player leads broadly or decisively on projected WAR.
    Same discipline as adjudicate's half-right read.
 4. Durability flag: an edge built mainly on finishing is less durable than one
    built on play-driving (finishing volatility from config).
 
-`focus` narrows to offence / defence / overall / a role.
+`focus` narrows to offense / defense / overall / a role.
 """
 from __future__ import annotations
 
@@ -31,10 +31,10 @@ MARGIN = 5
 # A projected-WAR gap this large can carry an overall edge on its own.
 PROJ_DECISIVE = 10
 
-# Skater components and the two areas that can split (offence vs defence).
-WAR_COMPONENTS = ["ev_offence", "ev_defence", "pp", "pk", "finishing", "penalties"]
-OFFENCE_METRICS = ["ev_offence", "pp", "finishing"]
-DEFENCE_METRICS = ["ev_defence", "pk"]
+# Skater components and the two areas that can split (offense vs defense).
+WAR_COMPONENTS = ["ev_offense", "ev_defense", "pp", "pk", "finishing", "penalties"]
+OFFENSE_METRICS = ["ev_offense", "pp", "finishing"]
+DEFENSE_METRICS = ["ev_defense", "pk"]
 # Goalie components and the two areas that can split: ceiling (game-stealing) vs
 # floor (reliability) — the floor-vs-ceiling reading rule (PLAN section 5).
 GOALIE_COMPONENTS = [
@@ -55,7 +55,7 @@ ROLE_TO_METRIC = {
 
 def _spec(pool: str) -> dict:
     """Component list and the two split-areas for a pool. Same machinery, different
-    axes: forwards/D split offence-vs-defence, goalies split ceiling-vs-floor."""
+    axes: forwards/D split offense-vs-defense, goalies split ceiling-vs-floor."""
     if pool == "goalie":
         return {
             "components": GOALIE_COMPONENTS,
@@ -63,7 +63,7 @@ def _spec(pool: str) -> dict:
         }
     return {
         "components": WAR_COMPONENTS,
-        "areas": [("offence", OFFENCE_METRICS), ("defence", DEFENCE_METRICS)],
+        "areas": [("offense", OFFENSE_METRICS), ("defense", DEFENSE_METRICS)],
     }
 
 
@@ -166,7 +166,8 @@ def _norm_focus(focus: Optional[str]) -> Optional[str]:
     if focus is None:
         return None
     f = focus.strip().lower()
-    return {"offense": "offence", "defense": "defence"}.get(f, f)
+    # Canonical focus values are American; accept British spellings as aliases.
+    return {"offence": "offense", "defence": "defense"}.get(f, f)
 
 
 def _focus_metrics(focus: Optional[str], spec: dict, excluded: set) -> list[str]:
@@ -329,7 +330,7 @@ def _durability_skater(edge: str, a, b, excluded: set):
         if gap >= MARGIN:
             lead_gaps[m] = gap
     finishing_gap = lead_gaps.get("finishing")
-    play_driving = max(lead_gaps.get("ev_offence", 0), lead_gaps.get("ev_defence", 0))
+    play_driving = max(lead_gaps.get("ev_offense", 0), lead_gaps.get("ev_defense", 0))
     if finishing_gap is not None and finishing_gap > play_driving:
         return (
             "Less durable — this edge leans on finishing, which swings year to year; "

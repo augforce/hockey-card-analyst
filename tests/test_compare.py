@@ -47,7 +47,7 @@ def test_components_carry_both_values_and_gap():
     cmp = compare_players(
         _skater("compare_clear_leader.json"), _skater("compare_clear_trailer.json")
     )
-    evo = _components(cmp)["ev_offence"]
+    evo = _components(cmp)["ev_offense"]
     assert evo.a_value == 90
     assert evo.b_value == 55
     assert evo.gap == 35
@@ -65,8 +65,8 @@ def test_genuine_split_refuses_to_crown_a_winner():
     assert cmp.overall_edge is None          # no single winner
     assert cmp.edge_kind == "split"
     # Names the tradeoff rather than papering it over.
-    assert "offence" in cmp.overall.lower()
-    assert "defence" in cmp.overall.lower()
+    assert "offense" in cmp.overall.lower()
+    assert "defense" in cmp.overall.lower()
 
 
 # --- Cross-position compatibility guard ------------------------------------
@@ -93,12 +93,12 @@ def test_cross_position_does_not_compare_components():
 def test_finishing_driven_edge_is_flagged_less_durable():
     a = SkaterCard(
         name="Finisher A (synthetic)", team="TEST", position="C", age=25,
-        ev_offence=70, ev_defence=60, pp=60, pk=55, finishing=95, penalties=60,
+        ev_offense=70, ev_defense=60, pp=60, pk=55, finishing=95, penalties=60,
         proj_war_pct=80, goals=90, first_assists=65,
     )
     b = SkaterCard(
         name="Driver B (synthetic)", team="TEST", position="C", age=26,
-        ev_offence=68, ev_defence=60, pp=60, pk=55, finishing=45, penalties=60,
+        ev_offense=68, ev_defense=60, pp=60, pk=55, finishing=45, penalties=60,
         proj_war_pct=60, goals=50, first_assists=60,
     )
     cmp = compare_players(a, b)
@@ -111,13 +111,13 @@ def test_finishing_driven_edge_is_flagged_less_durable():
 # --- focus -----------------------------------------------------------------
 
 
-def test_focus_defence_can_pick_a_winner_within_an_area_even_on_a_split():
-    # Overall the split pair refuses a winner; focused on defence, B leads.
+def test_focus_defense_can_pick_a_winner_within_an_area_even_on_a_split():
+    # Overall the split pair refuses a winner; focused on defense, B leads.
     cmp = compare_players(
         _skater("compare_split_sniper.json"),
         _skater("compare_split_shutdown.json"),
-        focus="defence",
+        focus="defense",
     )
-    assert cmp.focus == "defence"
+    assert cmp.focus == "defense"
     assert cmp.overall_edge == "B"
-    assert set(_components(cmp)) <= {"ev_defence", "pk"}
+    assert set(_components(cmp)) <= {"ev_defense", "pk"}

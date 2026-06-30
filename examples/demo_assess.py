@@ -83,7 +83,7 @@ def narrate(a):
     if a.scoring_profile:
         sp = a.scoring_profile
         out.append(
-            f"Scoring profile — {sp.label.lower()}: EV offence {ordinal(sp.ev_offence)} "
+            f"Scoring profile — {sp.label.lower()}: EV offense {ordinal(sp.ev_offense)} "
             f"vs finishing {ordinal(sp.finishing)}. {sp.note}"
         )
     if a.deployment:

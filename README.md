@@ -42,7 +42,7 @@ Let's compare the three Hughes' brothers (using Claude Desktop):
 - The flip side ("is he actually better than his goals say?"): a player who drives
   play but hasn't been finishing may have scoring that's understated — a
   positive-regression candidate rather than a fluke.
-- You hit a metric you don't know ("what does EV defence actually measure, and
+- You hit a metric you don't know ("what does EV defense actually measure, and
   what's the catch?") and you want a plain-language definition plus the one caveat
   that keeps you from misreading it — for the metric itself, not a verdict on a
   player.
@@ -154,7 +154,7 @@ command works for other clients; you just put it in that client's MCP config.
    > Someone told me this kid is an elite two-way center already. True?
 
    The model should read the card, route it through the tools, and answer from
-   the numbers: back the offence where the card supports it, push back on the
+   the numbers: back the offense where the card supports it, push back on the
    two-way side if the defensive numbers do not, note how the player is deployed,
    and flag the trajectory.
 

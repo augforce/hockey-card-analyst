@@ -60,8 +60,8 @@ caveats:
 age_uncertainty:
   max_age: 22
 
-# --- Scoring profile: EV offence vs finishing (articulation only) ----------
-# Reads play-driving (EV offence — repeatable) against finishing (conversion —
+# --- Scoring profile: EV offense vs finishing (articulation only) ----------
+# Reads play-driving (EV offense — repeatable) against finishing (conversion —
 # volatile), both already on the card. This NEVER changes the tier or the WAR
 # verdict; it only adds a regression read as an insight. `high_min` is the "high"
 # cutoff (matches the Strong band / STRENGTH_MIN); `gap` is the minimum spread
@@ -73,21 +73,21 @@ scoring_profile:
     both_high:
       label: "Generates and converts — durable"
       note: >-
-        High EV offence (play-driving, the repeatable part) sitting under high
+        High EV offense (play-driving, the repeatable part) sitting under high
         finishing — he generates chances and converts them. The most durable
         offensive profile: the scoring is well-supported by play-driving, so the
         finishing-volatility caveat is tempered here rather than alarming.
     positive_regression:
       label: "Play-driving ahead of finishing — positive-regression candidate"
       note: >-
-        High EV offence with finishing lagging behind — he generates chances he
+        High EV offense with finishing lagging behind — he generates chances he
         isn't fully converting. His scoring may be understated; a
         positive-regression candidate if the finishing climbs toward the
         play-driving it already supports.
     negative_regression:
       label: "Conversion-led — negative-regression risk"
       note: >-
-        High finishing over only modest EV offence — the scoring leans on
+        High finishing over only modest EV offense — the scoring leans on
         conversion, which swings year to year. A negative-regression risk if the
         finishing cools, since the play-driving underneath is only ordinary. This
         reinforces the finishing-volatility caveat.
@@ -144,7 +144,7 @@ dimensions:
   - id: two_way
     applies_to: skater
     aliases: ["two-way", "shutdown", "responsible", "200-foot", "defensively responsible"]
-    metrics: ["ev_defence", "pk"]
+    metrics: ["ev_defense", "pk"]
     answerability: answerable
   - id: power_play
     applies_to: skater

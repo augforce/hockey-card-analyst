@@ -50,9 +50,9 @@ metrics:
     caveat_ref: caveats.deployment_not_value
 
   # --- Skater: WAR components -----------------------------------------------
-  ev_offence:
+  ev_offense:
     aliases:
-      ["ev offence", "even strength offence", "5v5 offence", "play driving offense",
+      ["ev offense", "even strength offense", "5v5 offense", "play driving offense",
        "offensive impact", "drives offense", "even strength offensive impact"]
     definition: >-
       His five-on-five offensive impact — his isolated effect on the expected
@@ -60,11 +60,11 @@ metrics:
       for teammates and competition (RAPM). Play-driving, not his own point total.
     caveat: >-
       Repeatable play-driving (the part that carries year to year) and an on-ice
-      impact, not individual scoring — he can drive offence without filling his
+      impact, not individual scoring — he can drive offense without filling his
       own scoresheet.
-  ev_defence:
+  ev_defense:
     aliases:
-      ["ev defence", "even strength defence", "5v5 defense", "defensive impact",
+      ["ev defense", "even strength defense", "5v5 defense", "defensive impact",
        "two way", "shutdown", "defensive play driving", "suppresses chances"]
     definition: >-
       His five-on-five defensive impact — his isolated effect on the expected
@@ -80,7 +80,7 @@ metrics:
        "on the power play", "pp1", "special teams offense"]
     definition: >-
       His on-ice value on the power play — how much he adds to the team's
-      man-advantage offence, as a percentile (NA when he has no power-play role).
+      man-advantage offense, as a percentile (NA when he has no power-play role).
     caveat: >-
       A role stat: NA means he does not play the power play — an absence of usage,
       not a weakness — and never a zero. Already part of WAR.
@@ -128,7 +128,7 @@ metrics:
     caveat: >-
       Descriptive colour, not a value verdict — raw output that does not separate
       his own finishing from the chances his linemates create. Read it alongside
-      EV offence and finishing, never alone.
+      EV offense and finishing, never alone.
   first_assists:
     aliases:
       ["first assists", "primary assists", "playmaking", "passer", "setup passes",

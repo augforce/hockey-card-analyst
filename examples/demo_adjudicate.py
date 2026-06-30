@@ -33,7 +33,7 @@ CLAIM = (
 ASSERTIONS = [
     {"dimension": "finishing", "direction": "high", "text": "scores goals"},
     {"dimension": "playmaking", "direction": "low", "text": "limited if asked to do more"},
-    {"dimension": "two_way", "direction": "low", "text": "limited if asked to do more (defence)"},
+    {"dimension": "two_way", "direction": "low", "text": "limited if asked to do more (defense)"},
     {"dimension": "net_front", "direction": "high", "text": "sits in front of the net"},
     {"dimension": "team_leading_scorer", "direction": "high", "text": "leading scorer next season"},
 ]

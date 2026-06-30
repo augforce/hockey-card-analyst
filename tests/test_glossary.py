@@ -13,7 +13,7 @@ from engine.glossary import explain_metric, load_glossary
 
 # Every percentile metric on each card (the glossary must cover all of them).
 SKATER_METRICS = [
-    "proj_war_pct", "competition", "teammates", "ev_offence", "ev_defence",
+    "proj_war_pct", "competition", "teammates", "ev_offense", "ev_defense",
     "pp", "pk", "finishing", "penalties", "goals", "first_assists",
 ]
 GOALIE_METRICS = [
@@ -37,12 +37,12 @@ def test_explain_by_natural_alias():
     # The host can pass natural phrasing, not just the field name.
     out = explain_metric("even strength defense")
     assert out.found is True
-    assert out.metric == "ev_defence"
+    assert out.metric == "ev_defense"
 
 
 def test_lookup_is_case_space_and_underscore_insensitive():
-    for query in (" EV_Defence ", "EVEN-STRENGTH DEFENCE", "ev defence"):
-        assert explain_metric(query).metric == "ev_defence"
+    for query in (" EV_Defense ", "EVEN-STRENGTH DEFENSE", "ev defense"):
+        assert explain_metric(query).metric == "ev_defense"
 
 
 def test_unknown_metric_is_not_found_and_does_not_guess():

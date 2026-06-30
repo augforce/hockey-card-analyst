@@ -62,7 +62,7 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
 
     `card` is one JSON object. Skater (forward or defenseman):
       name, team, position (C/LW/RW/L/R/F; D for a defenseman), age,
-      [toi_role, cap, competition, teammates], ev_offence, ev_defence,
+      [toi_role, cap, competition, teammates], ev_offense, ev_defense,
       pp (null if NA), pk (null if NA), finishing, penalties, proj_war_pct,
       [goals, first_assists], [war_pct_trend: list of {season, value}].
     Goalie (no position; has role):
@@ -103,9 +103,9 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
     goalie_consistency, goalie_rebounds, goalie_pk, workhorse, overall_goalie.
     Include the original phrase as `text` so it can be echoed back.
 
-    Dimension ids are NOT the card's schema field names. NEVER pass `ev_offence`
-    or `ev_defence` (or any other card field) as a `dimension`; map the claim to a
-    dimension id instead — an offence / scoring claim -> `finishing` or
+    Dimension ids are NOT the card's schema field names. NEVER pass `ev_offense`
+    or `ev_defense` (or any other card field) as a `dimension`; map the claim to a
+    dimension id instead — an offense / scoring claim -> `finishing` or
     `overall_skater`; a defensive / two-way claim -> `two_way`.
 
     Each verdict comes back as supported / not_supported / partial / unverifiable,
@@ -151,8 +151,8 @@ def compare_players(
     vs defenseman or skater vs goalie is refused (`compatible` = false). Never
     present a cross-pool winner — surface the refusal.
 
-    When the components genuinely split — one player better on offence while the
-    other is better on defence; for goalies, one a game-stealer while the other is
+    When the components genuinely split — one player better on offense while the
+    other is better on defense; for goalies, one a game-stealer while the other is
     the reliable floor — the server returns NO single winner (`overall_edge` null,
     `edge_kind` "split", "better at what"). Do not collapse that into a winner;
     report the tradeoff. An edge built mainly on finishing (skaters) or resting on a
@@ -165,7 +165,7 @@ def compare_players(
     from outside context.
 
     `card_a`, `card_b`: card JSON objects as in assess_player. `focus` (optional):
-    "offence" / "defence" / "overall" / a role (e.g. "power play") to narrow it.
+    "offense" / "defense" / "overall" / a role (e.g. "power play") to narrow it.
     """
     return _compare(_parse_card(card_a, "card_a"), _parse_card(card_b, "card_b"), focus).model_dump()
 
@@ -175,7 +175,7 @@ def explain_metric(metric: str) -> dict[str, Any]:
     """Define a single card metric: what it measures, plus its one most important interpretive caveat.
 
     A thin dictionary lookup over the card's percentile boxes (skater and goalie).
-    Pass the schema field name (e.g. `ev_defence`, `bad_starts`) or a natural
+    Pass the schema field name (e.g. `ev_defense`, `bad_starts`) or a natural
     phrase (e.g. "even strength defense", "no stinkers"); it resolves both. An
     input that isn't a card metric comes back with `found` false and a clear
     message — it never guesses.

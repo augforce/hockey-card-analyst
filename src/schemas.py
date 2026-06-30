@@ -48,8 +48,8 @@ class _SkaterBase(_StrictModel):
     teammates: Optional[Percentile] = None     # deployment, not value
 
     # WAR components (percentiles)
-    ev_offence: Percentile
-    ev_defence: Percentile
+    ev_offense: Percentile
+    ev_defense: Percentile
     pp: Optional[Percentile] = None  # NA when the player has no PP role
     pk: Optional[Percentile] = None  # NA when the player has no PK role
     finishing: Percentile
