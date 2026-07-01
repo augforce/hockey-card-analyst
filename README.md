@@ -6,24 +6,47 @@ Hockey Card Analyst is a translator between advanced metrics and normal hockey
 conversation. It reads one analytics model's card for a player and tells you, in
 words, what the numbers actually say.
 
-## The problem it solves
+## What it's for
 
-Advanced player cards are everywhere now, but reading one well means knowing the
-model underneath: what is repeatable versus lucky, what is a real skill versus an
-artifact of how a player is deployed, why a 95th percentile is not the same as a
-99th. Most fans do not have time to learn the methodology, so the metrics get
-ignored or misread and the argument stays stuck at the eye test. The gap is not
-access to data. It is interpretation.
+Advanced player cards pack a lot into a small grid: a dozen percentiles, a
+couple of trend lines, and a headline number. The data is there, but reading it
+well means knowing the model underneath. What's repeatable versus lucky, what's
+a real skill versus an artifact of how a player is deployed, why a 95th
+percentile isn't the same as a 99th, why a defenseman's finishing doesn't count
+toward his value the way a forward's does. Most people looking at a card don't
+have that model in their head, so the numbers get half-read or misread.
 
-It is for the fan who watches the games, trusts what they see, and wants the
-numbers to back that up or check it.
+This tool does the reading. Some of what it's useful for, drawn from real use:
 
+- Settling a claim. Someone says "he's a one-dimensional scorer who can't
+  defend." The tool checks each part against the numbers and tells you which
+  holds, which doesn't, and what the card can't answer.
+- Pressure-testing a hot take. A scorer has a big year and everyone assumes he's
+  due to regress. The tool can show whether the goals rest on repeatable
+  play-driving or on finishing that tends to cool, and it works the other way
+  too: a player whose scoring is quietly understated.
+- Building a case for a player. If you're writing or arguing about how good
+  someone actually is, it turns a wall of percentiles into a plain-language
+  thesis you can stand behind, with every point traceable to a number.
+- Reading a young breakout honestly. The card is a three-year weighted average,
+  so a 20-year-old's number rests on a short sample. The tool flags how far to
+  trust it rather than treating the percentile as settled.
+- Understanding the metrics themselves. Ask what a stat measures and the one
+  catch that keeps you from misreading it, without needing a verdict on a
+  player.
+
+It reads one analytics model's card and interprets it. It doesn't declare anyone
+good or bad in some absolute sense, and it only tells you what the numbers on the
+card support.
 ## Query Example
 
-Let's compare the three Hughes' brothers (using Claude Desktop):
-<img width="804" height="641" alt="Screenshot 2026-06-28 at 10 29 55 AM" src="https://github.com/user-attachments/assets/0f392a95-d2eb-4f51-b672-13743d677a07" />
-<img width="764" height="721" alt="Screenshot 2026-06-28 at 10 30 12 AM" src="https://github.com/user-attachments/assets/bfb11593-b0a8-4aa7-b103-b9bfc7943bab" />
+**(Using Cladue Sonnet 5 with High thinking)**
 
+**-Give me an assessment of how Evan Rodrigues can help the New Jersey Devils:**
+<img width="717" height="803" alt="Screenshot 2026-07-01 at 10 30 48 AM" src="https://github.com/user-attachments/assets/785fc072-da2f-4876-ba92-1e2d19635a3a" />
+
+**-I'm told this player (Simon Nemec) is a defensive liability, despite being a defensemen. Is his offensive contribution enough to offset that?**
+<img width="711" height="473" alt="Screenshot 2026-07-01 at 10 34 28 AM" src="https://github.com/user-attachments/assets/a08afe63-545c-48b4-900c-9eba570e5b36" />
 
 ## What you can ask it
 
