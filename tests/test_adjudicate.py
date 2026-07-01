@@ -79,6 +79,16 @@ def test_not_answerable_returns_unverifiable_from_config_note(celebrini):
     assert "microstat" in v.reason.lower()  # net_front note points to microstat card
 
 
+def test_skater_style_claim_is_unverifiable_with_note(celebrini):
+    # "physical, north-south power forward" is playing-style, not on a standard card.
+    v = adjudicate_claim(
+        celebrini, [{"dimension": "skater_style", "direction": "high", "text": "he's a physical, north-south power forward"}]
+    ).verdicts[0]
+    assert v.grade == "unverifiable"
+    assert v.value is None
+    assert "playing-style" in v.reason.lower() or "playing style" in v.reason.lower()
+
+
 def test_team_context_is_partial(celebrini):
     v = adjudicate_claim(
         celebrini, [{"dimension": "team_leading_scorer", "direction": "high"}]

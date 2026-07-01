@@ -525,3 +525,38 @@ A data file and a fourth tool. Skater and goalie. The analysis engines
 - **Invariant unchanged.** Pure spelling/identifier rename — no reading rule, tier band,
   or verdict changed. Full suite 145 passed; the four narration demos re-run clean with
   zero British spelling in any output.
+
+## Post-v1 — skater_style dimension (2026-07-01)
+
+Config + test only — no engine change (see below for why that's not just a claim).
+
+- **What.** The skater-side parallel to `goalie_style`: closes the gap where
+  `adjudicate_claim` could otherwise overreach on a skater playing-style claim
+  ("physical, north-south power forward") that a standard card genuinely cannot
+  measure. New dimension `skater_style` (`applies_to: skater`, `metrics: []`,
+  `answerability: not_answerable`), with 15 aliases covering rush-vs-cycle, north-
+  south/east-west, skating/speed, physicality, forechecking, and archetype words
+  (grinder, agitator, pest, power forward). Note points to the $10 microstat card
+  for zone-entry/rush tendencies, but is explicit that skating and physicality
+  aren't measured there either.
+- **Why `physical` sits here and not in `discipline` (the call someone would
+  otherwise second-guess).** `discipline`'s metric is `penalties` — the penalty
+  *differential* (drawn minus taken), not physicality itself, and the glossary
+  caveat on that metric already says so: "a low mark is an undisciplined flag, not
+  a lack of physicality. Do not invert it." A player can hit hard and stay
+  disciplined, or play a soft north-south game and still take bad penalties — the
+  card only ever speaks to the second thing. So "physical" (the style trait) is
+  unanswerable and lives in `skater_style`; "takes too many penalties" (the
+  measured claim) stays in `discipline`. Keeping the alias here rather than in
+  `discipline` keeps this dimension consistent with that glossary caveat instead
+  of contradicting it.
+- **No engine change, and this is the point.** `adjudicate.py`'s not-answerable
+  branch is generic over `answerability: not_answerable` + config `note` — it has
+  no per-dimension logic, so it already worked for any new id added to the
+  dictionary. `net_front` and `goalie_style` proved the path; `skater_style` is
+  the third data point confirming it, not a new case to handle. Verified via
+  `git diff src/engine/adjudicate.py` (empty) before committing.
+- **Tests.** TDD — one test added confirming a compound style claim ("physical,
+  north-south power forward") resolves to `unverifiable` with the config note
+  surfaced, watched fail (unrecognized dimension) before the config entry existed.
+  Full suite 146 passed.

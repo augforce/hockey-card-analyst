@@ -239,6 +239,12 @@ dimensions:
     metrics: []
     answerability: not_answerable
     note: "Shot-location / net-front play is not on a standard card; the $10 microstat card gets closer."
+  - id: skater_style
+    applies_to: skater
+    aliases: ["rush player", "off the rush", "cycle game", "north-south", "east-west", "physical", "forechecker", "power forward", "great skater", "speed", "high motor", "grinder", "agitator", "pest", "playing style"]
+    metrics: []
+    answerability: not_answerable
+    note: "General playing-style traits (rush vs. cycle, skating/speed, physicality, forechecking, north-south vs. east-west) are not on a standard card; zone-entry/rush tendencies get somewhat closer on the $10 microstat card, but skating and physicality are not measured."
   - id: team_leading_scorer
     applies_to: both
     aliases: ["team's leading scorer", "team's best", "leading scorer next season"]
