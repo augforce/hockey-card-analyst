@@ -60,6 +60,20 @@ caveats:
 age_uncertainty:
   max_age: 22
 
+# --- Trajectory bounciness (articulation only) ------------------------------
+# The trajectory read keeps the endpoint-to-endpoint spine, but a series like
+# 93 -> 97 -> 92 should not silently read as "holding steady": when an interior
+# season breaks past BOTH endpoints (a true peak/dip — a monotonic rise/fall
+# can never trip this) AND deviates from the straight endpoint-to-endpoint line
+# by more than `bounce_margin` percentile points, the string appends the shape
+# ("with a peak season (97th) in between"). NEVER changes tiers or verdicts.
+# Calibration: the spec suggested 10, but the real Hughes card's hidden peak
+# (93 -> 97 -> 92) deviates from the line by only 4.5 — a margin of 10 hides
+# the exact case this exists for. Chart-reading noise is ~1-3 points, so 4
+# separates signal from noise. Tune here.
+trajectory:
+  bounce_margin: 4
+
 # --- Scoring profile: EV offense vs finishing (articulation only) ----------
 # Reads play-driving (EV offense — repeatable) against finishing (conversion —
 # volatile), both already on the card. This NEVER changes the tier or the WAR

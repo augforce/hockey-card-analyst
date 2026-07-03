@@ -193,7 +193,7 @@ def assess_player(card, config: Optional[dict[str, Any]] = None):
 
     caveats = _caveats(card, strengths, is_defense, cfg)
     scoring_profile = _scoring_profile(card, is_defense, cfg)
-    trajectory = _trajectory(card)
+    trajectory = _trajectory(card, cfg)
     summary = _summary(card, overall, strengths, weaknesses, trajectory, is_defense)
 
     return Assessment(
@@ -317,14 +317,58 @@ def _trend_is_up(card: SkaterLike) -> bool:
     return trend[-1].value - trend[0].value >= 5
 
 
-def _trajectory(card: SkaterLike) -> Optional[str]:
+def _trend_phrase(first: float, last: float) -> str:
+    """The endpoint direction word; a steady series at a strong level says so
+    (steady at 92 and steady at 45 are different facts)."""
+    phrase = _trend_direction(last - first)
+    if phrase == "holding steady" and min(first, last) >= STRENGTH_MIN:
+        phrase += " at a high level"
+    return phrase
+
+
+def _bounce_note(values: list[float], cfg: dict[str, Any]) -> Optional[str]:
+    """Name a non-monotonic interior season the endpoint read would hide.
+
+    An interior season counts only when it breaks past BOTH endpoints (a
+    monotonic rise/fall can never trip this) and deviates from the straight
+    endpoint-to-endpoint line by more than `trajectory.bounce_margin` (config)
+    — so flat-series chart noise stays quiet. Articulation only: this never
+    moves a tier or verdict.
+    """
+    if len(values) < 3:
+        return None
+    margin = (cfg.get("trajectory") or {}).get("bounce_margin", 4)
+    first, last = values[0], values[-1]
+    lo, hi = min(first, last), max(first, last)
+    span = len(values) - 1
+    peaks: list[float] = []
+    dips: list[float] = []
+    for i in range(1, span):
+        value = values[i]
+        line = first + (last - first) * (i / span)
+        if value > hi and value - line > margin:
+            peaks.append(value)
+        elif value < lo and line - value > margin:
+            dips.append(value)
+    peak = f"a peak season ({ordinal(int(round(max(peaks))))})" if peaks else None
+    dip = f"a down year ({ordinal(int(round(min(dips))))})" if dips else None
+    if peak and dip:
+        return f"with {peak} and {dip} in between"
+    if peak or dip:
+        return f"with {peak or dip} in between"
+    return None
+
+
+def _trajectory(card: SkaterLike, cfg: dict[str, Any]) -> Optional[str]:
     trend = getattr(card, "war_pct_trend", None)
     if not trend or len(trend) < 2:
         return None
     first, last = trend[0].value, trend[-1].value
+    bounce = _bounce_note([p.value for p in trend], cfg)
     return (
         f"Projected-WAR percentile {first} → {last} over {len(trend)} seasons "
-        f"— {_trend_direction(last - first)}."
+        f"— {_trend_phrase(first, last)}"
+        + (f", {bounce}." if bounce else ".")
     )
 
 
@@ -411,7 +455,7 @@ def assess_goalie(card: GoalieCard, cfg: dict[str, Any]) -> GoalieAssessment:
         weaknesses=weaknesses,
         consistency=consistency,
         workload=_workload_note(card, cfg),
-        trajectory=_goalie_trajectory(card),
+        trajectory=_goalie_trajectory(card, cfg),
         caveats=caveats,
         summary=_goalie_summary(card, overall, strengths, weaknesses, consistency),
     )
@@ -495,15 +539,17 @@ def _workload_note(card: GoalieCard, cfg: dict[str, Any]) -> str:
     return " ".join(parts)
 
 
-def _goalie_trajectory(card: GoalieCard) -> Optional[str]:
+def _goalie_trajectory(card: GoalieCard, cfg: dict[str, Any]) -> Optional[str]:
     parts = []
     trend = card.war_per60_trend
     if trend and len(trend) >= 2:
         first, last = int(round(trend[0].value)), int(round(trend[-1].value))
+        bounce = _bounce_note([p.value for p in trend], cfg)
         parts.append(
             f"WAR-per-60 standing {ordinal(first)} → {ordinal(last)} over {len(trend)} "
-            f"seasons — {_trend_direction(last - first)} (a percentile rank, so read it as "
-            f"rising standing, not a raw rate)."
+            f"seasons — {_trend_phrase(first, last)}"
+            + (f", {bounce}" if bounce else "")
+            + " (a percentile rank, so read it as rising standing, not a raw rate)."
         )
     sv = card.sv_vs_xsv_trend
     if sv and len(sv) >= 2:

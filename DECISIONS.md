@@ -601,3 +601,49 @@ assess-screen design is the visual spec; consolidated here for this repo.
   verdict) into "strengths". The assess report renders descriptive reads
   in their own "Color, not the verdict" panel. Both steering rules are
   guarded by description-content tests — don't reword casually.
+
+## Post-v1 — trajectory bounciness (2026-07-02)
+
+Engine + config, skaters and goalies, TDD, articulation only (no tier or
+verdict moves — asserted by test). Closes the nit that a non-monotonic trend
+reads as its endpoints: Hughes's real card (93 → 97 → 92) said "holding
+steady," hiding the peak season.
+
+### The rule (and the two calibration calls that differ from the request)
+- `_bounce_note(values, cfg)` — shared by `_trajectory` and
+  `_goalie_trajectory` (both now take cfg): an interior season is named only
+  when it (a) breaks past BOTH endpoints and (b) deviates from the straight
+  endpoint-to-endpoint line by more than `trajectory.bounce_margin`.
+  Peak → "with a peak season (97th) in between"; dip → "with a down year
+  (45th) in between"; both → both, largest of each.
+- **Why the envelope condition (a):** the request said "any interior point
+  deviates from the line by more than a threshold," but Thompson's monotonic
+  38 → 90 → 99 deviates from the line by +21 and the request requires it to
+  stay clean. A rise that comes fast-then-slow is still just a rise; only a
+  true peak/dip (outside the endpoint envelope) is a shape worth naming. The
+  envelope makes monotonic series structurally immune, at any margin.
+- **Why `bounce_margin: 4`, not the requested 10:** the real Hughes card's
+  hidden peak deviates from the endpoint line by 4.5 points (97 vs the
+  92.5 line) — a margin of 10 hides the exact case the feature exists for.
+  Chart-reading noise is ~1–3 points; 4 separates. Both flagged for review;
+  tunable in `interpretation.yaml`.
+- Bonus articulation from the requested example string: "holding steady" at
+  min(endpoint) ≥ STRENGTH_MIN reads "holding steady at a high level"
+  (steady at 92 and steady at 45 are different facts) — `_trend_phrase`,
+  shared by both paths.
+
+### Fixture + the vision-path catch
+- New fixture `tests/fixtures/hughes.json`, extracted from the real card
+  image via the webapp's own `/api/read-card` and hand-verified box-for-box
+  against the image (trend values approximate per fixture convention). This
+  was the FIRST real-card end-to-end run — and it caught a real extraction
+  bug: vision invented an `offence_defence_finishing_trend` key for the
+  card's second chart; the strict schema rejected it loudly (as designed).
+  Fixed in the extraction prompt ("output ONLY the fields listed; other
+  charts have no field"), after which both real cards extract cleanly.
+- Tests (11): Hughes peak named + tier/verdict unchanged; dip case; Thompson
+  (fixture) and a synthetic skater riser stay clean; flat stays clean (low
+  flat gets no level tag, high flat gets the tag but no note); goalie dip;
+  margin config-tunable (override kills the note); 2-point noise stays
+  quiet; two-point trends byte-identical. Full suite 202; all four demos
+  re-run with prose unchanged except the intended strings.
