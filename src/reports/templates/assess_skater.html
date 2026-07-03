@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+
+{% block subtitle %}
+{% if player_line %}<div class="report-meta">{{ player_line }}</div>{% endif %}
+{% endblock %}
+
+{% block content %}
+{{ m.verdict_banner(headline, verdict_line, None, tone_color, pct) }}
+
+{% if strengths %}
+<div class="panel">
+  <div class="eyebrow">// Strengths</div>
+  {{ m.stat_cards(strengths, "var(--g-sup)") }}
+  {% if compression_note %}
+  <p class="note dashed-top" style="font-family: var(--font-mono); font-size: 7pt; color: var(--text-faint)">
+    <span style="color: var(--accent)">↑</span> {{ compression_note }}
+  </p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if weakness %}{{ m.weakness_panel(weakness) }}{% endif %}
+
+{% if descriptive %}
+<div class="panel">
+  <div class="eyebrow">// Descriptive
+    <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-left: 6pt">Color, not the verdict</span>
+  </div>
+  {{ m.stat_cards(descriptive, "var(--text-faint)") }}
+  {% for d in descriptive %}
+  {% if d.note %}
+  <p class="note dashed-top" style="font-family: var(--font-mono); font-size: 7pt; color: var(--text-faint)">{{ d.label }}: {{ d.note }}</p>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if profile %}
+<div class="panel">
+  <div class="eyebrow">// Scoring profile</div>
+  <div style="font-family: var(--font-display); font-weight: 700; font-size: 10.5pt; letter-spacing: -0.01em">{{ profile.label }}</div>
+  <p class="note" style="margin-top: 5pt">EV offense {{ profile.ev_offense }} vs finishing {{ profile.finishing }}. {{ profile.note }}</p>
+</div>
+{% endif %}
+
+{{ m.trajectory_panel(trajectory) }}
+{{ m.deployment_panel(deployment) }}
+{{ m.caveat_box(caveats) }}
+{{ m.summary_strip(summary) }}
+{% endblock %}

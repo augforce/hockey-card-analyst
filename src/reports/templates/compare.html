@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+
+{% block subtitle %}
+{% if pool %}<div class="report-meta">Within-position comparison · {{ pool }}{% if focus %} · focus: {{ focus }}{% endif %}</div>{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if not compatible %}
+<div class="verdict" style="border-color: var(--g-unv); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: #7c8aa012">
+  <div style="flex: 1">
+    <div class="eyebrow" style="color: var(--g-unv)">// Comparison refused</div>
+    <div class="headline">{{ incompatible_reason }}</div>
+  </div>
+</div>
+{% else %}
+
+<table class="rows" style="margin-top: 12pt">
+  <tr>
+    <td style="border-bottom: none; width: 46%">
+      <div style="border: 1px solid var(--border); border-top: 3pt solid var(--accent); border-radius: 10pt; padding: 10pt 12pt; background: var(--surface)">
+        <div style="font-family: var(--font-display); font-weight: 700; font-size: 12pt; color: var(--accent)">{{ a_name }}</div>
+      </div>
+    </td>
+    <td style="border-bottom: none; text-align: center; font-family: var(--font-mono); font-size: 8pt; letter-spacing: 0.1em; color: var(--text-faint)">VS</td>
+    <td style="border-bottom: none; width: 46%">
+      <div style="border: 1px solid var(--border); border-top: 3pt solid var(--text-faint); border-radius: 10pt; padding: 10pt 12pt; background: var(--surface)">
+        <div style="font-family: var(--font-display); font-weight: 700; font-size: 12pt; color: var(--text-dim)">{{ b_name }}</div>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<div class="panel">
+  <div class="eyebrow">// Shared metrics — percentile head-to-head, gap = {{ a_name }} minus {{ b_name }}</div>
+  <table class="rows">
+    {% for r in rows %}
+    <tr>
+      <td style="text-align: right; width: 36%">
+        <span style="font-family: var(--font-display); font-weight: 700; font-size: 10.5pt; color: {{ 'var(--g-sup)' if r.a_leads else 'var(--text-dim)' }}">{{ r.a_value if r.a_value is not none else 'NA' }}</span>
+        {% if r.a_value is not none %}
+        <div class="bar"><div style="width:{{ r.a_value }}%; background: {{ 'var(--g-sup)' if r.a_leads else 'var(--border-2)' }}; margin-left: auto"></div></div>
+        {% endif %}
+      </td>
+      <td style="text-align: center; width: 28%">
+        <div style="font-family: var(--font-mono); font-size: 6.8pt; color: var(--text-dim); line-height: 1.3">{{ r.label }}</div>
+        <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-top: 2pt">{{ r.gap_text }}</span>
+      </td>
+      <td style="width: 36%">
+        <span style="font-family: var(--font-display); font-weight: 700; font-size: 10.5pt; color: {{ 'var(--g-sup)' if r.b_leads else 'var(--text-dim)' }}">{{ r.b_value if r.b_value is not none else 'NA' }}</span>
+        {% if r.b_value is not none %}
+        <div class="bar"><div style="width:{{ r.b_value }}%; background: {{ 'var(--g-sup)' if r.b_leads else 'var(--border-2)' }}"></div></div>
+        {% endif %}
+      </td>
+    </tr>
+    {% if r.note %}
+    <tr><td colspan="3" class="note" style="font-size: 7.6pt; color: var(--text-faint); border-bottom: 1px solid var(--border)">{{ r.note }}</td></tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+</div>
+
+<div class="verdict" style="border-color: {{ tone_color }}; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: {{ tone_color }}12">
+  <div style="flex: 1">
+    <div class="eyebrow" style="color: {{ tone_color }}">// {{ "Honest split" if split else "Overall edge" }} — engine comparison</div>
+    <div class="headline" style="font-size: 11.5pt">{{ overall }}</div>
+    {% if durability %}<div class="subline">{{ durability }}</div>{% endif %}
+  </div>
+</div>
+
+{{ m.caveat_box(caveats) }}
+{% endif %}
+{% endblock %}

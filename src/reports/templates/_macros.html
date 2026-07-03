@@ -1,0 +1,86 @@
+{% macro verdict_banner(headline, line, subline, tone_color, pct=None) %}
+{# tone_color~"12" = 8-digit hex, ~7% alpha — the webapp's toneSoft mix, WeasyPrint-safe #}
+<div class="verdict" style="border-color: {{ tone_color }}; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: {{ tone_color }}12">
+  <div style="flex: 1">
+    <div class="eyebrow" style="color: {{ tone_color }}">// Verdict</div>
+    <div class="headline">{{ headline }}{% if line %} — <span style="color: {{ tone_color }}">{{ line }}</span>{% endif %}</div>
+    {% if subline %}<div class="subline">{{ subline }}</div>{% endif %}
+  </div>
+  {% if pct is not none %}
+  <div style="padding: 0 8pt">
+    <div class="big-pct" style="color: {{ tone_color }}">{{ pct }}</div>
+    <div class="big-pct-label">WAR pct</div>
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro stat_cards(reads, color) %}
+<div class="cards">
+  {% for r in reads %}
+  <div class="stat-card">
+    <div class="label">{{ r.label }}</div>
+    <div class="value">{{ r.value }}</div>
+    <div class="bar"><div style="width:{{ r.value }}%; background: {{ color }}"></div></div>
+  </div>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro weakness_panel(w) %}
+<div class="panel" style="border-left: 3pt solid var(--g-not)">
+  <div class="eyebrow">// Primary weakness</div>
+  <div style="font-family: var(--font-mono); font-size: 6.6pt; color: var(--text-dim)">{{ w.label }}</div>
+  <div style="margin-top: 4pt">
+    <span style="font-family: var(--font-display); font-weight: 700; font-size: 21pt; line-height: 1; color: var(--g-not)">{{ w.value }}</span>
+    <span class="chip" style="color: var(--g-not); border-color: rgba(220, 38, 38, 0.35); background: rgba(220, 38, 38, 0.13); margin-left: 6pt; vertical-align: 4pt">{{ w.tag }}</span>
+  </div>
+  <div class="bar" style="margin-top: 8pt"><div style="width:{{ w.value }}%; background: var(--g-not)"></div></div>
+  {% if w.note %}<p class="note" style="margin-top: 8pt">{{ w.note }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro caveat_box(caveats) %}
+{% if caveats %}
+<div class="caveat-box">
+  <div class="eyebrow">// Honest caveats</div>
+  {% for c in caveats %}
+  <p>{{ c }}</p>
+  {% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro summary_strip(text) %}
+{% if text %}
+<div class="summary-strip">
+  <span class="eyebrow">Summary</span>
+  <p>{{ text }}</p>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro trajectory_panel(traj) %}
+{% if traj %}
+<div class="panel">
+  <div class="eyebrow">// Trajectory</div>
+  <p class="note" style="color: {{ traj.color }}; font-weight: 500">
+    {% if traj.direction == "up" %}▲{% elif traj.direction == "down" %}▼{% else %}▶{% endif %}
+    <span style="color: var(--text-dim); font-weight: 400">{{ traj.text }}</span>
+  </p>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro deployment_panel(lines) %}
+{% if lines %}
+<div class="panel">
+  <div class="eyebrow">// Deployment
+    <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-left: 6pt">Context, not value</span>
+  </div>
+  {% for d in lines %}
+  <p class="note" style="margin-top: 3pt">{{ d }}</p>
+  {% endfor %}
+</div>
+{% endif %}
+{% endmacro %}

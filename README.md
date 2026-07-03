@@ -94,7 +94,7 @@ values produce identical analysis on any host; what varies between hosts is how
 well each model reads the card image and routes the numbers through the tools. It
 works for forwards, defensemen, and goalies.
 
-Four tools, thin wrappers over the engine:
+Five tools, thin wrappers over the engine:
 
 - `assess_player(card)`: overall tier, strengths and weaknesses, deployment,
   trajectory, caveats, a one-line summary.
@@ -105,6 +105,26 @@ Four tools, thin wrappers over the engine:
 - `explain_metric(metric)`: a plain-language definition of any card metric
   (skater or goalie), plus its single most important interpretive caveat. It
   defines a metric in the abstract; it does not reason about a specific player.
+- `render_report(kind, result, title)`: turns the answer you just got into a
+  downloadable, styled PDF report (see below).
+
+## PDF reports
+
+After any assess, compare, or claim-check answer, ask for a PDF (the assistant
+will offer one) and you get a styled report of that exact verdict written to
+`~/Documents/HockeyCardReports/` — named after the player(s), the report kind,
+and the date. Five report kinds: skater assessment, goalie assessment,
+head-to-head comparison, graded claim check, and an "interpretive" kind for
+reads the engine has no tool for (line synergy, goalie support, free-form
+questions), which is prominently badged *"Interpretive read · AI — not an
+engine verdict"* so an AI read can never pass as an engine one.
+
+Two honesty rules are enforced, not advisory: the report is rendered from the
+same structured result the engine just returned (a retyped or reconstructed
+result is rejected), and the source card image is never embedded. Rendering is
+fully local — an HTML template with bundled fonts, converted by
+[WeasyPrint](https://weasyprint.org/) with no headless browser and no network.
+On macOS, WeasyPrint needs one system library: `brew install pango`.
 
 ## What you need
 

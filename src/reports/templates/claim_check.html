@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+
+{% block content %}
+{{ m.verdict_banner(headline, None, None, tone_color) }}
+
+<div class="panel">
+  <div class="eyebrow">// Assertions, graded against the card</div>
+  <table class="rows">
+    {% for r in rows %}
+    <tr>
+      <td style="width: 16%">
+        {# r.color~"21" = 8-digit hex, ~13% alpha chip fill (webapp status chip) #}
+        <span class="chip" style="color: {{ r.color }}; border-color: {{ r.color }}59; background: {{ r.color }}21">{{ r.status }}</span>
+      </td>
+      <td style="width: 30%">
+        <div style="font-weight: 500; font-size: 9pt">{{ r.claim }}</div>
+        {% if r.receipt %}<div style="font-family: var(--font-mono); font-size: 7pt; color: var(--text-faint); margin-top: 2pt">{{ r.receipt }}</div>{% endif %}
+      </td>
+      <td class="note" style="font-size: 8.4pt">{{ r.evidence }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{{ m.summary_strip(overall) }}
+{% endblock %}

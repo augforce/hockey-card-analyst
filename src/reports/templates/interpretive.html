@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+
+{% block subtitle %}
+{% if subtitle %}<div class="report-meta">{{ subtitle }}</div>{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if players %}
+<div style="margin-top: 8pt">
+  {% for p in players %}
+  <span class="chip" style="color: var(--text-dim); border-color: var(--border-2); margin-right: 4pt">{{ p }}</span>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# Caveat leads: it frames the interpretive read before the confident prose. #}
+{% if caveat %}{{ m.caveat_box([caveat]) }}{% endif %}
+
+{% for s in sections %}
+<div class="panel" style="border-left: 3pt solid {{ tone_color }}">
+  {% if s.heading %}<div class="eyebrow" style="color: {{ tone_color }}">// {{ s.heading }}</div>{% endif %}
+  <p class="note" style="font-size: 9pt; color: var(--text)">{{ s.body }}</p>
+</div>
+{% endfor %}
+
+{{ m.summary_strip(summary) }}
+{% endblock %}

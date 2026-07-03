@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+{% for f in font_faces %}
+@font-face { font-family: "{{ f.family }}"; font-weight: {{ f.weight }}; src: url("{{ f.url }}") format("woff2"); }
+{% endfor %}
+
+/* Webapp light-theme tokens (webapp/static/index.html :root) */
+:root {
+  --bg-tint: #f4f8fd; --surface: #ffffff; --surface-2: #f8fafd;
+  --border: #e4eaf1; --border-2: #d2dce8;
+  --text: #0f1b2d; --text-dim: #51617a; --text-faint: #8a98a8;
+  --accent: #2563eb; --accent-soft: rgba(37, 99, 235, 0.08); --accent-line: rgba(37, 99, 235, 0.24);
+  --g-sup: #16a34a; --g-not: #dc2626; --g-part: #d97706; --g-unv: #7c8aa0;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --font-display: "Sora", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+@page {
+  size: A4;
+  margin: 16mm 14mm 20mm 14mm;
+  @bottom-center {
+    content: "Built on HockeyStats.com (JFresh Hockey) player cards.";
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 7pt; letter-spacing: 0.08em; color: #8a98a8;
+  }
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 7pt; color: #8a98a8;
+  }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); color: var(--text); font-size: 9.5pt; line-height: 1.5; }
+
+.eyebrow {
+  font-family: var(--font-mono); font-size: 6.8pt; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-faint);
+}
+h1.report-title {
+  font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em;
+  font-size: 19pt; line-height: 1.12; margin-top: 4pt;
+}
+.report-meta { color: var(--text-faint); font-family: var(--font-mono); font-size: 7pt; margin-top: 4pt; }
+
+.badge-interpretive {
+  display: inline-block; font-family: var(--font-mono); font-size: 7pt;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--g-part);
+  border: 1px solid var(--g-part); border-radius: 5pt; padding: 2pt 7pt; margin-top: 6pt;
+}
+
+.panel {
+  border: 1px solid var(--border); border-radius: 10pt; padding: 12pt 14pt;
+  background: var(--surface); margin-top: 10pt; break-inside: avoid;
+}
+.panel .eyebrow { margin-bottom: 6pt; }
+
+.verdict {
+  border-left: 3pt solid; border-radius: 10pt; padding: 14pt 16pt; margin-top: 12pt;
+  display: flex; align-items: center; break-inside: avoid;
+}
+.verdict .headline {
+  font-family: var(--font-display); font-weight: 700; font-size: 16pt;
+  letter-spacing: -0.02em; line-height: 1.15; margin-top: 5pt;
+}
+.verdict .subline { color: var(--text-dim); margin-top: 5pt; font-size: 9pt; }
+.verdict .big-pct { font-family: var(--font-display); font-weight: 700; font-size: 30pt; line-height: 1; }
+.verdict .big-pct-label {
+  font-family: var(--font-mono); font-size: 6.2pt; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-faint); margin-top: 3pt; text-align: center;
+}
+
+.cards { display: flex; flex-wrap: wrap; margin-top: 8pt; }
+.stat-card {
+  border: 1px solid var(--border); border-radius: 8pt; padding: 8pt 9pt;
+  background: var(--surface-2); width: 118pt; margin: 3pt;
+}
+.stat-card .label { font-family: var(--font-mono); font-size: 6.6pt; color: var(--text-dim); line-height: 1.3; min-height: 18pt; }
+.stat-card .value { font-family: var(--font-display); font-weight: 700; font-size: 15pt; line-height: 1; margin-top: 4pt; }
+
+.bar { height: 4pt; border-radius: 2pt; background: var(--border); margin-top: 6pt; }
+.bar > div { height: 4pt; border-radius: 2pt; }
+
+.chip {
+  display: inline-block; font-family: var(--font-mono); font-size: 6.2pt;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  border-radius: 5pt; padding: 2pt 7pt; border: 1px solid;
+}
+
+.note { color: var(--text-dim); font-size: 8.4pt; line-height: 1.55; }
+.dashed-top { border-top: 1px dashed var(--border); margin-top: 8pt; padding-top: 7pt; }
+
+.caveat-box {
+  border: 1px solid var(--border); border-left: 3pt solid var(--g-part);
+  border-radius: 10pt; padding: 12pt 14pt; background: rgba(217, 119, 6, 0.06);
+  margin-top: 10pt; break-inside: avoid;
+}
+.caveat-box .eyebrow { color: var(--g-part); margin-bottom: 5pt; }
+.caveat-box p { color: var(--text-dim); font-size: 8.6pt; line-height: 1.55; margin-top: 3pt; }
+
+.summary-strip {
+  display: flex; border: 1px solid var(--accent-line); border-radius: 10pt;
+  padding: 13pt 15pt; background: var(--accent-soft); margin-top: 10pt; break-inside: avoid;
+}
+.summary-strip .eyebrow { color: var(--accent); letter-spacing: 0.18em; padding-top: 2pt; }
+.summary-strip p {
+  font-family: var(--font-display); font-weight: 700; font-size: 10.5pt;
+  line-height: 1.45; letter-spacing: -0.01em; margin-left: 12pt;
+}
+
+table.rows { width: 100%; border-collapse: collapse; }
+table.rows td { padding: 6pt 4pt; border-bottom: 1px solid var(--border); vertical-align: top; }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">// Hockey card report · {{ kind_label }}</div>
+<h1 class="report-title">{{ title }}</h1>
+{% block subtitle %}{% endblock %}
+<div class="report-meta">Generated {{ generated }} · {% if interpretive %}AI interpretive read grounded in validated HockeyStats player cards{% else %}deterministic engine read of a HockeyStats player card{% endif %}</div>
+{% if interpretive %}
+<div class="badge-interpretive">Interpretive read · AI — not an engine verdict</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+</body>
+</html>

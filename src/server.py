@@ -23,6 +23,7 @@ from engine.adjudicate import adjudicate_claim as _adjudicate
 from engine.assess import assess_player as _assess
 from engine.compare import compare_players as _compare
 from engine.glossary import explain_metric as _explain_metric
+from reports.save import save_report as _save_report
 from schemas import DefenseCard, GoalieCard, SkaterCard
 
 mcp = FastMCP("hockey-card-analyst")
@@ -80,12 +81,22 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
     is descriptive only (excluded from his WAR); surface the returned caveats rather
     than dropping them.
 
+    Narrate the returned STRUCTURE, not your own regrouping: "strengths" and
+    "weaknesses" are exactly the returned lists. The `descriptive` reads (goals,
+    first assists) are supporting color the engine deliberately keeps OUT of the
+    value verdict — you may cite them as descriptive color, but NEVER present
+    them as strengths, weaknesses, or part of the WAR case.
+
     Scope: this tool interprets ONLY what's on the card. Anything the card can't see
     — trades, contracts, current team, roster context, who leads a team in scoring,
     recent game stats — is out of scope and it does not provide it. If you fill such
     a gap from outside the card (e.g. the web), mark that content clearly as NOT from
     the card and note it should be independently verified; keep card-derived verdicts
     (traceable to the numbers) visibly separate from outside context (unverified).
+
+    After presenting this assessment, ALWAYS close your answer by offering the
+    user a downloadable PDF report of it — generated with the render_report tool
+    (kind "assess_skater" or "assess_goalie"), passing THIS result verbatim.
     """
     return _assess(_parse_card(card)).model_dump()
 
@@ -127,6 +138,11 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
 
     `card`: the same JSON card object as assess_player. `assertions`: a list of
     {dimension, direction, [text]}.
+
+    After presenting the graded claim, ALWAYS close your answer by offering the
+    user a downloadable PDF report of it — generated with the render_report tool
+    (kind "claim_check", the original claim as `title`), passing THIS result
+    verbatim.
     """
     parsed = _parse_card(card)
     try:
@@ -166,6 +182,10 @@ def compare_players(
 
     `card_a`, `card_b`: card JSON objects as in assess_player. `focus` (optional):
     "offense" / "defense" / "overall" / a role (e.g. "power play") to narrow it.
+
+    After presenting the comparison, ALWAYS close your answer by offering the
+    user a downloadable PDF report of it — generated with the render_report tool
+    (kind "compare"), passing THIS result verbatim.
     """
     return _compare(_parse_card(card_a, "card_a"), _parse_card(card_b, "card_b"), focus).model_dump()
 
@@ -190,6 +210,50 @@ def explain_metric(metric: str) -> dict[str, Any]:
     meaning, not as a verdict.
     """
     return _explain_metric(metric).model_dump()
+
+
+@mcp.tool
+def render_report(
+    kind: str, result: dict[str, Any], title: Optional[str] = None
+) -> dict[str, Any]:
+    """Render an answer into a downloadable, styled PDF report; returns the absolute file path.
+
+    After completing ANY assess / compare / claim answer, ALWAYS end by asking
+    the user if they'd like a downloadable PDF report of it — every time, as
+    the closing line of your answer, not only when they hint at it. Generate
+    the PDF when they say yes (or asked for a report/PDF/download up front),
+    then give them the returned path.
+
+    `result` must be the EXACT structured object the engine tool just returned
+    (assess_player / compare_players / adjudicate_claim), passed through
+    verbatim — the same dict, not a summary of it. NEVER retype, round, rebuild,
+    or trim fields: the server validates against the engine's own result shape
+    and rejects anything else. If you no longer have the engine result, call the
+    engine tool again first. Never pass the card, and never embed the card image.
+
+    `kind` selects the template:
+      - "assess_skater": an assess_player result for a forward or defenseman
+      - "assess_goalie": an assess_player result for a goalie (has danger_profile)
+      - "compare": a compare_players result (works for splits and refusals too)
+      - "claim_check": an adjudicate_claim result — pass the original claim
+        sentence as `title` (it headlines the report and names the file)
+      - "interpretive": YOUR OWN prose, for questions with no engine tool (line
+        synergy, goalie support, free-form reads). Pass {title, tone
+        ("positive"/"negative"/"mixed"/"neutral"), players: [names],
+        sections: [{heading, body}, ...], caveat, summary}. The report is
+        prominently badged "Interpretive read · AI — not an engine verdict".
+        Never pass engine output as interpretive, and never pass your own prose
+        under an engine kind — the badge is how the reader tells them apart.
+
+    `title` (optional) overrides the report heading; player names still come
+    from the result. The PDF lands in ~/Documents/HockeyCardReports/
+    (created if missing; filename = player(s) + kind + date).
+    """
+    try:
+        path = _save_report(kind, result, title)
+    except ValueError as exc:
+        raise ToolError(str(exc))
+    return {"path": str(path), "kind": kind}
 
 
 if __name__ == "__main__":

@@ -11,7 +11,8 @@ A local [MCP](https://modelcontextprotocol.io) server that interprets one analyt
 ```bash
 # Install (one time)
 python3 -m venv .venv
-.venv/bin/python -m pip install fastmcp pydantic PyYAML   # or: .venv/bin/python -m pip install -e ".[dev]"
+.venv/bin/python -m pip install fastmcp pydantic PyYAML jinja2 weasyprint   # or: .venv/bin/python -m pip install -e ".[dev]"
+# PDF reports need one macOS system library: `brew install pango`
 
 # Tests (pyproject sets pythonpath=["src"], so no install needed to import the engine)
 .venv/bin/python -m pytest                                # whole suite
@@ -24,13 +25,14 @@ python3 -m venv .venv
 
 # Narration demos — the only window into whether the prose reads honestly (see below)
 .venv/bin/python examples/demo_assess.py        # also demo_adjudicate / demo_compare / demo_goalie
+.venv/bin/python examples/demo_reports.py       # renders eyeball PDFs into examples/report_previews/
 ```
 
 There is no linter/formatter configured; the test suite is the check. The suite has no network or vision dependencies, so it is fast and deterministic.
 
 ## Architecture
 
-Three layers, strictly separated. **All judgment lives in `src/engine/`; the server is thin wiring; the methodology lives in config data, not code.**
+Four layers, strictly separated. **All judgment lives in `src/engine/`; the server is thin wiring; the methodology lives in config data, not code; reports are presentation only.**
 
 1. **Boundary — `src/schemas.py`.** Strict pydantic card schemas (`SkaterCard`, `DefenseCard`, `GoalieCard`), `extra="forbid"`, percentiles bounded 0–100. A mis-extracted card fails loudly here rather than producing a wrong answer.
 
@@ -41,7 +43,9 @@ Three layers, strictly separated. **All judgment lives in `src/engine/`; the ser
    - `glossary.py` — `explain_metric(metric)` defines a card metric (definition + key caveat); a lookup only, it does **not** reason about any player.
    - Shared: `common.py` (`LABELS`, `STRENGTH_MIN=70`, `WEAKNESS_MAX=44`, `ordinal`), `tiers.py` (`classify_percentile` → `Tier`). `caveats.py` is a stub — caveat *text* lives in config and is attached inside the engines.
 
-3. **Server — `src/server.py`.** Four `@mcp.tool` functions (`assess_player`, `adjudicate_claim`, `compare_players`, `explain_metric`). Each validates the raw dict via `_parse_card`, calls the engine, and returns `.model_dump()`. Adding an optional field to an engine output model flows through automatically — no server change needed.
+3. **Server — `src/server.py`.** Five `@mcp.tool` functions (`assess_player`, `adjudicate_claim`, `compare_players`, `explain_metric`, `render_report`). Each validates the raw dict via `_parse_card` (or, for `render_report`, against the engine's own output models), calls the engine, and returns `.model_dump()`. Adding an optional field to an engine output model flows through automatically — no server change needed. Tool descriptions carry load-bearing host steering (offer-the-PDF, don't-promote-descriptive-reads) guarded by description-content tests — don't reword them casually.
+
+4. **Reports — `src/reports/`.** Presentation only, no judgment: engine output → Jinja2 template (`templates/`) → PDF via WeasyPrint (`pdf.py`, fully local, no network, no headless browser). `save.py` validates a result against the engine's own output model for the kind and writes to `~/Documents/HockeyCardReports/` (`HOCKEY_CARD_REPORTS_DIR` override). Design tokens and the bundled OFL fonts live inside the module (`reports/fonts/`). The interpretive kind is Claude-authored prose and is always badged "AI — not an engine verdict"; the source card image is never embedded. On macOS WeasyPrint needs `brew install pango`; `reports/pdf.py` handles the dyld path in-process.
 
 ### Config is the methodology — `src/config.py` loads two cached YAML files
 

@@ -1,0 +1,33 @@
+{
+ "name": "Jack Hughes",
+ "team": "New Jersey Devils",
+ "position": "C",
+ "age": 25,
+ "toi_role": "1st Liner",
+ "cap": "$8M x 4",
+ "competition": 74,
+ "teammates": 79,
+ "ev_offense": 98,
+ "ev_defense": 34,
+ "pp": 88,
+ "pk": null,
+ "finishing": 85,
+ "penalties": 99,
+ "proj_war_pct": 98,
+ "goals": 89,
+ "first_assists": 81,
+ "war_pct_trend": [
+  {
+   "season": "23-24",
+   "value": 93
+  },
+  {
+   "season": "24-25",
+   "value": 97
+  },
+  {
+   "season": "25-26",
+   "value": 92
+  }
+ ]
+}

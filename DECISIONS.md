@@ -560,3 +560,44 @@ Config + test only — no engine change (see below for why that's not just a cla
   north-south power forward") resolves to `unverifiable` with the config note
   surfaced, watched fail (unrecognized dimension) before the config entry existed.
   Full suite 146 passed.
+
+## PDF report generation (2026-07-03)
+
+New fourth layer `src/reports/` plus a fifth MCP tool `render_report(kind,
+result, title?)`: turn the answer the host just gave into a downloadable,
+styled PDF at ~/Documents/HockeyCardReports/ (filename = player(s) + kind +
+date). Built in three phases against a private local web companion whose
+assess-screen design is the visual spec; consolidated here for this repo.
+
+- **Renderer core:** engine structured output -> Jinja2 HTML -> WeasyPrint,
+  fully local (no headless browser, no network, no LLM at render time).
+  Five kinds: assess_skater, assess_goalie, compare (two columns, per-
+  component gaps, honest split/refusal), claim_check (graded rows with all
+  four statuses incl. UNVERIFIABLE), and interpretive — Claude-authored
+  prose, prominently badged "Interpretive read · AI — not an engine
+  verdict", with the honest-caveat box placed ABOVE the prose so it frames
+  the read. Footer attribution ("Built on HockeyStats.com (JFresh Hockey)
+  player cards.") + page counter on every page via @page margin boxes. The
+  source card image is never embedded (tested). Fonts (IBM Plex Sans/Mono +
+  Sora latin subsets, OFL) are bundled in reports/fonts. On macOS,
+  WeasyPrint needs `brew install pango`; reports/pdf.py extends
+  DYLD_FALLBACK_LIBRARY_PATH in-process before the deferred import
+  (ctypes' find_library reads it at call time), so the MCP host needs no
+  launcher env config and a missing native lib surfaces as a ToolError,
+  never a dead server.
+- **Validation IS the engine's own output models:** save_report round-trips
+  the passed result through Assessment / GoalieAssessment / Comparison /
+  Adjudication for the chosen kind, so a retyped, trimmed, or wrong-kind
+  result fails loudly instead of rendering a plausible wrong report.
+  Interpretive has its own strict schema (extra="forbid", sections
+  non-empty). claim_check carries no player name in its result, so the
+  host passes the claim sentence as `title` and it names the file.
+- **Live-loop steering (host-tested in Claude Desktop):** the offer-the-PDF
+  instruction rides on the ENGINE tools' descriptions (the tool the host
+  just used — its own description is what it re-reads), not only on
+  render_report; and assess_player's description pins narration to the
+  returned structure after the host was seen promoting the `descriptive`
+  reads (goals/first assists — color, deliberately outside the value
+  verdict) into "strengths". The assess report renders descriptive reads
+  in their own "Color, not the verdict" panel. Both steering rules are
+  guarded by description-content tests — don't reword casually.
