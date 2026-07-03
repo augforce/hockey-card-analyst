@@ -38,10 +38,12 @@ class SkaterTrendPoint(_StrictModel):
 
 
 class _SkaterBase(_StrictModel):
-    # Context (does not affect value)
+    # Context (does not affect value). Team and age may be missing from the
+    # card itself (e.g. a UFA card with a blank Age line and no team shown);
+    # absence is unknown context, never a value signal.
     name: str
-    team: str
-    age: int = Field(ge=15, le=60)
+    team: Optional[str] = None
+    age: Optional[int] = Field(default=None, ge=15, le=60)
     toi_role: Optional[str] = None
     cap: Optional[str] = None
     competition: Optional[Percentile] = None  # deployment, not value
@@ -111,10 +113,10 @@ class GoalieCard(_StrictModel):
     at avoiding them) and Consistency. Do not invert any of them.
     """
 
-    # Context
+    # Context (team/age may be missing from the card itself — see _SkaterBase)
     name: str
-    team: str
-    age: int = Field(ge=15, le=60)
+    team: Optional[str] = None
+    age: Optional[int] = Field(default=None, ge=15, le=60)
     gp_pct: Optional[Percentile] = None  # games-played percentile (workload)
     role: Literal["Starter", "1A", "1B", "Backup"]
     cap: Optional[str] = None

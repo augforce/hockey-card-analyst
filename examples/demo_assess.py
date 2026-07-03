@@ -56,8 +56,9 @@ def narrate(a):
             return note
         return None
 
+    who = f"{a.name} ({a.team})" if a.team else a.name
     out = [
-        f"{a.name} ({a.team}) grades as {article} {a.overall_tier.lower()} {pos} — "
+        f"{who} grades as {article} {a.overall_tier.lower()} {pos} — "
         f"{ordinal(a.overall_percentile)} percentile in projected WAR among {plural}."
     ]
     if once(a.overall_note):

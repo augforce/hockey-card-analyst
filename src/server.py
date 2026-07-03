@@ -62,12 +62,12 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
     carries the correct framing inline.
 
     `card` is one JSON object. Skater (forward or defenseman):
-      name, team, position (C/LW/RW/L/R/F; D for a defenseman), age,
+      name, position (C/LW/RW/L/R/F; D for a defenseman), [team, age],
       [toi_role, cap, competition, teammates], ev_offense, ev_defense,
       pp (null if NA), pk (null if NA), finishing, penalties, proj_war_pct,
       [goals, first_assists], [war_pct_trend: list of {season, value}].
     Goalie (no position; has role):
-      name, team, age, [gp_pct], role (Starter/1A/1B/Backup), [cap], proj_war_pct,
+      name, [team, age], [gp_pct], role (Starter/1A/1B/Backup), [cap], proj_war_pct,
       even_strength, penalty_kill, high_danger, med_danger, low_danger,
       quality_starts, excellent_starts, bad_starts, rebound_control, consistency,
       [war_per60_trend, sv_vs_xsv_trend].
@@ -75,7 +75,9 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
     All percentiles are integers 0-100, already oriented so higher is better —
     including goalie Bad Starts and Consistency; do NOT invert them. A role the
     player doesn't have (e.g. no PK) is null/NA, not 0 — NA is an absence of role,
-    not a weakness.
+    not a weakness. Some cards (e.g. a UFA's) print a blank Age and show no team:
+    omit team/age rather than guessing, and never infer the team from the jersey
+    or photo.
 
     Guardrails: never invent a stat that isn't on the card; a defenseman's finishing
     is descriptive only (excluded from his WAR); surface the returned caveats rather

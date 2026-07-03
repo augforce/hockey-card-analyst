@@ -67,7 +67,7 @@ class Assessment(BaseModel):
     """Structured assessment of a single skater (the server's return shape)."""
 
     name: str
-    team: str
+    team: Optional[str] = None
     position: str
     overall_tier: str
     overall_percentile: int
@@ -102,7 +102,7 @@ class GoalieAssessment(BaseModel):
     """Structured assessment of a goalie (the server's goalie return shape)."""
 
     name: str
-    team: str
+    team: Optional[str] = None
     role: str
     overall_tier: str
     overall_percentile: int
@@ -251,8 +251,9 @@ def _caveats(
         caveats.append(cav["dangerous_passing"])
     # Young-sample uncertainty: the card is a 3-year weighted average, so a young
     # skater's number rests on a short, recent, still-developing sample. Pair it
-    # with the trajectory when the trend points up. Position-agnostic.
-    if card.age <= cfg["age_uncertainty"]["max_age"]:
+    # with the trajectory when the trend points up. Position-agnostic. An unknown
+    # age (blank on the card) is not young — the caveat needs evidence to fire.
+    if card.age is not None and card.age <= cfg["age_uncertainty"]["max_age"]:
         note = cav["young_sample"]
         if _trend_is_up(card):
             note = note + " " + cav["young_sample_rising"]

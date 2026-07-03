@@ -44,6 +44,33 @@ def test_celebrini_fixture_loads_with_verified_values():
     assert len(card.war_pct_trend) == 2
 
 
+def test_gritsyuk_fixture_loads_without_team_or_age():
+    # Real card with a blank Age field and no team shown anywhere (UFA card).
+    # Both are context-only; their absence must not fail validation.
+    card = SkaterCard(**_load("gritsyuk.json"))
+
+    assert card.name == "Arseny Gritsyuk"
+    assert card.team is None
+    assert card.age is None
+    assert card.position == "LW"
+    assert card.cap == "UFA"
+
+    # Exact, legible box percentiles.
+    assert card.ev_offense == 82
+    assert card.ev_defense == 95
+    assert card.pp == 30
+    assert card.finishing == 79
+    assert card.penalties == 16
+    assert card.proj_war_pct == 84
+    assert card.goals == 62
+    assert card.first_assists == 84
+    assert card.competition == 55
+    assert card.teammates == 63
+
+    # PK is NA — an absence of role, not a zero. Must read as None.
+    assert card.pk is None
+
+
 def test_thompson_fixture_loads_with_verified_values():
     card = GoalieCard(**_load("thompson.json"))
 

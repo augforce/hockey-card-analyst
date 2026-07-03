@@ -1,0 +1,20 @@
+{
+  "name": "Arseny Gritsyuk",
+  "position": "LW",
+  "toi_role": "3rd Liner",
+  "cap": "UFA",
+  "competition": 55,
+  "teammates": 63,
+  "ev_offense": 82,
+  "ev_defense": 95,
+  "pp": 30,
+  "pk": null,
+  "finishing": 79,
+  "penalties": 16,
+  "proj_war_pct": 84,
+  "goals": 62,
+  "first_assists": 84,
+  "war_pct_trend": [
+    {"season": "25-26", "value": 84}
+  ]
+}

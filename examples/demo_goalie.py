@@ -43,8 +43,9 @@ def _article(word):
 
 def narrate_assessment(a):
     """Stand-in for Claude Desktop's narration — derived only from the GoalieAssessment."""
+    context = f"{a.team}, {a.role}" if a.team else a.role
     out = [
-        f"{a.name} ({a.team}, {a.role}) projects as {_article(a.overall_tier)} "
+        f"{a.name} ({context}) projects as {_article(a.overall_tier)} "
         f"{a.overall_tier.lower()} starter — {ordinal(a.overall_percentile)} in projected WAR."
     ]
     if a.overall_note:

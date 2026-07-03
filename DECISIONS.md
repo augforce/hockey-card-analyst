@@ -647,3 +647,29 @@ steady," hiding the peak season.
   margin config-tunable (override kills the note); 2-point noise stays
   quiet; two-point trends byte-identical. Full suite 202; all four demos
   re-run with prose unchanged except the intended strings.
+
+## Team and age are optional card context (2026-07-03)
+
+Real trigger: a real UFA card (Gritsyuk) — its Age line is printed blank
+and no team appears anywhere on the card. The host was correctly refusing
+to guess, and the strict schema then rejected the card ("team/age Field
+required"), which made an honest extraction impossible. TDD (fixture + 3
+new tests).
+
+- **Schema:** `team` and `age` are now `Optional` on `_SkaterBase` and
+  `GoalieCard` (age keeps its 15–60 bound when present). They are context
+  fields — they never feed a verdict — so their absence is unknown context,
+  not a validation failure. The strictness principle is unchanged: a
+  MIS-extracted card still fails loudly; a field the card genuinely does
+  not carry no longer does.
+- **Engine:** unknown age is not young — the young-sample caveat requires
+  `age is not None` before comparing against `age_uncertainty.max_age`
+  (evidence to fire, absence stays silent). `Assessment.team` /
+  `GoalieAssessment.team` are Optional and simply echo through.
+- **Host extraction guidance** (assess_player tool description): the card
+  shapes bracket [team, age] as optional, with an explicit rule to omit
+  them when the card doesn't print them and NEVER to infer the team from
+  the jersey/photo.
+- **Demos:** narrators drop the "(team)" parenthetical when team is absent
+  instead of printing "(None)".
+- New fixture `tests/fixtures/gritsyuk.json` (real card, team/age absent).

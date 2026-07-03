@@ -278,3 +278,22 @@ def test_young_without_rising_trend_omits_the_pairing():
     cfg = load_config()
     assert any(cfg["caveats"]["young_sample"] in c for c in a.caveats)
     assert not any(cfg["caveats"]["young_sample_rising"] in c for c in a.caveats)
+
+
+# --- Missing context fields (Gritsyuk: blank Age, no team on the card) ------
+
+
+def test_card_without_team_or_age_still_assesses():
+    card = SkaterCard(**_load("gritsyuk.json"))
+    a = assess_player(card)
+    assert isinstance(a, Assessment)
+    assert a.team is None
+    assert a.overall_percentile == 84
+
+
+def test_unknown_age_gets_no_uncertainty_caveat():
+    # Age is unknown, not young — the young-sample caveat must not fire.
+    card = SkaterCard(**_load("gritsyuk.json"))
+    a = assess_player(card)
+    base = load_config()["caveats"]["young_sample"]
+    assert not any(base in c for c in a.caveats)
