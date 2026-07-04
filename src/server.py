@@ -89,6 +89,9 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
     value verdict — you may cite them as descriptive color, but NEVER present
     them as strengths, weaknesses, or part of the WAR case.
 
+    Standing framing for every answer: Reads are model projections, not
+    predictions. Numbers are percentiles unless noted.
+
     Scope: this tool interprets ONLY what's on the card. Anything the card can't see
     — trades, contracts, current team, roster context, who leads a team in scoring,
     recent game stats — is out of scope and it does not provide it. If you fill such
@@ -112,8 +115,9 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
     `direction` is "high" or "low" and `dimension` is a card dimension id or a
     recognizable phrase. Dimension ids include — skater: finishing, playmaking,
     two_way, power_play, penalty_kill, discipline, overall_skater, competition,
-    teammates; goalie: game_stealer, soft_goals, reliability, no_stinkers,
-    goalie_consistency, goalie_rebounds, goalie_pk, workhorse, overall_goalie.
+    teammates, skater_style, net_front, team_leading_scorer; goalie:
+    game_stealer, soft_goals, reliability, no_stinkers, goalie_consistency,
+    goalie_rebounds, goalie_pk, workhorse, overall_goalie, goalie_style.
     Include the original phrase as `text` so it can be echoed back.
 
     Dimension ids are NOT the card's schema field names. NEVER pass `ev_offense`
@@ -140,6 +144,9 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
 
     `card`: the same JSON card object as assess_player. `assertions`: a list of
     {dimension, direction, [text]}.
+
+    Standing framing for every answer: Reads are model projections, not
+    predictions. Numbers are percentiles unless noted.
 
     After presenting the graded claim, ALWAYS close your answer by offering the
     user a downloadable PDF report of it — generated with the render_report tool
@@ -184,6 +191,9 @@ def compare_players(
 
     `card_a`, `card_b`: card JSON objects as in assess_player. `focus` (optional):
     "offense" / "defense" / "overall" / a role (e.g. "power play") to narrow it.
+
+    Standing framing for every answer: Reads are model projections, not
+    predictions. Numbers are percentiles unless noted.
 
     After presenting the comparison, ALWAYS close your answer by offering the
     user a downloadable PDF report of it — generated with the render_report tool
@@ -246,6 +256,33 @@ def render_report(
         prominently badged "Interpretive read · AI — not an engine verdict".
         Never pass engine output as interpretive, and never pass your own prose
         under an engine kind — the badge is how the reader tells them apart.
+
+    INTERPRETIVE READS — the contract for line synergy, goalie support, and
+    free-form beyond-the-card reads, whether or not a PDF is ever made:
+    - Label the CHAT answer itself as an interpretive/AI read, not an engine
+      verdict — the same badge the PDF carries, said out loud, every time.
+    - Unit shape is enforced by YOU: a forward line is EXACTLY 3 forwards; a
+      defensive pairing is EXACTLY 2 defensemen; goalie support is 1 goalie
+      plus EXACTLY 2 defensemen. Given a mismatched mix (wrong count, wrong
+      positions), flag it and ask instead of reading the wrong unit.
+    - Line synergy: judge how the cards fit TOGETHER, not how good each player
+      is alone. Think complementarity: who drives play vs who finishes;
+      whether weaknesses stack (two poor defensive players together);
+      discipline exposure; whether one player's strengths cover another's
+      gaps; role overlap (three finishers and no creator is a problem — so is
+      nobody who can defend).
+    - Goalie support: read the two directions against each other — do the
+      defensemen suppress the danger areas where the goalie is weakest, or
+      funnel chances into them? Does the goalie's rebound control cover a
+      pairing that loses retrievals? Do discipline problems expose a weak
+      penalty-kill goalie? Does a play-leaking pairing overload a
+      workload-heavy starter?
+    - Shape the read as: one role per player (their job on the unit plus the
+      single most relevant percentile), what works (2-3 specific reasons,
+      citing percentiles), concerns (1-3, or none if genuinely none), an
+      honest caveat that unit fit is read from individual cards (there is no
+      unit model), and a one-line summary. These map directly onto the
+      interpretive report's sections when the user wants the PDF.
 
     `title` (optional) overrides the report heading; player names still come
     from the result. The PDF lands in ~/Documents/HockeyCardReports/

@@ -673,3 +673,29 @@ new tests).
 - **Demos:** narrators drop the "(team)" parenthetical when team is absent
   instead of printing "(None)".
 - New fixture `tests/fixtures/gritsyuk.json` (real card, team/age absent).
+
+## MCP parity port from the webapp — description-level (2026-07-04)
+
+The user is consolidating onto the MCP server; a full audit mapped every
+capability of the private local web companion against the tools. These
+gaps were closed at the description/prompt level only — no engine logic,
+no schema changes. All are guarded by description-content tests
+(test_server.py) so rewording can't silently drop them.
+
+- **Interpretive-read contract** (render_report description — all MCP tool
+  descriptions co-load in the host's context, so guidance there is always
+  visible): unit shape enforced by the host (EXACTLY 3 forwards for a line,
+  2 defensemen for a pairing, goalie + 2 D for support; mismatched mix →
+  flag and ask, don't read the wrong unit); the line-synergy
+  complementarity checklist and the goalie-support directional questions
+  ported nearly verbatim from the companion app's prompts; output shaped
+  roles / works / concerns / caveat / summary, mapping 1:1 onto the
+  interpretive PDF's sections.
+- **Interpretive labeling in chat:** the read is labeled interpretive/AI in
+  the chat answer itself, every time — the PDF badge said out loud, not
+  only rendered.
+- **adjudicate_claim dimension list** gained skater_style, net_front,
+  team_leading_scorer, goalie_style — all long since in
+  config/interpretation.yaml; the docstring list just lagged.
+- **Standing disclaimer** on all three verdict tools: "Reads are model
+  projections, not predictions. Numbers are percentiles unless noted."

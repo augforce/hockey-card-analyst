@@ -76,3 +76,45 @@ def test_invalid_percentile_raises_toolerror():
     bad["ev_offense"] = 150  # out of 0-100 range
     with pytest.raises(ToolError):
         server.assess_player(bad)
+
+
+# --- Description steering ported from the webapp (2026-07-04) ---------------
+# These guard prompt-level guidance the way test_reports_tool guards the PDF
+# steering: a reworded description must not silently drop the contract.
+
+
+def _descriptions():
+    return {
+        t.name: " ".join(t.description.split())  # collapse doc line wraps
+        for t in asyncio.run(server.mcp.list_tools())
+    }
+
+
+def test_adjudicate_lists_the_style_and_context_dimension_ids():
+    desc = _descriptions()["adjudicate_claim"]
+    for dim in ("skater_style", "net_front", "team_leading_scorer", "goalie_style"):
+        assert dim in desc, dim
+
+
+def test_interpretive_reads_carry_unit_shape_and_reasoning_frames():
+    desc = _descriptions()["render_report"]
+    # Unit shape enforced in guidance (webapp app.py 422 rules).
+    assert "EXACTLY 3 forwards" in desc
+    assert "EXACTLY 2 defensemen" in desc
+    # Line-synergy complementarity checklist (webapp synergy_system).
+    assert "three finishers and no creator" in desc
+    # Goalie-support directional questions (webapp SUPPORT_SYSTEM).
+    assert "funnel chances into them" in desc
+    assert "rebound control" in desc
+    # Chat answers labeled interpretive, not just the PDF badge.
+    assert "chat answer" in desc.lower()
+    # Output shape: roles / works / concerns / caveat / summary.
+    for word in ("role per player", "works", "concerns", "caveat", "summary"):
+        assert word in desc, word
+
+
+def test_verdict_tools_carry_the_standing_disclaimer():
+    descs = _descriptions()
+    line = "Reads are model projections, not predictions. Numbers are percentiles unless noted."
+    for name in ("assess_player", "adjudicate_claim", "compare_players"):
+        assert line in descs[name], name
