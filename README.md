@@ -38,15 +38,6 @@ This tool does the reading. Some of what it's useful for, drawn from real use:
 It reads one analytics model's card and interprets it. It doesn't declare anyone
 good or bad in some absolute sense, and it only tells you what the numbers on the
 card support.
-## Query Example
-
-**(Using Cladue Sonnet 5 with High thinking)**
-
-**-Give me an assessment of how Evan Rodrigues can help the New Jersey Devils:**
-<img width="717" height="803" alt="Screenshot 2026-07-01 at 10 30 48 AM" src="https://github.com/user-attachments/assets/785fc072-da2f-4876-ba92-1e2d19635a3a" />
-
-**-I'm told this player (Simon Nemec) is a defensive liability, despite being a defensemen. Is his offensive contribution enough to offset that?**
-<img width="711" height="473" alt="Screenshot 2026-07-01 at 10 34 28 AM" src="https://github.com/user-attachments/assets/a08afe63-545c-48b4-900c-9eba570e5b36" />
 
 ## What you can ask it
 
@@ -69,6 +60,17 @@ card support.
   what's the catch?") and you want a plain-language definition plus the one caveat
   that keeps you from misreading it — for the metric itself, not a verdict on a
   player.
+
+## Query Example
+
+**(Using Cladue Sonnet 5 with High thinking)**
+
+### **"The Flyers are attempting to aquire Leo Carlsson by signing him to an offer sheet carrying an $18M cap hit for the next five years. Is this player worth it? What's making him so valuable?":**
+<img width="719" height="813" alt="Screenshot 2026-07-04 at 7 35 29 AM" src="https://github.com/user-attachments/assets/29953286-085a-40bb-beaf-e00a68fd8fb5" />
+
+### **PDF Report:**
+[leo-carlsson_assess-skater_2026-07-04.pdf](https://github.com/user-attachments/files/29659645/leo-carlsson_assess-skater_2026-07-04.pdf)
+
 
 ## Why you can trust it
 
