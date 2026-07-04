@@ -63,7 +63,7 @@ card support.
 
 ## Query Example
 
-**(Using Cladue Sonnet 5 with High thinking)**
+**(Using Claude Sonnet 5 with High thinking)**
 
 ### **"The Flyers are attempting to aquire Leo Carlsson by signing him to an offer sheet carrying an $18M cap hit for the next five years. Is this player worth it? What's making him so valuable?":**
 <img width="719" height="813" alt="Screenshot 2026-07-04 at 7 35 29 AM" src="https://github.com/user-attachments/assets/29953286-085a-40bb-beaf-e00a68fd8fb5" />

@@ -1,8 +1,8 @@
 # Decisions log
 
 Choices made during the build that the PLAN did not fully specify. Section
-numbers refer to `hockey-card-analyst-PLAN.md`. Section 13 open defaults are all
-accepted as-is.
+numbers refer to `docs/hockey-card-analyst-PLAN.md`. Section 13 open defaults
+are all accepted as-is.
 
 ## Phase 1 — Scaffold (2026-06-27)
 

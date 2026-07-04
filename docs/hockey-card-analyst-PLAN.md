@@ -1,3 +1,5 @@
+> **Historical document.** This is the original planning document the project was built from, kept for reference — it is not current documentation. See `README.md` for what the project is today and `DECISIONS.md` for how it got there.
+
 # Hockey Card Analyst: Build Plan
 
 A planning overview to hand to Claude Code. Working repo name: `hockey-card-analyst` (rename as you like).
