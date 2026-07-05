@@ -114,6 +114,32 @@ h1.report-title {
 
 table.rows { width: 100%; border-collapse: collapse; }
 table.rows td { padding: 6pt 4pt; border-bottom: 1px solid var(--border); vertical-align: top; }
+
+/* Interpretive units: player rows + the webapp goalie-support screen's
+   what-helps/what-hurts two-column boxes (index.html support screen). */
+.unit-players { margin-top: 2pt; }
+.player-row { padding: 6pt 0; border-bottom: 1px dashed var(--border); }
+.player-row:last-child { border-bottom: none; }
+.player-head { display: flex; justify-content: space-between; align-items: baseline; }
+.player-name { font-family: var(--font-display); font-weight: 600; font-size: 9.5pt; }
+.player-key { font-family: var(--font-mono); font-size: 6.8pt; color: var(--accent); }
+.player-read { color: var(--text-dim); font-size: 8.4pt; line-height: 1.5; margin-top: 2pt; }
+
+.wc-row { display: flex; gap: 8pt; margin-top: 9pt; }
+.wc-box {
+  flex: 1; border: 1px solid var(--border); border-radius: 10pt;
+  padding: 10pt 12pt; background: var(--surface-2); break-inside: avoid;
+}
+.wc-box .eyebrow { margin-bottom: 5pt; }
+.wc-works { border-left: 3pt solid var(--g-sup); }
+.wc-concerns { border-left: 3pt solid var(--g-not); }
+.wc-item { display: flex; gap: 6pt; font-size: 8.4pt; line-height: 1.5; color: var(--text-dim); margin-top: 4pt; }
+.wc-item .sign { flex: none; font-weight: 600; }
+
+/* Prose sections: converted-markdown paragraphs and lists. */
+.prose p + p, .prose p + ul, .prose ul + p { margin-top: 6pt; }
+.prose ul { margin: 0 0 0 11pt; }
+.prose li { margin-top: 3pt; }
 </style>
 </head>
 <body>

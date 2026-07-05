@@ -249,10 +249,22 @@ def render_report(
       - "compare": a compare_players result (works for splits and refusals too)
       - "claim_check": an adjudicate_claim result — pass the original claim
         sentence as `title` (it headlines the report and names the file)
-      - "interpretive": YOUR OWN prose, for questions with no engine tool (line
-        synergy, goalie support, free-form reads). Pass {title, tone
-        ("positive"/"negative"/"mixed"/"neutral"), players: [names],
-        sections: [{heading, body}, ...], caveat, summary}. The report is
+      - "interpretive": YOUR OWN content, for questions with no engine tool (line
+        synergy, goalie support, roster construction, free-form reads). Pass
+        {title, tone ("positive"/"negative"/"mixed"/"neutral"), players: [names],
+        units, sections, caveat, summary} — at least one of units/sections.
+        When the answer has per-unit structure (one block per line / pairing /
+        goalie+pairing), pass it as `units`, one entry per unit:
+        {name: "Line 1 — Hughes (C) / Gritsyuk (LW) / Bratt (RW)",
+        players: [{name, read (their one-line job on the unit),
+        key_numbers (e.g. "98 EVO · 85 FIN · 34 EVD")}, ...],
+        works: [reasons it fits], concerns: [risks]} — each renders as a card
+        with player rows and green-works / red-concerns columns. Use
+        `sections` ([{heading, body}, ...]) only for genuinely freeform prose
+        that doesn't fit a unit (method notes, extras/depth players); simple
+        "- " bullet lines in a body render as a real list. Write PLAIN TEXT in
+        every field — no markdown (**bold**, bullets, # headers): it is
+        converted or stripped, never shown literally. The report is
         prominently badged "Interpretive read · AI — not an engine verdict".
         Never pass engine output as interpretive, and never pass your own prose
         under an engine kind — the badge is how the reader tells them apart.
@@ -282,7 +294,8 @@ def render_report(
       citing percentiles), concerns (1-3, or none if genuinely none), an
       honest caveat that unit fit is read from individual cards (there is no
       unit model), and a one-line summary. These map directly onto the
-      interpretive report's sections when the user wants the PDF.
+      interpretive report's `units` (player rows + works/concerns) when the
+      user wants the PDF — one unit entry per line or pairing read.
 
     `title` (optional) overrides the report heading; player names still come
     from the result. The PDF lands in ~/Documents/HockeyCardReports/

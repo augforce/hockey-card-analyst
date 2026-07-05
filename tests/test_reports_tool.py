@@ -123,6 +123,30 @@ def test_interpretive_report_from_claude_prose():
     assert path.read_bytes().startswith(b"%PDF-")
 
 
+def test_interpretive_report_from_structured_units():
+    result = {
+        "title": "Optimal line construction",
+        "tone": "mixed",
+        "players": ["Jack Hughes", "Jesper Bratt"],
+        "units": [{
+            "name": "Line 1 — Hughes / Bratt",
+            "players": [{"name": "Hughes", "read": "Elite EV offense.", "key_numbers": "98 EVO"}],
+            "works": ["Bratt's playmaking feeds two finishers."],
+            "concerns": ["No shutdown center."],
+        }],
+    }
+    path = Path(server.render_report("interpretive", result)["path"])
+    assert path.read_bytes().startswith(b"%PDF-")
+
+
+def test_interpretive_unit_with_unknown_field_is_a_tool_error():
+    with pytest.raises(ToolError, match="InterpretiveResult"):
+        server.render_report("interpretive", {
+            "title": "Bad unit",
+            "units": [{"name": "Line 1", "verdict": "made-up field"}],
+        })
+
+
 def test_goalie_result_dispatches_by_kind(goalie_result):
     path = Path(server.render_report("assess_goalie", goalie_result)["path"])
     assert "logan-thompson" in path.name

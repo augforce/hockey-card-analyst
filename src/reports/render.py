@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from markupsafe import Markup, escape
 
 from engine.common import ordinal
 from reports.pdf import html_to_pdf
@@ -305,23 +306,106 @@ def _build_claim_check(adj: dict[str, Any]) -> dict[str, Any]:
 
 # --- interpretive ------------------------------------------------------------------
 
+# The interpretive result is Claude-authored, so its text can arrive with
+# markdown in it (**bold**, bullet lines). The PDF must never show those
+# characters literally: escape the text first, then convert the few inline
+# marks to real styling and bullet lines to real lists.
+
+_MD_BOLD = re.compile(r"\*\*(.+?)\*\*|__(.+?)__")
+_MD_EM = re.compile(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])|(?<![\w_])_([^_\n]+?)_(?![\w_])")
+_MD_CODE = re.compile(r"`([^`\n]+)`")
+_MD_BULLET = re.compile(r"^\s*(?:[-*+•‣·]|\d+[.)])\s+")
+_MD_HEADING = re.compile(r"^#{1,6}\s+")
+
+
+def _md_inline(text: Optional[str]) -> Optional[Markup]:
+    """Escape, then style inline markdown; stray bullet/heading marks drop."""
+    if text is None:
+        return None
+    s = _MD_HEADING.sub("", _MD_BULLET.sub("", str(text).strip()))
+    s = str(escape(s))
+    s = _MD_BOLD.sub(lambda m: f"<strong>{m.group(1) or m.group(2)}</strong>", s)
+    s = _MD_EM.sub(lambda m: f"<em>{m.group(1) or m.group(2)}</em>", s)
+    s = _MD_CODE.sub(r"\1", s)
+    return Markup(s)
+
+
+def _md_blocks(text: str) -> Markup:
+    """Paragraphs and bullet lines -> real <p>/<ul> blocks, inline-styled."""
+    out: list[str] = []
+    para: list[str] = []
+    bullets: list[str] = []
+
+    def flush_para():
+        if para:
+            out.append(f"<p>{_md_inline(' '.join(para))}</p>")
+            para.clear()
+
+    def flush_bullets():
+        if bullets:
+            items = "".join(f"<li>{_md_inline(b)}</li>" for b in bullets)
+            out.append(f"<ul>{items}</ul>")
+            bullets.clear()
+
+    for raw in str(text).splitlines():
+        line = raw.strip()
+        if not line:
+            flush_para()
+            flush_bullets()
+        elif _MD_BULLET.match(line):
+            flush_para()
+            bullets.append(_MD_BULLET.sub("", line))
+        elif _MD_HEADING.match(line):
+            flush_para()
+            flush_bullets()
+            out.append(f"<p><strong>{_md_inline(line)}</strong></p>")
+        else:
+            flush_bullets()
+            para.append(line)
+    flush_para()
+    flush_bullets()
+    return Markup("".join(out))
+
 
 def _build_interpretive(r: dict[str, Any]) -> dict[str, Any]:
     sections = r.get("sections") or []
-    if not sections or not all(isinstance(s, dict) and s.get("body") for s in sections):
+    units = r.get("units") or []
+    if not sections and not units:
         raise ValueError(
-            "interpretive result needs a non-empty 'sections' list of {heading?, body}."
+            "interpretive result needs 'units' (structured per-unit reads) "
+            "and/or a non-empty 'sections' list of {heading?, body}."
+        )
+    if not all(isinstance(s, dict) and s.get("body") for s in sections):
+        raise ValueError(
+            "each interpretive section needs a non-empty 'body' ({heading?, body})."
         )
     return {
         **_tone(r.get("tone", "neutral")),
         "default_title": r.get("title", "Interpretive read"),
         "subtitle": r.get("subtitle"),
         "players": r.get("players", []),
-        "sections": [
-            {"heading": s.get("heading"), "body": s["body"]} for s in sections
+        "units": [
+            {
+                "name": _md_inline(u["name"]),
+                "players": [
+                    {
+                        "name": _md_inline(p["name"]),
+                        "read": _md_inline(p["read"]),
+                        "key_numbers": _md_inline(p.get("key_numbers")),
+                    }
+                    for p in u.get("players") or []
+                ],
+                "works": [_md_inline(w) for w in u.get("works") or []],
+                "concerns": [_md_inline(c) for c in u.get("concerns") or []],
+            }
+            for u in units
         ],
-        "caveat": r.get("caveat"),
-        "summary": r.get("summary"),
+        "sections": [
+            {"heading": _md_inline(s.get("heading")), "body": _md_blocks(s["body"])}
+            for s in sections
+        ],
+        "caveat": _md_inline(r.get("caveat")),
+        "summary": _md_inline(r.get("summary")),
     }
 
 

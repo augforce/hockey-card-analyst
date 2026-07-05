@@ -699,3 +699,33 @@ no schema changes. All are guarded by description-content tests
   config/interpretation.yaml; the docstring list just lagged.
 - **Standing disclaimer** on all three verdict tools: "Reads are model
   projections, not predictions. Numbers are percentiles unless noted."
+
+## Interpretive report: structured units + markdown-safe text (2026-07-05)
+
+Live gap: a structured chat answer (four-line roster construction — per-line
+player reads, works, concerns) flattened into paragraph soup in the
+interpretive PDF, with literal `**` and `-` markdown characters where the
+chat had bold and bullets.
+
+- **`InterpretiveResult` grew `units`** (save.py): each unit is
+  {name, players: [{name, read, key_numbers}], works: [], concerns: []},
+  `extra="forbid"` throughout; `sections` is no longer required on its own —
+  the model now demands at least one of units/sections. Units render as one
+  card per unit: player rows (display-font name, mono accent key numbers,
+  one-line read) over the companion app's goalie-support what-helps/
+  what-hurts two-column boxes (green + items / red − items), ported into
+  base.html CSS. Sections stay as the freeform fallback (extras, method
+  notes) and now render real paragraphs/lists.
+- **Markdown never renders literally.** Interpretive text is Claude-authored,
+  so render.py escapes it, then converts `**bold**`/`*em*` to styled text and
+  leading `-`/`•`/`1.` lines to real `<ul>` lists; stray heading/bullet
+  markers are stripped. Escape-first keeps autoescape's HTML-injection
+  guarantee (guarded by a test).
+- **render_report description steers the choice** (test-guarded like the rest
+  of the host steering): per-line/per-pairing answers go through `units`,
+  `sections` only for genuinely freeform prose, and every field is PLAIN
+  TEXT — markdown is converted or stripped, never shown.
+- Badge, caveat-before-content placement, footer attribution, and the engine
+  kinds are untouched. demo_reports.py gained a goalie-support preview
+  (sections path) and the roster-construction preview (units path) as the
+  eyeball cases.

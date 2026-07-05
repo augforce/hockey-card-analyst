@@ -75,6 +75,34 @@ def interpretive_result():
     }
 
 
+@pytest.fixture(scope="module")
+def units_result():
+    # Structured interpretive read: per-unit cards + a freeform extras section.
+    return {
+        "title": "Optimal line construction",
+        "tone": "mixed",
+        "players": ["Jack Hughes", "Arseny Gritsyuk", "Jesper Bratt"],
+        "units": [
+            {
+                "name": "Line 1 — Hughes (C) / Gritsyuk (LW) / Bratt (RW)",
+                "players": [
+                    {"name": "Hughes", "read": "Elite EV offense and finishing, but weak EV defense.",
+                     "key_numbers": "98 EVO · 85 FIN · 34 EVD"},
+                    {"name": "Gritsyuk", "read": "Elite EV defense directly covers Hughes' gap.",
+                     "key_numbers": "95 EVD · 79 FIN"},
+                ],
+                "works": ["Gritsyuk's defense offsets two defensive liabilities."],
+                "concerns": ["No true shutdown center if Gritsyuk is pulled out of position."],
+            },
+        ],
+        "sections": [
+            {"heading": "Extras", "body": "Boqvist graded replacement-level; Lombardi has no card."},
+        ],
+        "caveat": "Synergy is read across individual cards; there is no unit model.",
+        "summary": "Top-six firepower, bottom-six suppression.",
+    }
+
+
 def _result_for(kind, skater, goalie, cmp_, claim, interp):
     return {
         "assess_skater": skater,
@@ -174,6 +202,70 @@ def test_interpretive_html_is_badged(interpretive_result):
     assert FOOTER in html
 
 
+def test_interpretive_units_render_player_rows_and_works_concerns(units_result):
+    html = unescape(render_html("interpretive", units_result))
+    assert "Line 1 — Hughes (C) / Gritsyuk (LW) / Bratt (RW)" in html
+    for row in units_result["units"][0]["players"]:
+        assert row["name"] in html
+        assert row["read"] in html
+        assert row["key_numbers"] in html
+    # Works/concerns reuse the goalie-support two-column visual: green +
+    # items and red − items under their own eyebrows.
+    assert "What works" in html
+    assert "Concerns" in html
+    assert units_result["units"][0]["works"][0] in html
+    assert units_result["units"][0]["concerns"][0] in html
+    # The sections fallback still renders alongside the units.
+    assert "Extras" in html
+    assert units_result["sections"][0]["body"] in html
+
+
+def test_interpretive_units_without_sections_are_enough():
+    html = render_html("interpretive", {
+        "title": "Units only",
+        "units": [{"name": "Pairing — A / B", "works": ["Their skills complement."]}],
+    })
+    assert "Their skills complement." in html
+
+
+def test_interpretive_caveat_still_frames_units(units_result):
+    # Honest-caveat-near-the-top: the caveat precedes the first unit card.
+    html = unescape(render_html("interpretive", units_result))
+    assert html.index(units_result["caveat"]) < html.index(units_result["units"][0]["name"])
+
+
+def test_interpretive_markdown_never_renders_literally():
+    html = render_html("interpretive", {
+        "title": "Markdown input",
+        "sections": [{
+            "heading": "Read",
+            "body": "**Hughes** is *elite*.\n- covers the gap\n- feeds two finishers",
+        }],
+        "units": [{
+            "name": "Line 1 — **Hughes** / Bratt",
+            "players": [{"name": "**Hughes**", "read": "**elite** EVO"}],
+            "works": ["**Bratt** feeds two finishers"],
+            "concerns": ["- all three are the same hand"],
+        }],
+        "summary": "A **strong** top line.",
+    })
+    assert "**" not in html                      # never literal markdown
+    assert "<strong>Hughes</strong>" in html     # bold converts, not strips
+    assert "<li>covers the gap</li>" in html     # bullets become real lists
+    assert "<li>feeds two finishers</li>" in html
+    assert "- all three" not in html             # stray bullet chars stripped
+    assert "all three are the same hand" in html
+
+
+def test_interpretive_markdown_conversion_still_escapes_html():
+    html = render_html("interpretive", {
+        "title": "Escape check",
+        "sections": [{"heading": None, "body": "**bold** and <script>alert(1)</script>"}],
+    })
+    assert "<script>" not in html
+    assert "<strong>bold</strong>" in html
+
+
 def test_engine_kinds_are_not_badged_interpretive(skater_result, goalie_result, compare_result, claim_result):
     for kind, result in [
         ("assess_skater", skater_result),
@@ -214,6 +306,11 @@ def test_interpretive_without_sections_fails_loudly():
         render_html("interpretive", {"title": "Empty", "sections": []})
 
 
+def test_interpretive_with_neither_sections_nor_units_fails_loudly():
+    with pytest.raises(ValueError, match="sections"):
+        render_html("interpretive", {"title": "Empty", "sections": [], "units": []})
+
+
 # --- PDF output --------------------------------------------------------------
 
 
@@ -223,3 +320,9 @@ def test_every_kind_renders_a_real_pdf(kind, skater_result, goalie_result, compa
         kind, skater_result, goalie_result, compare_result, claim_result, interpretive_result))
     assert pdf.startswith(b"%PDF-")
     assert len(pdf) > 5000                      # a styled page, not a stub
+
+
+def test_interpretive_units_render_a_real_pdf(units_result):
+    pdf = render_pdf("interpretive", units_result)
+    assert pdf.startswith(b"%PDF-")
+    assert len(pdf) > 5000

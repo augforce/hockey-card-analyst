@@ -17,10 +17,49 @@
 {# Caveat leads: it frames the interpretive read before the confident prose. #}
 {% if caveat %}{{ m.caveat_box([caveat]) }}{% endif %}
 
+{% for u in units %}
+<div class="panel" style="border-left: 3pt solid {{ tone_color }}">
+  <div class="eyebrow" style="color: {{ tone_color }}">// {{ u.name }}</div>
+  {% if u.players %}
+  <div class="unit-players">
+    {% for p in u.players %}
+    <div class="player-row">
+      <div class="player-head">
+        <span class="player-name">{{ p.name }}</span>
+        {% if p.key_numbers %}<span class="player-key">{{ p.key_numbers }}</span>{% endif %}
+      </div>
+      <div class="player-read">{{ p.read }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if u.works or u.concerns %}
+  <div class="wc-row">
+    {% if u.works %}
+    <div class="wc-box wc-works">
+      <div class="eyebrow" style="color: var(--g-sup)">// What works</div>
+      {% for w in u.works %}
+      <div class="wc-item"><span class="sign" style="color: var(--g-sup)">+</span><span>{{ w }}</span></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if u.concerns %}
+    <div class="wc-box wc-concerns">
+      <div class="eyebrow" style="color: var(--g-not)">// Concerns</div>
+      {% for c in u.concerns %}
+      <div class="wc-item"><span class="sign" style="color: var(--g-not)">&minus;</span><span>{{ c }}</span></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+
 {% for s in sections %}
 <div class="panel" style="border-left: 3pt solid {{ tone_color }}">
   {% if s.heading %}<div class="eyebrow" style="color: {{ tone_color }}">// {{ s.heading }}</div>{% endif %}
-  <p class="note" style="font-size: 9pt; color: var(--text)">{{ s.body }}</p>
+  <div class="note prose" style="font-size: 9pt; color: var(--text)">{{ s.body }}</div>
 </div>
 {% endfor %}
 

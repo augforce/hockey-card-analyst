@@ -14,7 +14,7 @@ import re
 from pathlib import Path
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from engine.adjudicate import Adjudication
 from engine.assess import Assessment, GoalieAssessment
@@ -32,8 +32,29 @@ class InterpretiveSection(BaseModel):
     body: str = Field(min_length=1)
 
 
+class InterpretivePlayerRow(BaseModel):
+    """One player's job on a unit: name, one-line read, the numbers behind it."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1)
+    read: str = Field(min_length=1)
+    key_numbers: Optional[str] = None
+
+
+class InterpretiveUnit(BaseModel):
+    """A named unit (line, pairing, goalie+pairing) with works/concerns."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1)
+    players: list[InterpretivePlayerRow] = []
+    works: list[str] = []
+    concerns: list[str] = []
+
+
 class InterpretiveResult(BaseModel):
-    """Claude-authored prose for reads the engine has no tool for."""
+    """Claude-authored content for reads the engine has no tool for."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -41,9 +62,19 @@ class InterpretiveResult(BaseModel):
     subtitle: Optional[str] = None
     tone: Literal["positive", "negative", "mixed", "neutral"] = "neutral"
     players: list[str] = []
-    sections: list[InterpretiveSection] = Field(min_length=1)
+    units: list[InterpretiveUnit] = []
+    sections: list[InterpretiveSection] = []
     caveat: Optional[str] = None
     summary: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _needs_units_or_sections(self):
+        if not self.units and not self.sections:
+            raise ValueError(
+                "an interpretive result needs 'units' (structured per-unit reads) "
+                "and/or a non-empty 'sections' list of {heading?, body}."
+            )
+        return self
 
 
 RESULT_MODELS = {

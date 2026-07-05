@@ -113,6 +113,18 @@ def test_interpretive_reads_carry_unit_shape_and_reasoning_frames():
         assert word in desc, word
 
 
+def test_render_report_steers_structured_units_and_plain_text():
+    desc = _descriptions()["render_report"]
+    # Structured answers (per-line / per-pairing) go through `units`, prose
+    # through `sections` — and everything is plain text, never markdown.
+    assert "units" in desc
+    assert "key_numbers" in desc
+    assert "per-unit structure" in desc
+    assert "genuinely freeform" in desc
+    assert "PLAIN TEXT" in desc
+    assert "markdown" in desc.lower()
+
+
 def test_verdict_tools_carry_the_standing_disclaimer():
     descs = _descriptions()
     line = "Reads are model projections, not predictions. Numbers are percentiles unless noted."
