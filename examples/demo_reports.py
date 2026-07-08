@@ -1,7 +1,7 @@
 """Render one PDF per report kind from the golden fixtures, for eyeballing.
 
 Like the other demos this is the window into how the output READS — here,
-how the report looks against the webapp assess screen it mirrors. Not server
+how the report design actually looks on the page. Not server
 code; never imported by src/. PDFs land in examples/report_previews/.
 """
 import json

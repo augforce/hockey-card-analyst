@@ -634,7 +634,7 @@ steady," hiding the peak season.
 
 ### Fixture + the vision-path catch
 - New fixture `tests/fixtures/hughes.json`, extracted from the real card
-  image via the webapp's own `/api/read-card` and hand-verified box-for-box
+  image by an AI vision pass and hand-verified box-for-box
   against the image (trend values approximate per fixture convention). This
   was the FIRST real-card end-to-end run — and it caught a real extraction
   bug: vision invented an `offence_defence_finishing_trend` key for the
@@ -674,10 +674,10 @@ new tests).
   instead of printing "(None)".
 - New fixture `tests/fixtures/gritsyuk.json` (real card, team/age absent).
 
-## MCP parity port from the webapp — description-level (2026-07-04)
+## MCP parity port — description-level (2026-07-04)
 
 The user is consolidating onto the MCP server; a full audit mapped every
-capability of the private local web companion against the tools. These
+capability of a private companion tool (since retired) against the tools. These
 gaps were closed at the description/prompt level only — no engine logic,
 no schema changes. All are guarded by description-content tests
 (test_server.py) so rewording can't silently drop them.
@@ -688,7 +688,7 @@ no schema changes. All are guarded by description-content tests
   2 defensemen for a pairing, goalie + 2 D for support; mismatched mix →
   flag and ask, don't read the wrong unit); the line-synergy
   complementarity checklist and the goalie-support directional questions
-  ported nearly verbatim from the companion app's prompts; output shaped
+  ported nearly verbatim from the companion tool's prompts; output shaped
   roles / works / concerns / caveat / summary, mapping 1:1 onto the
   interpretive PDF's sections.
 - **Interpretive labeling in chat:** the read is labeled interpretive/AI in

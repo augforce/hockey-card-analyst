@@ -1,5 +1,5 @@
 {% macro verdict_banner(headline, line, subline, tone_color, pct=None) %}
-{# tone_color~"12" = 8-digit hex, ~7% alpha — the webapp's toneSoft mix, WeasyPrint-safe #}
+{# tone_color~"12" = 8-digit hex, ~7% alpha soft tint, WeasyPrint-safe #}
 <div class="verdict" style="border-color: {{ tone_color }}; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: {{ tone_color }}12">
   <div style="flex: 1">
     <div class="eyebrow" style="color: {{ tone_color }}">// Verdict</div>

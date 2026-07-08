@@ -78,7 +78,7 @@ def test_invalid_percentile_raises_toolerror():
         server.assess_player(bad)
 
 
-# --- Description steering ported from the webapp (2026-07-04) ---------------
+# --- Description steering for interpretive reads (2026-07-04) ---------------
 # These guard prompt-level guidance the way test_reports_tool guards the PDF
 # steering: a reworded description must not silently drop the contract.
 
@@ -98,12 +98,12 @@ def test_adjudicate_lists_the_style_and_context_dimension_ids():
 
 def test_interpretive_reads_carry_unit_shape_and_reasoning_frames():
     desc = _descriptions()["render_report"]
-    # Unit shape enforced in guidance (webapp app.py 422 rules).
+    # Unit shape enforced in guidance.
     assert "EXACTLY 3 forwards" in desc
     assert "EXACTLY 2 defensemen" in desc
-    # Line-synergy complementarity checklist (webapp synergy_system).
+    # Line-synergy complementarity checklist.
     assert "three finishers and no creator" in desc
-    # Goalie-support directional questions (webapp SUPPORT_SYSTEM).
+    # Goalie-support directional questions.
     assert "funnel chances into them" in desc
     assert "rebound control" in desc
     # Chat answers labeled interpretive, not just the PDF badge.

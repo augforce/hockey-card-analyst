@@ -7,7 +7,7 @@
 @font-face { font-family: "{{ f.family }}"; font-weight: {{ f.weight }}; src: url("{{ f.url }}") format("woff2"); }
 {% endfor %}
 
-/* Webapp light-theme tokens (webapp/static/index.html :root) */
+/* Light-theme design tokens */
 :root {
   --bg-tint: #f4f8fd; --surface: #ffffff; --surface-2: #f8fafd;
   --border: #e4eaf1; --border-2: #d2dce8;
@@ -115,8 +115,7 @@ h1.report-title {
 table.rows { width: 100%; border-collapse: collapse; }
 table.rows td { padding: 6pt 4pt; border-bottom: 1px solid var(--border); vertical-align: top; }
 
-/* Interpretive units: player rows + the webapp goalie-support screen's
-   what-helps/what-hurts two-column boxes (index.html support screen). */
+/* Interpretive units: player rows + what-helps/what-hurts two-column boxes. */
 .unit-players { margin-top: 2pt; }
 .player-row { padding: 6pt 0; border-bottom: 1px dashed var(--border); }
 .player-row:last-child { border-bottom: none; }

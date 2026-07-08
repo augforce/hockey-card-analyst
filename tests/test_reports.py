@@ -1,7 +1,7 @@
 """Reports renderer core (Phase 1): engine output -> styled HTML -> PDF.
 
 The renderer takes the engine's structured results (or their dicts) and
-renders the webapp assess screen's design into a PDF. These tests check the
+renders them into a styled PDF. These tests check the
 HTML carries the right content/design hooks and that every kind produces a
 real PDF; visual fidelity is eyeballed via examples/demo_reports.py.
 """
@@ -119,7 +119,7 @@ def _result_for(kind, skater, goalie, cmp_, claim, interp):
 def test_assess_skater_html_carries_the_verdict(skater_result):
     html = render_html("assess_skater", skater_result)
     assert "Macklin Celebrini" in html
-    assert "Excellent forward" in html          # verdictHeadline, same as webapp
+    assert "Excellent forward" in html          # verdict headline wording
     assert "94th percentile" in html
     assert skater_result.summary in html
     assert FOOTER in html
@@ -137,7 +137,7 @@ def test_assess_skater_html_renders_strength_bars_and_caveats(skater_result):
 def test_assess_skater_html_renders_descriptive_reads():
     # Goals / primary assists are supporting color in the engine's
     # `descriptive` list — the report shows them, labeled as color not value,
-    # so chat, webapp screen, and PDF all carry the same data.
+    # so chat and PDF carry the same data.
     hughes = assess_player(SkaterCard(**_load("hughes.json")))
     html = render_html("assess_skater", hughes)
     assert "Goals" in html

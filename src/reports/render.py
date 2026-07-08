@@ -1,10 +1,8 @@
 """Engine result -> report HTML/PDF.
 
-The context builders here are Python ports of the webapp's view-model
-adapters (webapp/static/card-data.js: assessToUI, adjudicationToUI), so the
-PDF says exactly what the assess screen says: same verdict headline wording,
-same tone rule, same weakness merging. Design tokens are the webapp's light
-theme (webapp/static/index.html :root block).
+The context builders here are the view-model adapters: verdict headline
+wording, the tone rule, and weakness merging all live in this module, so
+every report kind phrases and colors the same verdict the same way.
 """
 from __future__ import annotations
 
@@ -34,8 +32,7 @@ KIND_LABELS = {
     "interpretive": "Interpretive read",
 }
 
-# Webapp light-theme status colors (index.html --g-* tokens) and tone rule
-# (card-data.js toneFromPct / index.html toneColor()).
+# Light-theme status colors and the tone rule the templates color by.
 STATUS_COLORS = {
     "supported": "#16a34a",
     "not_supported": "#dc2626",
@@ -55,9 +52,8 @@ GRADE_STATUS = {
     "unverifiable": "UNVERIFIABLE",
 }
 
-# Latin subsets of the webapp's bundled fonts (OFL-licensed; same files as
-# webapp/static/fonts, copied into reports/fonts so the module is
-# self-contained — the reports layer must not depend on the webapp existing).
+# Latin subsets of the bundled fonts (OFL-licensed), shipped in
+# reports/fonts so the module is self-contained.
 _FONT_FACES = [
     ("IBM Plex Sans", 400, "fbaf1018-fca7-4d33-b711-3a53a3042aa5.woff2"),
     ("IBM Plex Mono", 400, "128d07ea-2201-4937-9d97-42221a8b222a.woff2"),

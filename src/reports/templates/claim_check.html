@@ -10,7 +10,7 @@
     {% for r in rows %}
     <tr>
       <td style="width: 16%">
-        {# r.color~"21" = 8-digit hex, ~13% alpha chip fill (webapp status chip) #}
+        {# r.color~"21" = 8-digit hex, ~13% alpha chip fill #}
         <span class="chip" style="color: {{ r.color }}; border-color: {{ r.color }}59; background: {{ r.color }}21">{{ r.status }}</span>
       </td>
       <td style="width: 30%">
