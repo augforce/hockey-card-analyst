@@ -29,19 +29,34 @@ caveats:
   finishing_volatility: >-
     Finishing swings year to year, while play-driving (the RAPM components) is
     more repeatable. A verdict built on finishing is shakier than one built on
-    play-driving.
+    play-driving — and the model's own author notes the weighting likely
+    overstates shooting relative to play-driving (ridge regression shrinks
+    play-driving impacts toward average), so when the two disagree, lean
+    toward the play-driving read.
   deployment_not_value: >-
     Competition and Teammates describe how a player is used, not how good he
     is. They are already baked into WAR, so they are never a strength or a
-    weakness on their own.
+    weakness on their own. The impact components are also regression-adjusted
+    for zone starts, score state, home ice, back-to-backs, and shifts that
+    start off an expiring power play — so "his numbers are a deployment
+    artifact" claims are largely priced in before the card is printed.
+  defense_repeatability: >-
+    This measures play-driving suppression of chances against — impact, not
+    hits or blocked shots; a quiet, position-sound defender can rate higher
+    than a big hitter. It is also the less repeatable half of a forward's
+    play-driving: the model's own priors regress past defensive impact
+    roughly twice as hard toward average as past offense, so lean on
+    multi-year evidence before a strong defensive verdict on a forward.
   within_position_only: >-
     Percentiles are ranked within each position pool. Forward vs forward and D
     vs D are fair comparisons; skater vs goalie, or forward vs defenseman, is
     not apples to apples and must be refused or heavily caveated.
   dangerous_passing: >-
     This model is known to underrate forwards who make dangerous passes and to
-    overrate shoot-first players. When a playmaking claim is borderline, weight
-    it toward the player.
+    overrate shoot-first players — pre-shot movement doesn't fully show up in
+    expected goals, and it cuts both ways: an elite passer's linemates post
+    finishing numbers that run hot, while a shoot-first star's linemates run
+    cold. When a playmaking claim is borderline, weight it toward the player.
   young_sample: >-
     The card is a three-year weighted average, so a young player's projection
     rests on a short, recent, still-developing sample. Read both the upside and
@@ -52,6 +67,39 @@ caveats:
     And the trend is pointing up, so the recent, heavier-weighted seasons are
     pulling the projection higher: the upside is real, but lean on it knowing the
     number may be running ahead of a fully settled level.
+  # --- Microstat ($10-tier) card caveats -----------------------------------
+  micro_single_season: >-
+    The microstat card is one season of tracked data at 5v5, per 60 minutes —
+    no three-year weighting. A single season of microstats is a smaller,
+    noisier sample than the standard card's blended projection, so read every
+    number as this season's shape, not a settled level.
+  micro_unadjusted: >-
+    Microstats are raw tracked rates, not isolated impacts: unlike the WAR
+    components, they are not adjusted for teammates, competition, or
+    deployment. They describe how a player plays; the WAR row is the better
+    read on how much that play is worth.
+  micro_style_not_value: >-
+    Hits, skating speed, and forecheck involvement are style and engagement
+    reads, not value. A low mark describes how he plays, never a value
+    weakness — plenty of high-value players rarely hit.
+
+# --- WAR reading anchors (TopDownHockey methodology, distilled 2026-07-18) --
+# Two anchors from the model author's own write-up. Articulation only: they
+# never move a tier. `replacement_pct` is the percentile where 0 WAR sits
+# (37th, per the source: ~37% of players with a decent sample provided
+# below-replacement contributions over three seasons).
+war_reading:
+  replacement_pct: 37
+  replacement_note: >-
+    Zero WAR (replacement level) sits at roughly the 37th percentile in this
+    model, so a projection at or below the 37th means the model's best
+    estimate is replacement-level value or worse — not merely "below
+    average."
+  point_estimate: >-
+    A point estimate of value added, not of how good he is — the two can
+    differ with usage — read as a central estimate within his own position
+    pool. The model author's own framing: WAR is the starting point for a
+    discussion, never the ending point.
 
 # --- Young-sample uncertainty (the card is a 3-year weighted average) -------
 # A young skater's number rests on a short, recent, still-developing sample, so
@@ -106,6 +154,102 @@ scoring_profile:
         finishing cools, since the play-driving underneath is only ordinary. This
         reinforces the finishing-volatility caveat.
 
+# --- Microstat ($10-tier) card rules ----------------------------------------
+# The micro card is a different data regime: single-season 5v5 per-60
+# percentiles (microstats from AllThreeZones, WAR components from
+# TopDownHockey), no Proj. WAR headline, no deployment context, no trends.
+# Skaters only — there is no goalie microstat card.
+micro_rules:
+  war_row: >-
+    The WAR boxes on a microstat card are this season's component percentiles,
+    not the standard card's three-year-weighted projection. Same model family,
+    different window — never compare a micro card's boxes to a standard
+    card's head to head.
+  microstat_scope: >-
+    Microstats are the how, the WAR row is the how-much. Read the tracked
+    columns as an explanation of a player's style and shape, and keep value
+    verdicts anchored to the WAR components.
+
+# --- Microstat paired profiles (articulation only) ---------------------------
+# Each family reads two (or three) microstats against each other the way the
+# tracking methodology says to. Like scoring_profile, these NEVER move a tier
+# or verdict — they are the card's built-in style reads. `high_min` matches
+# the Strong band / STRENGTH_MIN; `gap` is the minimum spread before a paired
+# read is called lop-sided. Tune numbers and wording here.
+micro_profiles:
+  high_min: 70
+  gap: 15
+  shot_selectivity:   # chances vs shots
+    volume_led:
+      label: "Volume shooter — perimeter-heavy"
+      note: >-
+        Shot attempts run well ahead of legitimate chances, so a lot of the
+        volume comes from the perimeter. Players in this dataset convert about
+        15.6% of chances versus 1.4% of non-chance attempts — the chance rate
+        is the number that matters.
+    chance_led:
+      label: "Selective shooter — quality over volume"
+      note: >-
+        Chances run ahead of raw attempts: he is selective, working into
+        dangerous areas rather than settling for perimeter volume.
+  passing_quality:    # chance_assists vs primary_shot_assists
+    funneler:
+      label: "Point-funneler — shot assists over chance assists"
+      note: >-
+        Shot assists run well ahead of chance assists: he moves pucks toward
+        attempts (often low-to-high toward the point), which helps sustain
+        possession but carries a much lower ceiling — shots off low-to-high
+        passes go in only about 2.5% of the time.
+    dangerous:
+      label: "Dangerous passer — chance assists lead"
+      note: >-
+        Chance assists lead the passing profile: his passes put teammates in
+        legitimate scoring positions and get the goalie moving before the
+        shot — the passing shape this model is known to underrate.
+  attack_style:       # rush_offense vs in_zone_offense — style, not value
+    rush_led:
+      label: "Rush-led attack"
+      note: >-
+        The offense comes off the rush — controlled entries turning directly
+        into attempts — more than off cycles and forechecks. A style read,
+        not a value verdict.
+    cycle_led:
+      label: "Cycle/forecheck-led attack"
+      note: >-
+        The offense comes off in-zone possession — cycles and forechecks —
+        more than off the rush. A style read, not a value verdict.
+    balanced:
+      label: "Balanced attack"
+      note: >-
+        Rush and in-zone offense sit close together — no strong stylistic
+        lean either way.
+  rush_defense:       # D only: the three rush-defense metrics read together.
+    # Entry Chance Prevention is the most important of the three — it is
+    # listed first in the engine's read and breaks the ties here.
+    lockdown:
+      label: "Shuts the rush down"
+      note: >-
+        Denies entries at the line, forces dump-ins, and keeps the entries
+        that do happen from turning into chances — the full rush-defense
+        package.
+    tight_gap_walked:
+      label: "Tight gap, but gets walked"
+      note: >-
+        Denies entries and forces dump-ins at a strong rate, but the entries
+        that do get in turn into chances too often — a tight gap at the line
+        that attackers beat one-on-one.
+    soft_gap_slot:
+      label: "Soft gap, protects the slot"
+      note: >-
+        Concedes the blue line — few denials, few forced dump-ins — but keeps
+        entries from becoming chances: a soft gap played deliberately to
+        protect the slot.
+    leaky:
+      label: "Rush-defense liability"
+      note: >-
+        Neither stops entries at the line nor keeps them from turning into
+        chances — the rush-defense profile is a genuine soft spot.
+
 # --- Position rules (PLAN section 4) ---------------------------------------
 # A defenseman's card may show Finishing, but it is excluded from his projected
 # WAR. The engine must never credit a D's WAR to finishing.
@@ -133,7 +277,11 @@ goalie_rules:
     On the Save% vs Expected Save% chart, read both lines together. When actual
     save percentage holds while expected save percentage falls, the goalie is
     increasingly beating expectation (rising goals saved above expected), which
-    is what drives WAR up. Never read either line alone.
+    is what drives WAR up. Never read either line alone. And remember the
+    expected line is a model output on a tracking substrate that has drifted
+    across recent seasons — the model is recalibrated season by season, so give
+    cross-season level shifts in the gap some slack: part of a move can be
+    model-and-tracking drift rather than the goalie.
   rebound_control: >-
     Rebound Control is a discrete skill. Call it out as its own strength or
     weakness, not folded into the danger numbers.
@@ -152,7 +300,8 @@ dimensions:
   - id: playmaking
     applies_to: skater
     aliases: ["playmaker", "passer", "vision", "sets up goals"]
-    metrics: ["first_assists"]
+    # first_assists on a standard card; the micro card spells it primary_assists.
+    metrics: ["first_assists", "primary_assists"]
     answerability: answerable
     caveat: dangerous_passing
   - id: two_way
@@ -160,6 +309,7 @@ dimensions:
     aliases: ["two-way", "shutdown", "responsible", "200-foot", "defensively responsible"]
     metrics: ["ev_defense", "pk"]
     answerability: answerable
+    caveat: defense_repeatability
   - id: power_play
     applies_to: skater
     aliases: ["power play weapon", "power play specialist", "man advantage"]
@@ -182,7 +332,7 @@ dimensions:
     answerability: answerable
   - id: competition
     applies_to: skater
-    aliases: ["plays tough minutes", "matched against top lines", "hard minutes"]
+    aliases: ["plays tough minutes", "matched against top lines", "hard minutes", "sheltered", "easy minutes", "protected deployment"]
     metrics: ["competition"]
     answerability: answerable
     deployment: true
@@ -240,6 +390,90 @@ dimensions:
     aliases: ["elite goalie", "top tier", "vezina"]
     metrics: ["proj_war_pct"]
     answerability: answerable
+  # --- microstat card (style claims answerable there) ------------------------
+  # These share aliases with the standard card's `skater_style` catch-all on
+  # purpose: on a micro card the pool-preference in `_resolve` routes the claim
+  # here (answerable, with the number); on a standard card it still lands on
+  # `skater_style` (honestly unverifiable).
+  - id: skating
+    applies_to: micro
+    aliases: ["great skater", "fast skater", "speed", "skating speed", "quick", "burner", "can fly"]
+    metrics: ["skating_speed"]
+    answerability: answerable
+    caveat: micro_style_not_value
+  - id: physicality
+    applies_to: micro
+    aliases: ["physical", "big hitter", "throws the body", "hits everything", "power forward", "plays a physical game"]
+    metrics: ["hits"]
+    answerability: answerable
+    caveat: micro_style_not_value
+  - id: forechecking
+    applies_to: micro
+    aliases: ["forechecker", "high motor", "relentless forecheck", "hounds pucks", "wins pucks back", "grinder"]
+    metrics: ["forecheck_involvement"]
+    answerability: answerable
+    caveat: micro_style_not_value
+  - id: rush_attack
+    applies_to: micro
+    aliases: ["rush player", "off the rush", "transition scorer", "north-south", "attacks in transition"]
+    metrics: ["rush_offense"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: cycle_game
+    applies_to: micro
+    aliases: ["cycle game", "in-zone player", "grinds the cycle", "o-zone possession game"]
+    metrics: ["in_zone_offense"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: shot_volume
+    applies_to: micro
+    aliases: ["shoots a lot", "volume shooter", "shoots from everywhere"]
+    metrics: ["shots"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: chance_generation
+    applies_to: micro
+    aliases: ["gets chances", "dangerous shooter", "gets to the middle", "lives in the slot"]
+    metrics: ["chances", "chance_contributions"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: dangerous_passing_micro
+    applies_to: micro
+    aliases: ["dangerous passer", "slot passes", "sets up chances", "gets the goalie moving", "royal road passes"]
+    metrics: ["high_danger_passes", "chance_assists"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: entry_driving
+    applies_to: micro
+    aliases: ["drives entries", "carries the puck in", "gains the zone", "entry machine", "zone entries"]
+    metrics: ["entries", "zone_entries", "entry_possession_rate", "entries_w_possession"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: transition_exits
+    applies_to: micro
+    aliases: ["puck mover", "moves the puck", "breakout passer", "transition game", "zone exits", "gets it out clean"]
+    metrics: ["exits", "zone_exits", "exit_possession_rate", "exits_w_possession"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: rush_defense
+    applies_to: micro
+    aliases: ["defends the rush", "good gap", "kills entries", "tight gap", "hard to enter on", "gets walked"]
+    # Entry Chance Prevention first — the most important of the three.
+    metrics: ["entry_chance_prevention", "poss_entry_prevention", "entry_denial_rate"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: puck_management
+    applies_to: micro
+    aliases: ["safe with the puck", "turnover-prone", "puck management", "turns it over", "giveaway machine"]
+    metrics: ["success_per_poss_play"]
+    answerability: answerable
+    caveat: micro_unadjusted
+  - id: retrievals
+    applies_to: micro
+    aliases: ["retrieves pucks", "digs pucks out", "good on retrievals", "first on loose pucks"]
+    metrics: ["d_zone_retrievals", "retrieval_success", "d_zone_puck_touches"]
+    answerability: answerable
+    caveat: micro_unadjusted
   # --- not answerable from a standard card ---
   - id: goalie_style
     applies_to: goalie
@@ -252,13 +486,13 @@ dimensions:
     aliases: ["net-front", "screens", "plays in the blue paint", "sits in front of the net"]
     metrics: []
     answerability: not_answerable
-    note: "Shot-location / net-front play is not on a standard card; the $10 microstat card gets closer."
+    note: "Shot-location / net-front play is not on a standard card. The $10 microstat card gets closer — Shots off HD Passes marks a player getting to dangerous areas — but literal net-front location isn't tracked on either card."
   - id: skater_style
     applies_to: skater
     aliases: ["rush player", "off the rush", "cycle game", "north-south", "east-west", "physical", "forechecker", "power forward", "great skater", "speed", "high motor", "grinder", "agitator", "pest", "playing style"]
     metrics: []
     answerability: not_answerable
-    note: "General playing-style traits (rush vs. cycle, skating/speed, physicality, forechecking, north-south vs. east-west) are not on a standard card; zone-entry/rush tendencies get somewhat closer on the $10 microstat card, but skating and physicality are not measured."
+    note: "General playing-style traits are not on a standard card — but several ARE measured on the $10 microstat card: rush vs. cycle offense, zone entries/exits, skating speed, physicality (hits), and forechecking. Supply the player's microstat card to check those; broader style reads (east-west vs. north-south, agitator/pest) still aren't measured on either card."
   - id: team_leading_scorer
     applies_to: both
     aliases: ["team's leading scorer", "team's best", "leading scorer next season"]

@@ -86,6 +86,114 @@ class DefenseCard(_SkaterBase):
     position: Literal["D"] = "D"
 
 
+# --- Microstat cards (the $10-tier card; skaters only) ---------------------
+#
+# A different data regime from the standard card: single-season percentiles at
+# 5v5 per 60 (microstats tracked by AllThreeZones; WAR components from
+# TopDownHockey), no Proj. WAR headline, no age/TOI/cap/competition/teammates,
+# and no trend charts. Forwards and defensemen carry different microstat sets;
+# there is no goalie microstat card. `card_kind: "micro"` is an explicit
+# discriminator so a mis-extracted card fails loudly rather than validating as
+# the wrong type; `season` is required because the single-season sample is
+# load-bearing context for every verdict.
+
+
+class _MicroBase(_StrictModel):
+    """Fields shared by the forward and defense microstat cards."""
+
+    card_kind: Literal["micro"]
+    name: str
+    team: Optional[str] = None
+    season: str
+
+    # WAR-component row (single-season). Same orientation and NA rules as the
+    # standard card: PP/PK are None when the player has no such role.
+    ev_offense: Percentile
+    ev_defense: Percentile
+    pp: Optional[Percentile] = None
+    pk: Optional[Percentile] = None
+    penalties: Percentile
+    finishing: Percentile
+
+    # Microstats present on both position variants.
+    goals: Percentile
+    chances: Percentile
+    shots: Percentile
+    primary_assists: Percentile
+    chance_assists: Percentile
+    primary_shot_assists: Percentile
+    chance_contributions: Percentile
+    shot_contributions: Percentile
+    in_zone_offense: Percentile
+    rush_offense: Percentile
+    hits: Percentile
+
+
+class ForwardMicroCard(_MicroBase):
+    """A forward's microstat card (verified against the real Celebrini card).
+
+    The card itself shows no position box — the footer says "percentile ranks
+    among forwards"; extraction passes position "F" (or C/LW/RW if known).
+    """
+
+    position: ForwardPosition = "F"
+
+    # Shooting column.
+    in_zone_shots: Percentile
+    rush_shots: Percentile
+    shots_off_hd_passes: Percentile
+    zone_entries: Percentile
+    entries_w_possession: Percentile
+
+    # Passing column.
+    in_zone_shot_assists: Percentile
+    rush_shot_assists: Percentile
+    high_danger_passes: Percentile
+    zone_exits: Percentile
+    exits_w_possession: Percentile
+
+    # Composite / style column. Skating Speed is NHL Edge tracking, not
+    # AllThreeZones, and appears only on the forward card.
+    skating_speed: Percentile
+    forecheck_involvement: Percentile
+    d_zone_puck_touches: Percentile
+
+
+class DefenseMicroCard(_MicroBase):
+    """A defenseman's microstat card (verified against the real Schaefer card).
+
+    No Skating Speed or Forecheck Involvement boxes; instead the transition and
+    rush-defense sets. Finishing appears on the WAR row but remains excluded
+    from a defenseman's value read (`position_rules.defense.war_excludes`),
+    same as the standard card.
+    """
+
+    position: Literal["D"] = "D"
+
+    # Production column.
+    nz_shot_assists: Percentile
+    dz_shot_assists: Percentile
+    passes: Percentile
+
+    # Transition column. Exit Possession Rate / Exit Success Rate are rates
+    # underneath but shown as percentile ranks — same 0-100 orientation.
+    entries: Percentile
+    entry_possession_rate: Percentile
+    exits: Percentile
+    exit_possession_rate: Percentile
+    exit_success_rate: Percentile
+    pass_exits: Percentile
+    carry_exits: Percentile
+    d_zone_retrievals: Percentile
+    retrieval_success: Percentile
+
+    # Composite / rush-defense column.
+    success_per_poss_play: Percentile
+    entry_denial_rate: Percentile
+    poss_entry_prevention: Percentile
+    entry_chance_prevention: Percentile
+
+
 # --- Goalie ----------------------------------------------------------------
 
 

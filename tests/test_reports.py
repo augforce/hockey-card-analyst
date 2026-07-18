@@ -15,7 +15,7 @@ from engine.adjudicate import adjudicate_claim
 from engine.assess import assess_player
 from engine.compare import compare_players
 from reports import REPORT_KINDS, render_html, render_pdf
-from schemas import DefenseCard, GoalieCard, SkaterCard
+from schemas import DefenseCard, ForwardMicroCard, GoalieCard, SkaterCard
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -107,6 +107,9 @@ def _result_for(kind, skater, goalie, cmp_, claim, interp):
     return {
         "assess_skater": skater,
         "assess_goalie": goalie,
+        # The micro kind reuses the module-scope engine call rather than a
+        # fixture arg so the two parametrized callers don't all grow a param.
+        "assess_micro": assess_player(ForwardMicroCard(**_load("celebrini_micro.json"))),
         "compare": cmp_,
         "claim_check": claim,
         "interpretive": interp,

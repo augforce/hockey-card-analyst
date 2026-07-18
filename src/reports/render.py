@@ -21,12 +21,13 @@ _TEMPLATES = Path(__file__).parent / "templates"
 _FONTS_DIR = Path(__file__).parent / "fonts"
 
 REPORT_KINDS = frozenset(
-    {"assess_skater", "assess_goalie", "compare", "claim_check", "interpretive"}
+    {"assess_skater", "assess_goalie", "assess_micro", "compare", "claim_check", "interpretive"}
 )
 
 KIND_LABELS = {
     "assess_skater": "Player assessment",
     "assess_goalie": "Goalie assessment",
+    "assess_micro": "Microstat assessment",
     "compare": "Head-to-head comparison",
     "claim_check": "Claim check",
     "interpretive": "Interpretive read",
@@ -179,6 +180,37 @@ def _build_assess_skater(a: dict[str, Any]) -> dict[str, Any]:
         "descriptive": _bar_reads(a.get("descriptive", [])),
         "profile": a.get("scoring_profile"),
         "trajectory": _trajectory(a.get("trajectory")),
+        "deployment": a.get("deployment", []),
+        "caveats": a.get("caveats", []),
+        "summary": a["summary"],
+        "micro_insights": a.get("micro_insights"),
+    }
+
+
+# --- assess (microstat card) -------------------------------------------------
+
+
+def _build_assess_micro(a: dict[str, Any]) -> dict[str, Any]:
+    kind_word = "defenseman" if a.get("position") == "D" else "forward"
+    return {
+        **_tone("neutral"),
+        "default_title": a["name"],
+        "player_line": " · ".join(
+            filter(None, [a.get("team"), a.get("position"), f"{a['season']} microstats"])
+        ),
+        "headline": f"Microstat profile — {kind_word}, {a['season']}",
+        "verdict_line": None,
+        "overall_note": a.get("overall_note"),
+        "strengths": _bar_reads(a.get("strengths", [])),
+        "weakness": _merged_weakness(a.get("weaknesses", [])),
+        "descriptive": _bar_reads(a.get("descriptive", [])),
+        "profiles": [
+            {"label": p["label"], "note": p["note"], "reads": _bar_reads(p["reads"])}
+            for p in a.get("profiles", [])
+        ],
+        "micro_highs": _bar_reads(a.get("micro_highs", [])),
+        "micro_lows": _bar_reads(a.get("micro_lows", [])),
+        "style_reads": _bar_reads(a.get("style_reads", [])),
         "deployment": a.get("deployment", []),
         "caveats": a.get("caveats", []),
         "summary": a["summary"],
@@ -408,6 +440,7 @@ def _build_interpretive(r: dict[str, Any]) -> dict[str, Any]:
 _BUILDERS = {
     "assess_skater": _build_assess_skater,
     "assess_goalie": _build_assess_goalie,
+    "assess_micro": _build_assess_micro,
     "compare": _build_compare,
     "claim_check": _build_claim_check,
     "interpretive": _build_interpretive,

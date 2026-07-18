@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+
+{% block subtitle %}
+{% if player_line %}<div class="report-meta">{{ player_line }}</div>{% endif %}
+{% endblock %}
+
+{% block content %}
+{{ m.verdict_banner(headline, verdict_line, overall_note, tone_color, None) }}
+
+{% if strengths %}
+<div class="panel">
+  <div class="eyebrow">// WAR components — this season's value drivers</div>
+  {{ m.stat_cards(strengths, "var(--g-sup)") }}
+</div>
+{% endif %}
+
+{% if weakness %}{{ m.weakness_panel(weakness) }}{% endif %}
+
+{% for p in profiles %}
+<div class="panel">
+  <div class="eyebrow">// Profile</div>
+  <div style="font-family: var(--font-display); font-weight: 700; font-size: 10.5pt; letter-spacing: -0.01em">{{ p.label }}</div>
+  {{ m.stat_cards(p.reads, "var(--accent)") }}
+  <p class="note dashed-top">{{ p.note }}</p>
+</div>
+{% endfor %}
+
+{% if micro_highs %}
+<div class="panel">
+  <div class="eyebrow">// Tracked standouts
+    <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-left: 6pt">Descriptive, not the verdict</span>
+  </div>
+  {{ m.stat_cards(micro_highs, "var(--g-sup)") }}
+</div>
+{% endif %}
+
+{% if micro_lows %}
+<div class="panel">
+  <div class="eyebrow">// Tracked soft spots
+    <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-left: 6pt">Descriptive, not the verdict</span>
+  </div>
+  {{ m.stat_cards(micro_lows, "var(--g-not)") }}
+</div>
+{% endif %}
+
+{% if style_reads %}
+<div class="panel">
+  <div class="eyebrow">// Style reads
+    <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-left: 6pt">Style, not value</span>
+  </div>
+  {{ m.stat_cards(style_reads, "var(--text-faint)") }}
+</div>
+{% endif %}
+
+{% if descriptive %}
+<div class="panel">
+  <div class="eyebrow">// Descriptive
+    <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-left: 6pt">Color, not the verdict</span>
+  </div>
+  {{ m.stat_cards(descriptive, "var(--text-faint)") }}
+  {% for d in descriptive %}
+  {% if d.note %}
+  <p class="note dashed-top" style="font-family: var(--font-mono); font-size: 7pt; color: var(--text-faint)">{{ d.label }}: {{ d.note }}</p>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+{{ m.deployment_panel(deployment) }}
+{{ m.caveat_box(caveats) }}
+{{ m.summary_strip(summary) }}
+{% endblock %}

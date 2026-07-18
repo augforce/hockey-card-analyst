@@ -82,6 +82,17 @@ else and stand behind.
 It interprets one model's read of a player. It does not declare anyone good or
 bad in some absolute sense.
 
+The reading rules are also anchored in the model author's own published
+methodology write-ups — how the WAR model is built, how the expected-goals
+model was rebuilt, and how the impact numbers adjust for context. That's where
+the tool learned that replacement level sits near the 37th percentile (so a
+projection at or below it reads as replacement-level, not merely "below
+average"), that the power play is the model's noisiest read on both sides of
+the puck, that a forward's defensive impact is the less repeatable half of
+play-driving, and that zone starts, score state, and schedule are already
+adjusted for before the card is printed. These anchors sharpen the wording and
+the caveats; they never move a verdict.
+
 ## How it works, under the hood
 
 This is a local [MCP](https://modelcontextprotocol.io) server. The model you are
@@ -98,25 +109,59 @@ works for forwards, defensemen, and goalies.
 
 Five tools, thin wrappers over the engine:
 
-- `assess_player(card)`: overall tier, strengths and weaknesses, deployment,
-  trajectory, caveats, a one-line summary.
+- `assess_player(card, micro_card)`: overall tier, strengths and weaknesses,
+  deployment, trajectory, caveats, a one-line summary. Takes a standard card or
+  a microstat card (see below); given both cards for one player it adds a
+  cross-card synthesis.
 - `adjudicate_claim(card, assertions)`: grades each claim `supported` /
   `partial` / `not_supported` / `unverifiable`, with the cited number.
 - `compare_players(card_a, card_b, focus)`: component by component, an overall
   edge or an honest split, and a durability flag.
 - `explain_metric(metric)`: a plain-language definition of any card metric
-  (skater or goalie), plus its single most important interpretive caveat. It
-  defines a metric in the abstract; it does not reason about a specific player.
+  (skater, goalie, or microstat), plus its single most important interpretive
+  caveat. It defines a metric in the abstract; it does not reason about a
+  specific player.
 - `render_report(kind, result, title)`: turns the answer you just got into a
   downloadable, styled PDF report (see below).
+
+## Microstat ($10-tier) cards
+
+The higher-tier subscription card — the dark card with a WAR row on top and
+three columns of AllThreeZones tracked data — is supported alongside the
+standard card, for forwards and defensemen (no goalie microstat card exists;
+goalies stay standard-only). It is a different data regime: one season of 5v5
+per-60 percentiles rather than the standard card's three-year-weighted
+projection, no Proj. WAR headline, and no deployment context. The tools honor
+that regime rather than papering over it:
+
+- **Style claims become checkable.** "He's a rush player", "great skater",
+  "physical", "relentless forechecker" — unverifiable on a standard card —
+  are graded against the tracked numbers when a micro card is supplied, with
+  the receipt cited. Style reads (hits, skating speed, forechecking) are never
+  treated as value weaknesses; they describe how a player plays.
+- **Built-in profile reads.** The paired reads the tracking methodology
+  scripts — shots vs chances (perimeter volume vs selectivity), chance assists
+  vs shot assists (dangerous passer vs point-funneler), rush vs in-zone
+  offense, and the defenseman rush-defense trio ("tight gap but gets walked"
+  vs "soft gap protecting the slot") — come back as named profiles with the
+  numbers attached.
+- **Both cards together.** Supply a player's standard card and micro card in
+  one question and the assessment adds an articulation-only synthesis: where
+  this season ran hot or cold against the three-year projection, and where the
+  tracked data backs (or undercuts) the WAR verdicts. The tier never moves.
+- **Honest seams.** A micro card has no Proj. WAR, so no overall tier is
+  invented ("is he elite?" needs the standard card), and a micro card is never
+  compared head-to-head against a standard card — single-season tracked
+  percentiles and a blended projection are different pools.
 
 ## PDF reports
 
 After any assess, compare, or claim-check answer, ask for a PDF (the assistant
 will offer one) and you get a styled report of that exact verdict written to
 `~/Documents/HockeyCardReports/` — named after the player(s), the report kind,
-and the date. Five report kinds: skater assessment, goalie assessment,
-head-to-head comparison, graded claim check, and an "interpretive" kind for
+and the date. Six report kinds: skater assessment, goalie assessment,
+microstat assessment, head-to-head comparison, graded claim check, and an
+"interpretive" kind for
 reads the engine has no tool for (line synergy, goalie support, free-form
 questions), which is prominently badged *"Interpretive read · AI — not an
 engine verdict"* so an AI read can never pass as an engine one.
@@ -261,6 +306,9 @@ design rationale behind the reading rules.
 
 ## Status
 
-v1.0: the three analysis tools plus `explain_metric`, for forwards, defensemen,
-and goalies, served over MCP, and tested end to end on Claude Desktop. See
-`DECISIONS.md` for the full build log.
+v1.1: the three analysis tools plus `explain_metric` and PDF reports, for
+forwards, defensemen, and goalies — now reading both the standard card and the
+$10-tier microstat card (style claims, profile reads, and both-cards
+synthesis), with the reading rules anchored in the model's published
+methodology write-ups. Served over MCP and tested end to end on Claude
+Desktop. See `DECISIONS.md` for the full build log.

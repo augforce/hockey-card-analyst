@@ -44,6 +44,21 @@
 </div>
 {% endif %}
 
+{% if micro_insights %}
+<div class="panel">
+  <div class="eyebrow">// Micro-card synthesis · {{ micro_insights.season }}
+    <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-left: 6pt">Articulation only — the verdict above is unchanged</span>
+  </div>
+  {% for d in micro_insights.divergences %}
+  <p class="note" style="margin-top: 3pt"><span style="color: var(--accent)">◆</span> {{ d }}</p>
+  {% endfor %}
+  {% for i in micro_insights.insights %}
+  <p class="note" style="margin-top: 3pt">{{ i }}</p>
+  {% endfor %}
+  <p class="note dashed-top" style="font-family: var(--font-mono); font-size: 7pt; color: var(--text-faint)">{{ micro_insights.note }}</p>
+</div>
+{% endif %}
+
 {{ m.trajectory_panel(trajectory) }}
 {{ m.deployment_panel(deployment) }}
 {{ m.caveat_box(caveats) }}

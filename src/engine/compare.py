@@ -21,8 +21,14 @@ from typing import Any, Optional, Union
 from pydantic import BaseModel
 
 from config import load_config
+from engine.assess import (
+    D_MICRO_METRICS,
+    D_STYLE_METRICS,
+    F_MICRO_METRICS,
+    F_STYLE_METRICS,
+)
 from engine.common import LABELS, WEAKNESS_MAX, ordinal
-from schemas import DefenseCard, GoalieCard, SkaterCard
+from schemas import DefenseCard, DefenseMicroCard, ForwardMicroCard, GoalieCard, SkaterCard
 
 SkaterLike = Union[SkaterCard, DefenseCard]
 
@@ -55,11 +61,25 @@ ROLE_TO_METRIC = {
 
 def _spec(pool: str) -> dict:
     """Component list and the two split-areas for a pool. Same machinery, different
-    axes: forwards/D split offense-vs-defense, goalies split ceiling-vs-floor."""
+    axes: forwards/D split offense-vs-defense, goalies split ceiling-vs-floor.
+
+    Micro pools: the tracked columns join the component display, but the edge
+    logic (the `areas`) stays on the WAR-component row — microstats are
+    descriptive, never the value verdict."""
     if pool == "goalie":
         return {
             "components": GOALIE_COMPONENTS,
             "areas": [("ceiling", GOALIE_CEILING), ("floor", GOALIE_FLOOR)],
+        }
+    if pool == "forward_micro":
+        return {
+            "components": WAR_COMPONENTS + F_MICRO_METRICS + F_STYLE_METRICS,
+            "areas": [("offense", OFFENSE_METRICS), ("defense", DEFENSE_METRICS)],
+        }
+    if pool == "defense_micro":
+        return {
+            "components": WAR_COMPONENTS + D_MICRO_METRICS + D_STYLE_METRICS,
+            "areas": [("offense", OFFENSE_METRICS), ("defense", DEFENSE_METRICS)],
         }
     return {
         "components": WAR_COMPONENTS,
@@ -108,25 +128,40 @@ def compare_players(
 
     # 1. Position-compatibility check FIRST.
     if pool_a != pool_b:
-        reason = (
-            f"{card_a.name} is a {pool_a} and {card_b.name} is a {pool_b}; their "
-            "percentiles are ranked in different position pools, so the two are not "
-            "apples-to-apples and the card cannot crown a winner across them."
-        )
+        # Same position but different card regimes (standard vs micro) gets its
+        # own honest refusal: single-season tracked percentiles and a
+        # three-year-weighted projection are not the same pool.
+        if {pool_a, pool_b} in ({"forward", "forward_micro"}, {"defense", "defense_micro"}):
+            reason = (
+                f"{card_a.name}'s card and {card_b.name}'s card are different regimes — "
+                "one is a standard card (three-year-weighted projections), the other a "
+                "microstat card (this season's 5v5 per-60 percentiles). "
+                + cfg["micro_rules"]["war_row"]
+            )
+            overall_text = "Different card regimes (standard vs microstat) — comparison refused."
+            refusal_caveats = [cfg["caveats"]["micro_single_season"]]
+        else:
+            reason = (
+                f"{card_a.name} is a {pool_a} and {card_b.name} is a {pool_b}; their "
+                "percentiles are ranked in different position pools, so the two are not "
+                "apples-to-apples and the card cannot crown a winner across them."
+            )
+            overall_text = "Different position pools — comparison refused."
+            refusal_caveats = [cfg["caveats"]["within_position_only"]]
         return Comparison(
             compatible=False,
             a_name=card_a.name,
             b_name=card_b.name,
             focus=norm_focus,
             edge_kind="incompatible",
-            overall="Different position pools — comparison refused.",
-            caveats=[cfg["caveats"]["within_position_only"]],
+            overall=overall_text,
+            caveats=refusal_caveats,
             reason=reason,
         )
 
     pool = pool_a
     excluded = set()
-    if pool == "defense":
+    if pool in ("defense", "defense_micro"):
         excluded = set(cfg.get("position_rules", {}).get("defense", {}).get("war_excludes", []))
 
     spec = _spec(pool)
@@ -136,6 +171,10 @@ def compare_players(
     edge, kind, durability, caveats, overall = _decide(
         card_a, card_b, norm_focus, spec, excluded, cfg, pool
     )
+
+    # Every micro comparison rides on one season of tracked data — say so.
+    if pool in ("forward_micro", "defense_micro"):
+        caveats = [cfg["caveats"]["micro_single_season"]] + caveats
 
     return Comparison(
         compatible=True,
@@ -153,6 +192,10 @@ def compare_players(
 
 
 def _pool(card) -> str:
+    if isinstance(card, DefenseMicroCard):
+        return "defense_micro"
+    if isinstance(card, ForwardMicroCard):
+        return "forward_micro"
     if isinstance(card, DefenseCard):
         return "defense"
     if isinstance(card, SkaterCard):
@@ -216,8 +259,14 @@ def _name(edge: str, a, b) -> str:
 
 
 def _decide(a, b, focus, spec, excluded, cfg, pool):
-    """Return (overall_edge, edge_kind, durability, caveats, overall_text)."""
-    proj_gap = a.proj_war_pct - b.proj_war_pct
+    """Return (overall_edge, edge_kind, durability, caveats, overall_text).
+
+    Micro cards carry no Proj. WAR headline, so `proj_gap` is None there: no
+    headline tiebreak exists, a genuine split stays a split, and edge text is
+    phrased off the WAR components instead of a projected-WAR number."""
+    a_proj = getattr(a, "proj_war_pct", None)
+    b_proj = getattr(b, "proj_war_pct", None)
+    proj_gap = (a_proj - b_proj) if (a_proj is not None and b_proj is not None) else None
     area_labels = [label for label, _ in spec["areas"]]
 
     # --- Focused on one of the split-areas ---
@@ -262,21 +311,28 @@ def _decide(a, b, focus, spec, excluded, cfg, pool):
     if genuine_split:
         a_area_name = _name(a_lead, a, b)
         b_area_name = _name(b_lead, a, b)
-        if abs(proj_gap) >= PROJ_DECISIVE:
+        if proj_gap is not None and abs(proj_gap) >= PROJ_DECISIVE:
             edge = "A" if proj_gap > 0 else "B"
             text = (
                 f"{a_area_name} leads on {a_label} and {b_area_name} leads on {b_label} — a "
                 f"genuine split — but {_name(edge, a, b)}'s projected WAR is clearly higher "
-                f"({a.proj_war_pct} vs {b.proj_war_pct}), so the overall edge goes to "
+                f"({a_proj} vs {b_proj}), so the overall edge goes to "
                 f"{_name(edge, a, b)} with that tradeoff noted."
             )
             dur, _ = _durability(edge, a, b, spec, excluded, cfg, pool)
             return edge, "proj_war", dur, _caveats(edge, a, b, spec, excluded, cfg, pool), text
-        text = (
-            f"Better at what, not better overall. {a_area_name} leads on {a_label}, "
-            f"{b_area_name} leads on {b_label}; projected WAR is level "
-            f"({a.proj_war_pct} vs {b.proj_war_pct}). No single winner — it's a tradeoff."
-        )
+        if proj_gap is None:
+            text = (
+                f"Better at what, not better overall. {a_area_name} leads on {a_label}, "
+                f"{b_area_name} leads on {b_label}; a micro card has no overall WAR "
+                f"headline to break the tie. No single winner — it's a tradeoff."
+            )
+        else:
+            text = (
+                f"Better at what, not better overall. {a_area_name} leads on {a_label}, "
+                f"{b_area_name} leads on {b_label}; projected WAR is level "
+                f"({a_proj} vs {b_proj}). No single winner — it's a tradeoff."
+            )
         return None, "split", None, [], text
 
     # Not a split: one player leads the areas, or it comes down to projected WAR.
@@ -284,7 +340,7 @@ def _decide(a, b, focus, spec, excluded, cfg, pool):
     if area_leaders and all(l == area_leaders[0] for l in area_leaders):
         edge = area_leaders[0]
         kind = "broad"
-    elif abs(proj_gap) >= MARGIN:
+    elif proj_gap is not None and abs(proj_gap) >= MARGIN:
         edge = "A" if proj_gap > 0 else "B"
         kind = "proj_war"
     else:
@@ -294,16 +350,17 @@ def _decide(a, b, focus, spec, excluded, cfg, pool):
     durability, _ = _durability(edge, a, b, spec, excluded, cfg, pool)
     caveats = _caveats(edge, a, b, spec, excluded, cfg, pool)
 
+    if proj_gap is not None:
+        proj_note = f"(projected WAR {a_proj} vs {b_proj})"
+    else:
+        proj_note = "(WAR-component row, this season only — no overall headline on a micro card)"
     if edge is None:
         text = (
             f"Too close to call — {a.name} and {b.name} are within a hair across the "
-            f"board (projected WAR {a.proj_war_pct} vs {b.proj_war_pct})."
+            f"board {proj_note}."
         )
     else:
-        text = (
-            f"{_name(edge, a, b)} has the overall edge (projected WAR "
-            f"{a.proj_war_pct} vs {b.proj_war_pct})."
-        )
+        text = f"{_name(edge, a, b)} has the overall edge {proj_note}."
         if durability:
             text += " " + durability
     return edge, kind, durability, caveats, text

@@ -24,7 +24,7 @@ from engine.assess import assess_player as _assess
 from engine.compare import compare_players as _compare
 from engine.glossary import explain_metric as _explain_metric
 from reports.save import save_report as _save_report
-from schemas import DefenseCard, GoalieCard, SkaterCard
+from schemas import DefenseCard, DefenseMicroCard, ForwardMicroCard, GoalieCard, SkaterCard
 
 mcp = FastMCP("hockey-card-analyst")
 
@@ -33,7 +33,17 @@ def _parse_card(card: Any, which: str = "card"):
     """Validate a raw card dict into the right pydantic schema, or fail loudly."""
     if not isinstance(card, dict):
         raise ToolError(f"`{which}` must be a JSON object of extracted card fields, got {type(card).__name__}.")
-    if "position" in card:
+    if card.get("card_kind") == "micro":
+        # Microstat ($10-tier) card. It shows no position box — the pool comes
+        # from the footer ("percentile ranks among forwards/defencemen"), so the
+        # extraction must state it; we never default silently.
+        if "position" not in card:
+            raise ToolError(
+                f"`{which}`: a micro card needs `position` — \"F\" (or C/LW/RW) when the "
+                "footer says 'among forwards', \"D\" when it says 'among defencemen'."
+            )
+        model = DefenseMicroCard if str(card.get("position", "")).upper() == "D" else ForwardMicroCard
+    elif "position" in card:
         model = DefenseCard if str(card.get("position", "")).upper() == "D" else SkaterCard
     elif "role" in card:
         model = GoalieCard
@@ -52,7 +62,7 @@ def _parse_card(card: Any, which: str = "card"):
 
 
 @mcp.tool
-def assess_player(card: dict[str, Any]) -> dict[str, Any]:
+def assess_player(card: dict[str, Any], micro_card: Optional[dict[str, Any]] = None) -> dict[str, Any]:
     """Assess one player's card: overall tier, strengths, weaknesses, deployment, trajectory, caveats, and a one-line summary.
 
     YOU (Claude) read the card image and extract the fields; this server never sees
@@ -72,6 +82,42 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
       quality_starts, excellent_starts, bad_starts, rebound_control, consistency,
       [war_per60_trend, sv_vs_xsv_trend].
 
+    MICROSTAT ($10-tier) card — the dark card with a WAR row on top and three
+    columns of AllThreeZones tracked data, footer "Microstats: AllThreeZones;
+    WAR: TopDownHockey". Skaters only (no goalie micro card exists). Extract
+    with card_kind "micro" — that discriminator is REQUIRED — plus:
+      card_kind: "micro", name, [team], season (from the footer, e.g. "2025-26"),
+      position ("F" or C/LW/RW when the footer says 'among forwards'; "D" when
+      'among defencemen' — the card shows no position box),
+      WAR row: ev_offense, ev_defense, pp (null if NA), pk (null if NA),
+      penalties, finishing.
+    Forward microstats: goals, chances, shots, in_zone_shots, rush_shots,
+      shots_off_hd_passes, zone_entries, entries_w_possession, primary_assists,
+      chance_assists, primary_shot_assists, in_zone_shot_assists,
+      rush_shot_assists, high_danger_passes, zone_exits, exits_w_possession,
+      skating_speed, chance_contributions, shot_contributions, in_zone_offense,
+      rush_offense, forecheck_involvement, hits, d_zone_puck_touches.
+    Defense microstats: goals, chances, shots, primary_assists, chance_assists,
+      primary_shot_assists, nz_shot_assists, dz_shot_assists, passes, entries,
+      entry_possession_rate, exits, exit_possession_rate, exit_success_rate,
+      pass_exits, carry_exits, d_zone_retrievals, retrieval_success,
+      shot_contributions, chance_contributions, in_zone_offense, rush_offense,
+      success_per_poss_play, entry_denial_rate, poss_entry_prevention,
+      entry_chance_prevention, hits.
+
+    A micro card alone returns a MICRO assessment: WAR-row value reads, paired
+    style profiles, tracked standouts/soft spots, and style reads (hits,
+    skating speed, forecheck involvement — style facts, NEVER weaknesses). It
+    has no Proj. WAR headline, so no overall tier is invented; it is one season
+    at 5v5 per 60, not the standard card's three-year weighting — keep that
+    framing.
+
+    `micro_card` (optional): when the user supplies BOTH cards for the SAME
+    player, pass the standard card as `card` and the micro card here — the
+    standard assessment gains an articulation-only `micro_insights` synthesis
+    (season-vs-projection divergences, tracked evidence behind the verdicts).
+    The tier never moves. Never pass two different players.
+
     All percentiles are integers 0-100, already oriented so higher is better —
     including goalie Bad Starts and Consistency; do NOT invert them. A role the
     player doesn't have (e.g. no PK) is null/NA, not 0 — NA is an absence of role,
@@ -80,14 +126,15 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
     or photo.
 
     Guardrails: never invent a stat that isn't on the card; a defenseman's finishing
-    is descriptive only (excluded from his WAR); surface the returned caveats rather
-    than dropping them.
+    is descriptive only (excluded from his WAR, on both card kinds); surface the
+    returned caveats rather than dropping them.
 
     Narrate the returned STRUCTURE, not your own regrouping: "strengths" and
     "weaknesses" are exactly the returned lists. The `descriptive` reads (goals,
-    first assists) are supporting color the engine deliberately keeps OUT of the
-    value verdict — you may cite them as descriptive color, but NEVER present
-    them as strengths, weaknesses, or part of the WAR case.
+    first assists) and the micro card's tracked columns are supporting color the
+    engine deliberately keeps OUT of the value verdict — you may cite them as
+    descriptive color, but NEVER present them as strengths, weaknesses, or part
+    of the WAR case.
 
     Standing framing for every answer: Reads are model projections, not
     predictions. Numbers are percentiles unless noted.
@@ -101,9 +148,22 @@ def assess_player(card: dict[str, Any]) -> dict[str, Any]:
 
     After presenting this assessment, ALWAYS close your answer by offering the
     user a downloadable PDF report of it — generated with the render_report tool
-    (kind "assess_skater" or "assess_goalie"), passing THIS result verbatim.
+    (kind "assess_skater", "assess_goalie", or "assess_micro" for a micro-card
+    assessment), passing THIS result verbatim.
     """
-    return _assess(_parse_card(card)).model_dump()
+    parsed = _parse_card(card)
+    parsed_micro = None
+    if micro_card is not None:
+        parsed_micro = _parse_card(micro_card, "micro_card")
+        if not isinstance(parsed_micro, (DefenseMicroCard, ForwardMicroCard)):
+            raise ToolError(
+                "`micro_card` must be a microstat card (card_kind \"micro\") — "
+                "pass the standard card as `card`."
+            )
+    try:
+        return _assess(parsed, micro_card=parsed_micro).model_dump()
+    except ValueError as exc:
+        raise ToolError(str(exc))
 
 
 @mcp.tool
@@ -119,6 +179,16 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
     game_stealer, soft_goals, reliability, no_stinkers, goalie_consistency,
     goalie_rebounds, goalie_pk, workhorse, overall_goalie, goalie_style.
     Include the original phrase as `text` so it can be echoed back.
+
+    MICROSTAT card claims: style claims that are unverifiable on a standard
+    card become ANSWERABLE when the supplied card is a micro card — dimension
+    ids: skating, physicality, forechecking, rush_attack, cycle_game,
+    shot_volume, chance_generation, dangerous_passing_micro, entry_driving,
+    transition_exits, rush_defense, puck_management, retrievals. Use them (or
+    the natural phrase) with a micro card; the same phrases on a standard card
+    still come back unverifiable, correctly. Overall-value claims work the
+    other way: a micro card has no Proj. WAR, so "he's elite" needs the
+    standard card.
 
     Dimension ids are NOT the card's schema field names. NEVER pass `ev_offense`
     or `ev_defense` (or any other card field) as a `dimension`; map the claim to a
@@ -172,9 +242,13 @@ def compare_players(
     """Compare two players: per-component gaps, an overall edge (or an honest split), a durability flag, and caveats.
 
     Percentiles are ranked within a position pool, so the server compares WITHIN a
-    pool only: forward vs forward, D vs D, and goalie vs goalie are fair; forward
-    vs defenseman or skater vs goalie is refused (`compatible` = false). Never
-    present a cross-pool winner — surface the refusal.
+    pool only: forward vs forward, D vs D, goalie vs goalie — and micro vs micro
+    of the same position — are fair; forward vs defenseman or skater vs goalie is
+    refused (`compatible` = false). A micro card vs a standard card is ALSO
+    refused, even for the same player: single-season tracked percentiles and a
+    three-year-weighted projection are different regimes. Never present a
+    cross-pool (or cross-regime) winner — surface the refusal. A micro-vs-micro
+    comparison has no Proj. WAR headline, so a genuine split stays a split.
 
     When the components genuinely split — one player better on offense while the
     other is better on defense; for goalies, one a game-stealer while the other is
@@ -246,6 +320,8 @@ def render_report(
     `kind` selects the template:
       - "assess_skater": an assess_player result for a forward or defenseman
       - "assess_goalie": an assess_player result for a goalie (has danger_profile)
+      - "assess_micro": an assess_player result for a microstat card (has
+        `season` and `profiles`)
       - "compare": a compare_players result (works for splits and refusals too)
       - "claim_check": an adjudicate_claim result — pass the original claim
         sentence as `title` (it headlines the report and names the file)

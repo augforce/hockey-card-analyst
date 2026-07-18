@@ -22,10 +22,11 @@ from typing import Literal
 from config import load_config
 from engine.common import LABELS, STRENGTH_MIN, WEAKNESS_MAX, ordinal
 from engine.tiers import classify_percentile
-from schemas import DefenseCard, GoalieCard, SkaterCard
+from schemas import DefenseCard, DefenseMicroCard, ForwardMicroCard, GoalieCard, SkaterCard
 
 SkaterLike = Union[SkaterCard, DefenseCard]
-CardLike = Union[SkaterCard, DefenseCard, GoalieCard]
+MicroLike = Union[ForwardMicroCard, DefenseMicroCard]
+CardLike = Union[SkaterCard, DefenseCard, GoalieCard, ForwardMicroCard, DefenseMicroCard]
 
 Grade = Literal["supported", "partial", "not_supported", "unverifiable"]
 
@@ -64,10 +65,17 @@ def adjudicate_claim(
     assertions: list[Union[Assertion, dict]],
     config: Optional[dict[str, Any]] = None,
 ) -> Adjudication:
-    """Grade each decomposed assertion against the card (skater or goalie)."""
+    """Grade each decomposed assertion against the card (skater, goalie, or
+    microstat)."""
     cfg = config if config is not None else load_config()
     verdicts = [_grade(card, _as_assertion(a), cfg) for a in assertions]
-    return Adjudication(verdicts=verdicts, overall=_overall(verdicts))
+    overall = _overall(verdicts)
+    if isinstance(card, (ForwardMicroCard, DefenseMicroCard)):
+        overall += (
+            " Verdicts come from one season of tracked data (5v5, per 60) — "
+            "shape, not a settled level."
+        )
+    return Adjudication(verdicts=verdicts, overall=overall)
 
 
 def _as_assertion(a: Union[Assertion, dict]) -> Assertion:
@@ -76,7 +84,11 @@ def _as_assertion(a: Union[Assertion, dict]) -> Assertion:
 
 def _claim_pool(card: CardLike) -> str:
     """The dimension-dictionary pool a card belongs to (matches `applies_to`)."""
-    return "goalie" if isinstance(card, GoalieCard) else "skater"
+    if isinstance(card, GoalieCard):
+        return "goalie"
+    if isinstance(card, (ForwardMicroCard, DefenseMicroCard)):
+        return "micro"
+    return "skater"
 
 
 def _resolve(dimension: str, cfg: dict[str, Any], pool: Optional[str] = None) -> Optional[dict[str, Any]]:
@@ -98,12 +110,17 @@ def _resolve(dimension: str, cfg: dict[str, Any], pool: Optional[str] = None) ->
     return alias_matches[0]
 
 
-def _primary_metric(card: SkaterLike, entry: dict[str, Any]):
-    """First card metric on the entry that has a value; falls back to the first listed."""
+def _primary_metric(card: CardLike, entry: dict[str, Any]):
+    """First card metric on the entry that has a value. Fallback prefers a
+    metric that at least exists on this card type (an NA role) over one the
+    card type doesn't carry at all — the two get different honest messages."""
     metrics = entry.get("metrics", []) or []
     for metric in metrics:
         if getattr(card, metric, None) is not None:
             return metric, getattr(card, metric)
+    for metric in metrics:
+        if metric in type(card).model_fields:  # exists but NA
+            return metric, None
     return (metrics[0] if metrics else None), None
 
 
@@ -146,12 +163,21 @@ def _grade(card: CardLike, assertion: Assertion, cfg: dict[str, Any]) -> Asserti
         note = note[0].lower() + note[1:] if note else note
         return verdict("partial", metric=metric, value=value, tier=tier, reason=f"{receipt}, but {note}")
 
-    # Answerable, but the role is NA — no data, so we don't guess.
+    # Answerable, but no value on this card — we don't guess. Two honest cases:
+    # the metric exists on this card type but is NA (a role absence), or this
+    # card type simply doesn't carry the metric (it lives on the other card).
     if value is None:
+        if metric and metric in type(card).model_fields:
+            return verdict(
+                "unverifiable",
+                metric=metric,
+                reason=f"{label} is NA on this card (no role) — the player isn't used there, so the card can't assess it.",
+            )
+        other = "standard" if isinstance(card, (ForwardMicroCard, DefenseMicroCard)) else "microstat"
         return verdict(
             "unverifiable",
             metric=metric,
-            reason=f"{label} is NA on this card (no role) — the player isn't used there, so the card can't assess it.",
+            reason=f"{label} isn't a box on this card type — the {other} card carries it.",
         )
 
     tier = classify_percentile(value, cfg)
@@ -195,6 +221,10 @@ def _caveat(entry: dict[str, Any], grade: Grade, cfg: dict[str, Any]) -> Optiona
     # Dangerous-passing only matters when playmaking is borderline (partial).
     if key == "dangerous_passing":
         return caveats.get(key) if grade == "partial" else None
+    # Style-not-value rides along on EVERY grade: refuting "he's physical" with
+    # a low Hits number needs the reminder that style is not a value weakness.
+    if key == "micro_style_not_value":
+        return caveats.get(key)
     # Finishing-volatility / deployment-not-value: when the verdict leans on it.
     if grade in ("supported", "partial"):
         return caveats.get(key)

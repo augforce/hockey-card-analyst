@@ -14,7 +14,7 @@ from engine.adjudicate import adjudicate_claim
 from engine.assess import assess_player
 from engine.compare import compare_players
 from reports import render_pdf
-from schemas import GoalieCard, SkaterCard
+from schemas import DefenseMicroCard, ForwardMicroCard, GoalieCard, SkaterCard
 
 FIXTURES = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
 OUT = Path(__file__).resolve().parent / "report_previews"
@@ -29,10 +29,31 @@ def main():
     celebrini = _card("celebrini.json", SkaterCard)
     hughes = _card("hughes.json", SkaterCard)
     thompson = _card("thompson.json", GoalieCard)
+    celebrini_micro = _card("celebrini_micro.json", ForwardMicroCard)
+    schaefer_micro = _card("schaefer_micro.json", DefenseMicroCard)
 
     jobs = {
         "assess_skater_celebrini.pdf": (
             "assess_skater", assess_player(celebrini), None),
+        "assess_micro_celebrini.pdf": (
+            "assess_micro", assess_player(celebrini_micro), None),
+        "assess_micro_schaefer.pdf": (
+            "assess_micro", assess_player(schaefer_micro), None),
+        "assess_skater_celebrini_with_synthesis.pdf": (
+            "assess_skater",
+            assess_player(celebrini, micro_card=celebrini_micro), None),
+        "compare_micro_celebrini_vs_synthetic.pdf": (
+            "compare",
+            compare_players(
+                celebrini_micro,
+                ForwardMicroCard(**{
+                    **json.loads((FIXTURES / "celebrini_micro.json").read_text(encoding="utf-8")),
+                    "name": "Synthetic Micro Forward",
+                    "ev_offense": 45, "ev_defense": 88, "pp": 20,
+                    "penalties": 60, "finishing": 40,
+                }),
+            ),
+            None),
         "assess_goalie_thompson.pdf": (
             "assess_goalie", assess_player(thompson), None),
         "compare_celebrini_vs_hughes.pdf": (

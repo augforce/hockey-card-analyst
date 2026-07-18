@@ -17,7 +17,7 @@ from typing import Any, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from engine.adjudicate import Adjudication
-from engine.assess import Assessment, GoalieAssessment
+from engine.assess import Assessment, GoalieAssessment, MicroAssessment
 from engine.compare import Comparison
 from reports.render import render_pdf
 
@@ -80,6 +80,7 @@ class InterpretiveResult(BaseModel):
 RESULT_MODELS = {
     "assess_skater": Assessment,
     "assess_goalie": GoalieAssessment,
+    "assess_micro": MicroAssessment,
     "compare": Comparison,
     "claim_check": Adjudication,
     "interpretive": InterpretiveResult,
@@ -108,7 +109,7 @@ def save_report(kind: str, result: Any, title: Optional[str] = None) -> Path:
 
 
 def _name_stub(kind: str, validated: Any, title: Optional[str]) -> str:
-    if kind in ("assess_skater", "assess_goalie"):
+    if kind in ("assess_skater", "assess_goalie", "assess_micro"):
         return validated.name
     if kind == "compare":
         return f"{validated.a_name} vs {validated.b_name}"

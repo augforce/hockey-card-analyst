@@ -729,3 +729,233 @@ chat had bold and bullets.
   kinds are untouched. demo_reports.py gained a goalie-support preview
   (sections path) and the roster-construction preview (units path) as the
   eyeball cases.
+
+## Microstat cards — the $10-tier card across all tools (2026-07-18)
+
+Schemas + config + engine + server + reports. The goalie path, the standard
+skater path, and every existing verdict are untouched (all 207 pre-existing
+tests pass unmodified); goalies remain standard-card-only because no goalie
+microstat card exists.
+
+### What the card is (and why it's a regime, not just more boxes)
+
+- Verified against two real cards: Celebrini (forward micro) and Schaefer
+  (defense micro). Both surfaced fields the hand-collected definitions list
+  missed — Celebrini: Entries w/ Possession, Exits w/ Possession, D-Zone Puck
+  Touches; Schaefer: Entry Possession Rate, Pass Exits, Carry Exits — which is
+  exactly why the schema was built from card images, not from the list alone.
+- **Single-season, 5v5, per-60** (footer: "percentile ranks among
+  forwards/defencemen … in 2025-26"), microstats tracked by AllThreeZones, WAR
+  row from TopDownHockey. No Proj. WAR headline, no age/TOI/cap, no
+  competition/teammates, no trend charts. `season` is a REQUIRED schema field —
+  the sample window is load-bearing context for every verdict.
+- **Skating Speed is forward-only** (NHL Edge tracking, not AllThreeZones) —
+  the D card does not carry it, so "great skater" claims about a defenseman
+  stay honestly unanswerable even on the micro card.
+
+### Design calls
+
+- **Explicit `card_kind: "micro"` discriminator, and `_parse_card` refuses a
+  micro card without `position` (the reason: no position box exists on the
+  card).** The pool comes from footer text, so the extraction must state it —
+  a silent forward default would misread every D micro card. Field-presence
+  sniffing was rejected: a mis-extraction should fail loudly, not guess.
+- **WAR row is value; microstats are descriptive — the same
+  descriptive-not-value discipline as goals/first assists, extended to 24-27
+  boxes.** Microstats are raw tracked rates, not teammate/competition-adjusted
+  isolates, so `MicroAssessment` keeps strengths/weaknesses on the WAR row and
+  reports the tracked columns as profiles + standouts/soft spots. No overall
+  tier is invented (no `proj_war_pct` box; `overall_note` says to get the
+  standard card).
+- **The style trio (hits, skating speed, forecheck involvement) is never a
+  weakness at any percentile.** Celebrini's 27th-percentile Hits is a style
+  fact. `micro_style_not_value` lives in `caveats.*` and — deliberately —
+  attaches on EVERY adjudication grade including `not_supported`: refuting
+  "he's physical" with a low Hits number is precisely when the reminder is
+  needed.
+- **Paired profiles are articulation-only config shapes
+  (`micro_profiles`), same pattern as `scoring_profile`.** Shot selectivity
+  (chances vs shots), passing quality (chance assists vs shot assists), attack
+  style (rush vs in-zone), and the D rush-defense trio — the source
+  methodology literally scripts these reads ("tight gap but gets walked",
+  "soft gap protecting the slot"), so they're encoded as shapes with
+  `high_min: 70`, `gap: 15`. A family with no clear shape is omitted, never
+  forced (Celebrini's 91-vs-79 shooting profile stays silent at gap 15 — by
+  design). Rush-defense front = mean of denial + possession prevention;
+  chance prevention listed first because the definitions call it the most
+  important of the three.
+- **Claim routing reuses the alias-collision pool preference — config-only
+  where promised.** `_claim_pool` returns "micro"; micro dimensions
+  (`applies_to: micro`) share aliases with the standard `skater_style`
+  catch-all on purpose: same phrase, answerable with a receipt on a micro
+  card, honestly unverifiable on a standard card. The standard-card
+  `skater_style`/`net_front` notes were corrected — the old text claimed
+  skating and physicality aren't measured on the micro card; the real card
+  disproved that.
+- **Two honest "no value here" messages in adjudicate.** A metric that exists
+  but is None reads as an NA role; a metric the card type doesn't carry reads
+  as "isn't a box on this card type — the standard/microstat card carries it"
+  (`_primary_metric` prefers an existing-but-NA metric over an absent one so
+  the right message fires). "He's elite" against a micro card points at the
+  standard card instead of claiming a role absence.
+- **Compare: micro pools are new pools, and micro-vs-standard is refused even
+  for the same player.** `forward_micro`/`defense_micro` specs put the tracked
+  columns in the component display but keep edge logic on the WAR row.
+  `proj_gap` is None for micro pools: no headline tiebreak exists, so a
+  genuine split STAYS a split — the refusal-to-crown discipline survives the
+  missing headline. The same-position cross-regime pair gets its own refusal
+  reason citing `micro_rules.war_row`.
+- **Both-cards synthesis is articulation-only and guarded.**
+  `assess_player(card, micro_card=…)` requires same player (casefolded name)
+  and same pool; goalie + micro raises. Divergences fire at
+  `DIVERGENCE_MIN = 15` (Celebrini: EV defense 33 projected vs 67 this season
+  fires; finishing 92 vs 91 stays silent). Insights read tracked evidence
+  against the standard verdicts (finishing backed/undercut by chance volume,
+  the dangerous-passing caveat resolving into HD-passes evidence, D impact vs
+  tracked rush defense). Tier equality is asserted by test.
+- **Six definitions are INFERRED, pending verification** (marked in
+  glossary.yaml comments): entries_w_possession, exits_w_possession,
+  d_zone_puck_touches, entry_possession_rate, pass_exits, carry_exits. The
+  meanings were inferred from the documented tracking conventions with
+  Michael's sign-off; each carries a caveat noting the inference. Swap in the
+  official wording when pulled — the entries are the only place it lives.
+- **Reports: new `assess_micro` kind** (neutral banner, no WAR pct block,
+  profile panels, standouts/soft-spots/style panels); the skater template
+  gains a micro-synthesis panel badged "Articulation only — the verdict above
+  is unchanged". Same engine-result-only contract: `save_report` validates
+  against `MicroAssessment`.
+
+### Tests / demos
+
+- TDD throughout: schemas (12), config coverage (53, incl. per-metric glossary
+  parametrization introspecting the schema fields), assess (22), adjudicate
+  (12), compare (8), reports (7), server wiring + description guards (10).
+  Full suite 207 → 331 passed.
+- `examples/demo_micro.py` narrates the forward micro, defense micro, and
+  both-cards synthesis reads; `demo_reports.py` now also renders
+  assess_micro (F + D), the synthesis skater report, and a micro-vs-micro
+  compare into `report_previews/`. Prose eyeballed; Schaefer PDF page 1
+  visually checked.
+
+## WAR methodology anchors — distilled from the model author's write-up (2026-07-18)
+
+Config + one engine hook + glossary enrichment, from the TopDownHockey "NHL
+WAR Explained" write-up Michael supplied. Articulation only throughout — no
+tier, threshold, or verdict moves (asserted by test). Most of the write-up
+validated what was already encoded (dangerous-passing shortcoming, finishing
+vs play-driving repeatability, deployment-not-value, point-estimate framing);
+four things were new and are now in config:
+
+- **Replacement level ≈ 37th percentile (`war_reading.replacement_pct`).**
+  The source: 0 WAR is 37th percentile over three seasons among skaters with
+  ≥200 minutes. The engine appends `war_reading.replacement_note` to a skater
+  assessment whose proj WAR sits at or below it — "Below average (34th)"
+  under-reads what the model is actually saying there. Skaters only (the
+  figure is skater-derived; goalie replacement is defined differently).
+- **The model overweights shooting, understates play-driving — by the
+  author's own admission** (ridge shrinkage biases play-driving toward
+  average; replacement-level shooting is disproportionately bad; "if I were
+  to weigh each component… less emphasis on shooting"). Folded into
+  `caveats.finishing_volatility` rather than a second caveat — same voice,
+  one sentence, and it flows to every place that caveat already attaches
+  (finishing strengths, conversion-led profiles, finishing-driven compare
+  edges, the glossary).
+- **PP is the noisiest component** ("the expected goal models can't even be
+  classified as good on the power play") — appended to the `pp` glossary
+  caveat, keeping the load-bearing NA-role wording intact (guarded by test).
+- **Point-estimate framing + factual enrichments.** `proj_war_pct` now
+  carries `war_reading.point_estimate` via caveat_ref (value added ≠ how
+  good; starting point, never the ending point) and its definition names the
+  37th-percentile replacement anchor. EV definitions note the empty-net
+  exclusion (EV = 5v5/4v4/3v3 with both goalies in). Penalties definition
+  prices the minute (~0.11 goals) and credits the defensive half of a drawn
+  penalty. `caveats.dangerous_passing` gains the linemate-contamination
+  mechanism (an elite passer's linemates post hot finishing numbers, a
+  shoot-first star's run cold — the MacKinnon/Matthews example generalized).
+- **Not adopted:** re-weighting anything. The author says he would weigh
+  shooting down "in an entirely arbitrary manner" — the tool stays on the
+  published numbers and carries the admission as a caveat instead, which is
+  the difference between reading the model honestly and quietly building a
+  different model.
+
+Tests: `tests/test_war_reading.py` (8) — replacement note fires at 37 and
+below, silent at 38 and for Celebrini, tier unchanged at 37; caveat/definition
+content guards for the weighting admission, PP noise (NA wording preserved),
+point-estimate framing, empty-net exclusion, and the 0.11 price. Full suite
+331 → 339 passed.
+
+## xG substrate anchors — distilled from the model rebuild write-up (2026-07-18)
+
+Config-only (two glossary caveats, one goalie rule), from the HockeyStats
+expected-goals rebuild article Michael supplied (tracking changes, short
+misses, model drift, the new nested-CV/half-life model). Articulation only;
+full suite 339 → 343.
+
+- **What was deliberately NOT encoded (the main call of this entry).** Most of
+  the article is substrate engineering — short-miss reclassification, nested
+  cross-validation, the half-life hyperparameter, per-season calibration,
+  AUC tables. The card percentiles the tool receives already come OUT of the
+  rebuilt model, so teaching the tool the model's internals would be trivia,
+  not reading rules. Also skipped: the "goalies +82 GSAx this half-season"
+  observation (season-specific, will go stale) and the legacy-model
+  inflation story (the tool never sees legacy-model cards). Only durable
+  reading rules were kept.
+- **Cross-season drift slack on the goalie trend read.** The Save% vs
+  Expected Save% chart's expected line is a model output on a tracking
+  substrate that has demonstrably drifted (statistically significant
+  season-over-season changes in short misses, crease-shot share, behind-net
+  share), and the model is recalibrated season by season. Appended to
+  `goalie_rules.save_lines`, which already attaches automatically whenever a
+  goalie card carries the sv-vs-xsv trend — a cross-season level shift in
+  the gap can be partly model-side, not goalie-side.
+- **PK reads inherit the PP-xG weakness, on both card types.** The write-up's
+  own validation grades power-play xG weakest (AUC 0.695 vs 0.800 at EV) —
+  and shorthanded save performance / PK defense are measured against
+  power-play shots. Appended to the goalie `penalty_kill` glossary caveat
+  (isolates-the-goalie wording preserved) and the skater `pk` caveat
+  (NA-role wording preserved, both guarded by test). This completes the
+  component-reliability picture started in the WAR-anchors entry: EV
+  strongest, PP/PK noisiest, on both sides of the puck.
+
+Tests: `tests/test_xg_substrate.py` (4) — caveat content guards plus an
+end-to-end assertion that the drift slack reaches a Thompson assessment via
+the existing save-lines attachment.
+
+## RAPM context anchors — distilled from the isolating-impact write-up (2026-07-18)
+
+Config + one engine attachment, from the RAPM methodology article Michael
+supplied (the regression dataframe, ridge regularization, prior-informed
+daisy chain). Articulation only; full suite 343 → 351.
+
+- **Deployment-artifact claims are now answered with the full adjustment
+  list.** The write-up documents that EV RAPM adjusts for zone starts, score
+  state, home ice, back-to-backs, and power-play-expiry shifts — far more
+  than the "teammates and competition" the config previously cited.
+  `caveats.deployment_not_value` and both EV glossary definitions now name
+  the list, so "he only produces because of easy zone starts" gets the
+  correct answer: that context is priced in before the card is printed. New
+  `competition` aliases (sheltered / easy minutes / protected deployment)
+  route those claims to the deployment machinery.
+- **Forward defensive impact is the less repeatable half — new
+  `caveats.defense_repeatability`.** The published prior-trend coefficients
+  (forward offense 0.446 vs forward defense 0.280) mean the model's own
+  priors regress a forward's past defensive impact roughly twice as hard
+  toward average. The caveat is canonical in one place and attaches three
+  ways: engine-side when a forward's assessment has `ev_defense` as a
+  strength (mirroring the finishing-volatility pattern), on `two_way`
+  claims via the dimension dictionary, and as the `ev_defense` glossary
+  caveat via caveat_ref — where it absorbs the prior impact-not-hits
+  sentence so the identity framing survives (guarded by test). Forwards
+  only: the published coefficients are forward-specific, so a defenseman's
+  defensive verdict does not get it (also guarded by test).
+- **Not encoded:** the regression mechanics themselves (dataframe
+  construction, lambda cross-validation, the unregularized-APM cautionary
+  chart, the daisy chain). Same reasoning as the xG entry: the percentiles
+  already come out of this machinery; the tool needs the reading rules, not
+  the recipe. The regularization section independently re-confirms the
+  ridge-shrinkage sentence already living in `finishing_volatility`.
+
+Tests: `tests/test_rapm_context.py` (8) — adjustment-list content, sheltered
+routing with deployment caveat, the repeatability caveat firing for a
+forward EV-defense strength / two_way claim and NOT for Celebrini (33rd) or
+a shutdown defenseman, and glossary identity+repeatability coexistence.

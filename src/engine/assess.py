@@ -21,9 +21,10 @@ from pydantic import BaseModel
 from config import load_config
 from engine.common import LABELS, STRENGTH_MIN, WEAKNESS_MAX, ordinal
 from engine.tiers import classify_percentile
-from schemas import DefenseCard, GoalieCard, SkaterCard
+from schemas import DefenseCard, DefenseMicroCard, ForwardMicroCard, GoalieCard, SkaterCard
 
 SkaterLike = Union[SkaterCard, DefenseCard]
+MicroLike = Union[ForwardMicroCard, DefenseMicroCard]
 
 # Goalie metric groupings (PLAN sections 4, 5).
 GOALIE_SKILLS = ["even_strength", "penalty_kill", "rebound_control"]
@@ -37,6 +38,34 @@ WAR_COMPONENTS = ["ev_offense", "ev_defense", "pp", "pk", "finishing", "penaltie
 DESCRIPTIVE = ["goals", "first_assists"]
 # Usage metrics — deployment, never a strength or weakness (PLAN section 5).
 DEPLOYMENT = ["competition", "teammates"]
+
+# Microstat card metric groupings. The WAR-component row is the value read; the
+# tracked columns are descriptive detail. The style trio (hits, skating speed,
+# forecheck involvement) is reported separately and is NEVER a value strength
+# or weakness, whatever the percentile.
+F_MICRO_METRICS = [
+    "goals", "chances", "shots", "in_zone_shots", "rush_shots",
+    "shots_off_hd_passes", "zone_entries", "entries_w_possession",
+    "primary_assists", "chance_assists", "primary_shot_assists",
+    "in_zone_shot_assists", "rush_shot_assists", "high_danger_passes",
+    "zone_exits", "exits_w_possession", "chance_contributions",
+    "shot_contributions", "in_zone_offense", "rush_offense",
+    "d_zone_puck_touches",
+]
+F_STYLE_METRICS = ["skating_speed", "forecheck_involvement", "hits"]
+D_MICRO_METRICS = [
+    "goals", "chances", "shots", "primary_assists", "chance_assists",
+    "primary_shot_assists", "nz_shot_assists", "dz_shot_assists", "passes",
+    "entries", "entry_possession_rate", "exits", "exit_possession_rate",
+    "exit_success_rate", "pass_exits", "carry_exits", "d_zone_retrievals",
+    "retrieval_success", "chance_contributions", "shot_contributions",
+    "in_zone_offense", "rush_offense", "success_per_poss_play",
+    "entry_denial_rate", "poss_entry_prevention", "entry_chance_prevention",
+]
+D_STYLE_METRICS = ["hits"]
+# A season-vs-projection gap this large on a WAR component is worth naming when
+# both cards for a player are supplied.
+DIVERGENCE_MIN = 15
 
 class ComponentRead(BaseModel):
     """One metric placed in its tier, with any attached note."""
@@ -63,6 +92,28 @@ class ScoringProfileRead(BaseModel):
     note: str
 
 
+class MicroProfileRead(BaseModel):
+    """One paired microstat read (shot selectivity, passing quality, attack
+    style, D rush defense). Articulation only — never a tier or verdict; the
+    reads carry the numbers so a narrator can cite them."""
+
+    family: str
+    shape: str
+    label: str
+    note: str
+    reads: list[ComponentRead]
+
+
+class MicroSynthesis(BaseModel):
+    """Articulation-only cross-card insights when BOTH the standard and the
+    microstat card for a player are supplied. Never moves the tier."""
+
+    season: str
+    insights: list[str]
+    divergences: list[str]
+    note: str  # the cross-regime (single-season vs 3-year) framing
+
+
 class Assessment(BaseModel):
     """Structured assessment of a single skater (the server's return shape)."""
 
@@ -78,6 +129,34 @@ class Assessment(BaseModel):
     deployment: list[str]
     scoring_profile: Optional[ScoringProfileRead] = None
     trajectory: Optional[str] = None
+    caveats: list[str]
+    summary: str
+    micro_insights: Optional[MicroSynthesis] = None
+
+
+class MicroAssessment(BaseModel):
+    """Structured assessment of a microstat ($10-tier) card.
+
+    Profile-first: there is no Proj. WAR headline to anchor on, so the value
+    read comes from the WAR-component row and everything else is descriptive
+    shape. `style_reads` (hits / skating speed / forecheck involvement) are
+    style facts, never value strengths or weaknesses.
+    """
+
+    name: str
+    team: Optional[str] = None
+    position: str
+    season: str
+    card_kind: str = "micro"
+    overall_note: str
+    strengths: list[ComponentRead]
+    weaknesses: list[ComponentRead]
+    descriptive: list[ComponentRead]
+    deployment: list[str]
+    profiles: list[MicroProfileRead]
+    micro_highs: list[ComponentRead]
+    micro_lows: list[ComponentRead]
+    style_reads: list[ComponentRead]
     caveats: list[str]
     summary: str
 
@@ -118,14 +197,28 @@ class GoalieAssessment(BaseModel):
     summary: str
 
 
-def assess_player(card, config: Optional[dict[str, Any]] = None):
+def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None):
     """Assess a card into structured findings; dispatches on card type.
 
-    Returns an Assessment for skaters, or a GoalieAssessment for goalies (goalies
-    run different reading rules over the same tier/threshold machinery).
+    Returns an Assessment for skaters, a GoalieAssessment for goalies, or a
+    MicroAssessment for a microstat card. When BOTH cards for one player are
+    supplied (standard `card` + `micro_card`), the standard assessment gains an
+    articulation-only `micro_insights` synthesis — the tier never moves.
     """
     cfg = config if config is not None else load_config()
+    if isinstance(card, (ForwardMicroCard, DefenseMicroCard)):
+        if micro_card is not None:
+            raise ValueError(
+                "pass the STANDARD card as `card` and the microstat card as "
+                "`micro_card` — two micro cards can't be combined."
+            )
+        return assess_micro(card, cfg)
     if isinstance(card, GoalieCard):
+        if micro_card is not None:
+            raise ValueError(
+                "there is no goalie microstat card — goalies are assessed from "
+                "the standard card only."
+            )
         return assess_goalie(card, cfg)
     is_defense = isinstance(card, DefenseCard)
     excluded = set()
@@ -211,6 +304,9 @@ def assess_player(card, config: Optional[dict[str, Any]] = None):
         trajectory=trajectory,
         caveats=caveats,
         summary=summary,
+        micro_insights=(
+            _synthesize(card, micro_card, cfg) if micro_card is not None else None
+        ),
     )
 
 
@@ -242,6 +338,12 @@ def _caveats(
     # Finishing volatility: only when a forward's verdict leans on finishing.
     if not is_defense and any(s.metric == "finishing" for s in strengths):
         caveats.append(cav["finishing_volatility"])
+    # Defense repeatability: a forward's defensive impact is the less
+    # repeatable half of play-driving (the model's priors regress it ~2x as
+    # hard toward average as offense) — attach when the verdict leans on it.
+    # Forwards only: the published trend coefficients are forward-specific.
+    if not is_defense and any(s.metric == "ev_defense" for s in strengths):
+        caveats.append(cav["defense_repeatability"])
     # Deployment is not value: whenever competition/teammates are present.
     if any(getattr(card, m, None) is not None for m in DEPLOYMENT):
         caveats.append(cav["deployment_not_value"])
@@ -258,6 +360,13 @@ def _caveats(
         if _trend_is_up(card):
             note = note + " " + cav["young_sample_rising"]
         caveats.append(note)
+    # Replacement-level anchor (TopDownHockey): 0 WAR sits at ~the 37th
+    # percentile, so a projection at or below it is replacement-level-or-worse,
+    # not merely "below average." Articulation only — the tier never moves.
+    war_read = cfg.get("war_reading") or {}
+    rep = war_read.get("replacement_pct")
+    if rep is not None and card.proj_war_pct <= rep:
+        caveats.append(war_read["replacement_note"])
     return caveats
 
 
@@ -398,6 +507,345 @@ def _summary(
     if trajectory:
         summary += " " + trajectory
     return summary
+
+
+# --- Microstat card assessment ----------------------------------------------
+
+
+def assess_micro(card: MicroLike, cfg: dict[str, Any]) -> MicroAssessment:
+    """Assess a microstat card: WAR-row value reads, paired style profiles,
+    tracked-data standouts and soft spots, and the style trio kept apart.
+
+    The single-season and unadjusted caveats always attach — this card is one
+    season of raw tracked rates, a different regime from the standard card.
+    """
+    is_defense = isinstance(card, DefenseMicroCard)
+    excluded: set = set()
+    if is_defense:
+        excluded = set(cfg.get("position_rules", {}).get("defense", {}).get("war_excludes", []))
+
+    strengths: list[ComponentRead] = []
+    weaknesses: list[ComponentRead] = []
+    descriptive: list[ComponentRead] = []
+    deployment: list[str] = []
+
+    # Value reads: the WAR-component row only (same thresholds and NA/exclusion
+    # rules as the standard card).
+    for metric in WAR_COMPONENTS:
+        if metric in excluded:
+            continue
+        value = getattr(card, metric)
+        if value is None:  # NA — absence of a role, not a weakness.
+            deployment.append(_na_note(metric))
+            continue
+        read = _read(metric, value, cfg)
+        if read.percentile >= STRENGTH_MIN:
+            strengths.append(read)
+        elif read.percentile <= WEAKNESS_MAX:
+            weaknesses.append(read)
+
+    # Position-excluded metrics (defenseman Finishing) — descriptive only.
+    for metric in excluded:
+        value = getattr(card, metric, None)
+        if value is None:
+            continue
+        read = _read(metric, value, cfg)
+        descriptive.append(
+            read.model_copy(
+                update={
+                    "note": (
+                        f"{LABELS.get(metric, metric)} is shown on the card but is excluded "
+                        "from a defenseman's value — descriptive only, not credited to it."
+                    )
+                }
+            )
+        )
+
+    strengths.sort(key=lambda r: r.percentile, reverse=True)
+    weaknesses.sort(key=lambda r: r.percentile)
+
+    # Tracked-data standouts and soft spots — descriptive, never the verdict.
+    metric_set = D_MICRO_METRICS if is_defense else F_MICRO_METRICS
+    style_set = D_STYLE_METRICS if is_defense else F_STYLE_METRICS
+    micro_highs = sorted(
+        (_read(m, getattr(card, m), cfg) for m in metric_set
+         if getattr(card, m) >= STRENGTH_MIN),
+        key=lambda r: r.percentile, reverse=True,
+    )
+    micro_lows = sorted(
+        (_read(m, getattr(card, m), cfg) for m in metric_set
+         if getattr(card, m) <= WEAKNESS_MAX),
+        key=lambda r: r.percentile,
+    )
+    style_note = cfg["caveats"]["micro_style_not_value"]
+    style_reads = [
+        _read(m, getattr(card, m), cfg).model_copy(
+            update={"note": f"A style read, not value. {style_note}"}
+        )
+        for m in style_set
+    ]
+
+    profiles = _micro_profiles(card, is_defense, cfg)
+    caveats = _micro_caveats(card, strengths, style_reads, is_defense, cfg)
+
+    position_noun = "defenseman" if is_defense else "forward"
+    overall_note = (
+        "A microstat card has no Proj. WAR headline — the value read here comes "
+        f"from the six WAR components, for the {card.season} season only. An "
+        "overall tier needs the standard card."
+    )
+    summary = _micro_summary(card, position_noun, strengths, weaknesses, profiles, micro_highs)
+
+    return MicroAssessment(
+        name=card.name,
+        team=card.team,
+        position=card.position,
+        season=card.season,
+        overall_note=overall_note,
+        strengths=strengths,
+        weaknesses=weaknesses,
+        descriptive=descriptive,
+        deployment=deployment,
+        profiles=profiles,
+        micro_highs=micro_highs,
+        micro_lows=micro_lows,
+        style_reads=style_reads,
+        caveats=caveats,
+        summary=summary,
+    )
+
+
+def _micro_profile(
+    family: str, shape: Optional[str], metrics: list[str], card, cfg: dict[str, Any]
+) -> Optional[MicroProfileRead]:
+    if shape is None:
+        return None
+    band = cfg["micro_profiles"][family][shape]
+    return MicroProfileRead(
+        family=family,
+        shape=shape,
+        label=band["label"],
+        note=band["note"],
+        reads=[_read(m, getattr(card, m), cfg) for m in metrics],
+    )
+
+
+def _micro_profiles(card: MicroLike, is_defense: bool, cfg: dict[str, Any]) -> list[MicroProfileRead]:
+    """The paired style reads the tracking methodology scripts. Articulation
+    only — a family with no clear shape is simply omitted, never forced."""
+    spec = cfg["micro_profiles"]
+    high, gap = spec["high_min"], spec["gap"]
+    profiles: list[MicroProfileRead] = []
+
+    # Shot selectivity: chances vs shots.
+    c, s = card.chances, card.shots
+    shape = None
+    if c >= high and c - s >= gap:
+        shape = "chance_led"
+    elif s >= high and s - c >= gap:
+        shape = "volume_led"
+    profiles.append(_micro_profile("shot_selectivity", shape, ["chances", "shots"], card, cfg))
+
+    # Passing quality: chance assists vs primary shot assists.
+    ca, psa = card.chance_assists, card.primary_shot_assists
+    shape = None
+    if ca >= high and ca - psa >= gap:
+        shape = "dangerous"
+    elif psa >= high and psa - ca >= gap:
+        shape = "funneler"
+    profiles.append(
+        _micro_profile("passing_quality", shape, ["chance_assists", "primary_shot_assists"], card, cfg)
+    )
+
+    # Attack style: rush vs in-zone offense — style, not value.
+    r, iz = card.rush_offense, card.in_zone_offense
+    shape = None
+    if r >= high and r - iz >= gap:
+        shape = "rush_led"
+    elif iz >= high and iz - r >= gap:
+        shape = "cycle_led"
+    elif r >= high and iz >= high and abs(r - iz) < gap:
+        shape = "balanced"
+    profiles.append(
+        _micro_profile("attack_style", shape, ["rush_offense", "in_zone_offense"], card, cfg)
+    )
+
+    # Rush defense (D only): the three metrics read together, chance prevention
+    # first — it's the bottom line of the trio.
+    if is_defense:
+        ecp = card.entry_chance_prevention
+        front = (card.entry_denial_rate + card.poss_entry_prevention) / 2
+        shape = None
+        if ecp >= high and front >= high:
+            shape = "lockdown"
+        elif front >= high and ecp <= WEAKNESS_MAX:
+            shape = "tight_gap_walked"
+        elif front <= WEAKNESS_MAX and ecp >= high:
+            shape = "soft_gap_slot"
+        elif ecp <= WEAKNESS_MAX and front <= WEAKNESS_MAX:
+            shape = "leaky"
+        profiles.append(
+            _micro_profile(
+                "rush_defense", shape,
+                ["entry_chance_prevention", "poss_entry_prevention", "entry_denial_rate"],
+                card, cfg,
+            )
+        )
+
+    return [p for p in profiles if p is not None]
+
+
+def _micro_caveats(
+    card: MicroLike,
+    strengths: list[ComponentRead],
+    style_reads: list[ComponentRead],
+    is_defense: bool,
+    cfg: dict[str, Any],
+) -> list[str]:
+    cav = cfg["caveats"]
+    caveats = [cav["micro_single_season"], cav["micro_unadjusted"]]
+    # A style read at either extreme is where the misread risk lives.
+    if any(r.percentile <= WEAKNESS_MAX or r.percentile >= STRENGTH_MIN for r in style_reads):
+        caveats.append(cav["micro_style_not_value"])
+    # Finishing volatility: same rule as the standard card (forwards only).
+    if not is_defense and any(s.metric == "finishing" for s in strengths):
+        caveats.append(cav["finishing_volatility"])
+    return caveats
+
+
+def _micro_summary(
+    card: MicroLike,
+    position_noun: str,
+    strengths: list[ComponentRead],
+    weaknesses: list[ComponentRead],
+    profiles: list[MicroProfileRead],
+    micro_highs: list[ComponentRead],
+) -> str:
+    parts = [f"{card.name}'s {card.season} microstat card ({position_noun})"]
+    if strengths:
+        parts.append(
+            "this season's value drivers: "
+            + ", ".join(f"{s.label.lower()} ({ordinal(s.percentile)})" for s in strengths[:3])
+        )
+    if weaknesses:
+        parts.append(
+            "soft spots: "
+            + ", ".join(f"{w.label.lower()} ({ordinal(w.percentile)})" for w in weaknesses[:2])
+        )
+    if profiles:
+        parts.append("shape: " + "; ".join(p.label.lower() for p in profiles))
+    if micro_highs:
+        parts.append(
+            "tracked standouts: "
+            + ", ".join(f"{h.label.lower()} ({ordinal(h.percentile)})" for h in micro_highs[:3])
+        )
+    return "; ".join(parts) + ". One season of tracked data — shape, not a settled level."
+
+
+# --- Both-cards synthesis (standard + micro, articulation only) --------------
+
+
+def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
+    """Cross-card insights when both cards for one player are supplied.
+
+    Articulation only: this NEVER feeds the tier or the strengths/weaknesses.
+    Divergences name WAR components where this season's number sits far from
+    the three-year projection; insights read the tracked data against the
+    standard card's verdict-bearing components.
+    """
+    if not isinstance(micro, (ForwardMicroCard, DefenseMicroCard)):
+        raise ValueError("`micro_card` must be a microstat card (card_kind 'micro').")
+    if std.name.strip().casefold() != micro.name.strip().casefold():
+        raise ValueError(
+            f"the two cards name different players ({std.name!r} vs {micro.name!r}) — "
+            "synthesis needs both cards for the SAME player."
+        )
+    std_is_d = isinstance(std, DefenseCard)
+    if std_is_d != isinstance(micro, DefenseMicroCard):
+        raise ValueError(
+            "the two cards are from different position pools — a forward's and a "
+            "defenseman's percentiles are not comparable."
+        )
+
+    divergences: list[str] = []
+    for metric in WAR_COMPONENTS:
+        sv, mv = getattr(std, metric), getattr(micro, metric)
+        if sv is None or mv is None:
+            continue
+        if abs(sv - mv) >= DIVERGENCE_MIN:
+            direction = "above" if mv > sv else "below"
+            ran = "hot" if mv > sv else "cold"
+            divergences.append(
+                f"This season's {LABELS[metric].lower()} ({ordinal(mv)}) sits well "
+                f"{direction} the three-year projection ({ordinal(sv)}) — the season "
+                f"ran {ran} there relative to the settled level."
+            )
+
+    insights: list[str] = []
+    # Finishing vs chance volume (forwards; a D's finishing is excluded anyway).
+    if not std_is_d and std.finishing >= STRENGTH_MIN:
+        if micro.chances >= STRENGTH_MIN:
+            insights.append(
+                f"The finishing verdict is backed by chance volume — chances sit at "
+                f"{ordinal(micro.chances)} this season, so the conversion rests on real "
+                "chance generation. That tempers the finishing-volatility caveat."
+            )
+        elif micro.chances <= WEAKNESS_MAX:
+            insights.append(
+                f"The finishing verdict runs ahead of thin chance volume — chances sit at "
+                f"only {ordinal(micro.chances)} this season, which sharpens the "
+                "finishing-volatility caveat."
+            )
+    # Playmaking vs dangerous passing evidence.
+    fa = getattr(std, "first_assists", None)
+    hd = getattr(micro, "high_danger_passes", None)
+    if fa is not None and hd is not None and hd >= STRENGTH_MIN:
+        if fa >= STRENGTH_MIN:
+            insights.append(
+                f"The playmaking reads as the dangerous kind: high-danger passes "
+                f"{ordinal(hd)} and chance assists {ordinal(micro.chance_assists)} — "
+                "the passing shape this model is known to underrate, now with tracked "
+                "evidence behind it."
+            )
+        elif fa > WEAKNESS_MAX:
+            insights.append(
+                f"The borderline playmaking number hides dangerous passing: high-danger "
+                f"passes sit at {ordinal(hd)} — the underrated-passer caveat resolves "
+                "into tracked evidence in his favor."
+            )
+    # Play-driving vs tracked creation.
+    if std.ev_offense >= STRENGTH_MIN and micro.chance_contributions >= STRENGTH_MIN:
+        insights.append(
+            f"The play-driving shows up in the tracking: chance contributions at "
+            f"{ordinal(micro.chance_contributions)} this season back the EV-offense impact."
+        )
+    # D: impact vs tracked rush defense.
+    if std_is_d:
+        ecp = micro.entry_chance_prevention
+        if std.ev_defense >= STRENGTH_MIN and ecp >= STRENGTH_MIN:
+            insights.append(
+                f"The defensive impact is corroborated in the tracking: entry chance "
+                f"prevention sits at {ordinal(ecp)}."
+            )
+        elif std.ev_defense <= WEAKNESS_MAX and ecp >= STRENGTH_MIN:
+            insights.append(
+                f"A tension worth naming: the isolated defensive impact is weak "
+                f"({ordinal(std.ev_defense)}), yet tracked rush defense is strong (entry "
+                f"chance prevention {ordinal(ecp)}) — the leak may be in-zone coverage "
+                "rather than the rush."
+            )
+        elif std.ev_defense <= WEAKNESS_MAX and ecp <= WEAKNESS_MAX:
+            insights.append(
+                f"The weak defensive impact is corroborated in the tracking (entry "
+                f"chance prevention {ordinal(ecp)})."
+            )
+
+    return MicroSynthesis(
+        season=micro.season,
+        insights=insights,
+        divergences=divergences,
+        note=cfg["micro_rules"]["war_row"],
+    )
 
 
 # --- Goalie assessment (PLAN section 5 goalie rules) -----------------------
