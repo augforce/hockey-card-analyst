@@ -238,6 +238,14 @@ micro_profiles:
         Denies entries and forces dump-ins at a strong rate, but the entries
         that do get in turn into chances too often — a tight gap at the line
         that attackers beat one-on-one.
+    line_dominant:
+      label: "Owns the blue line"
+      note: >-
+        Denies entries and forces dump-ins at an elite rate; chance
+        suppression once opponents do gain the zone is only ordinary — the
+        rush defense is won at the line itself rather than in coverage
+        afterward, and the entries that never happen don't show up in the
+        chance-prevention number.
     soft_gap_slot:
       label: "Soft gap, protects the slot"
       note: >-
@@ -249,6 +257,36 @@ micro_profiles:
       note: >-
         Neither stops entries at the line nor keeps them from turning into
         chances — the rush-defense profile is a genuine soft spot.
+  breakout_style:     # D only: exit success vs exit possession retention.
+    # Validated by two opposite real cards: an elite shutdown D at success
+    # 94th / possession 21st ("the right simple play") and a struggling
+    # rover at possession 74th / success 19th. Low possession retention
+    # next to elite success is a working style, not a flaw — and high
+    # retention next to failing exits is ambition with a bill attached.
+    complete:
+      label: "Controlled and clean breakouts"
+      note: >-
+        Keeps possession on his exits AND gets the puck out at an elite rate
+        — the full-package breakout, no tradeoff to name.
+    safe_and_effective:
+      label: "Simple and safe — and it works"
+      note: >-
+        Exit success is elite while possession retention is low: he declines
+        risky carries in favor of the simple play — the chip, the hard
+        around, the first safe pass — and the puck gets out. A deliberate
+        trade of possession for safety, executed well; read the low
+        possession rate as the style, not a flaw.
+    ambitious_and_costly:
+      label: "Possession-first, error-prone"
+      note: >-
+        He tries to keep the puck on his exits, but the attempts fail at a
+        high rate — the ambitious breakout is currently costing more than
+        it keeps.
+    broken:
+      label: "Breakouts are a liability"
+      note: >-
+        Neither keeps possession nor reliably gets the puck out — the
+        breakout is a genuine problem, not a style choice.
 
 # --- Position rules (PLAN section 4) ---------------------------------------
 # A defenseman's card may show Finishing, but it is excluded from his projected
@@ -409,10 +447,27 @@ dimensions:
     caveat: micro_style_not_value
   - id: forechecking
     applies_to: micro
-    aliases: ["forechecker", "high motor", "relentless forecheck", "hounds pucks", "wins pucks back", "grinder"]
+    aliases: ["forechecker", "relentless forecheck", "hounds pucks", "wins pucks back"]
     metrics: ["forecheck_involvement"]
     answerability: answerable
     caveat: micro_style_not_value
+  # Motor/compete is BROADER than any tracked box: forecheck involvement covers
+  # only offensive-zone recoveries and exit pressures — wall battles, stick
+  # checks, and all-ice pursuit aren't tracked on either card. So a motor claim
+  # is partial at best: the number is a slice, never the settled answer.
+  - id: motor
+    applies_to: micro
+    aliases: ["high motor", "compete level", "works his tail off", "never stops moving", "puck battler", "wins battles", "grinder", "relentless", "works hard without the puck"]
+    # Forwards cite forecheck involvement; defensemen (whose cards carry no
+    # forecheck box) cite defensive-zone retrieval workload. Both are slices.
+    metrics: ["forecheck_involvement", "d_zone_retrievals"]
+    answerability: partial
+    note: >-
+      Motor/compete is only partially tracked: the cited number covers one
+      zone's pursuit (offensive-zone forechecking for forwards, defensive-zone
+      retrieval workload for defensemen), while wall battles, stick checks,
+      and pursuit elsewhere on the ice aren't measured on either card — read
+      it as one slice of motor, not the verdict on it.
   - id: rush_attack
     applies_to: micro
     aliases: ["rush player", "off the rush", "transition scorer", "north-south", "attacks in transition"]
@@ -443,6 +498,30 @@ dimensions:
     metrics: ["high_danger_passes", "chance_assists"]
     answerability: answerable
     caveat: micro_unadjusted
+  # Passer claims on a TRACKING card grade on tracked passing PROCESS (chance
+  # assists first), not on assist outcomes — primary assists ride on linemates
+  # finishing. Shares the standard `playmaking` aliases on purpose: the pool
+  # preference routes the same phrase to process metrics on a micro card.
+  - id: playmaking_micro
+    applies_to: micro
+    aliases: ["playmaker", "passer", "vision", "sets up goals"]
+    metrics: ["chance_assists", "primary_shot_assists", "primary_assists"]
+    answerability: answerable
+    caveat: dangerous_passing
+  # Shot location still isn't tracked, but Shots off HD Passes is the close
+  # proxy for net-front presence: finishing plays at the net off slot feeds.
+  # Partial, never full — validated against a scouted net-front winger whose
+  # SOHDP sat at the 96th while every other shooting box was low.
+  - id: net_front_presence
+    applies_to: micro
+    aliases: ["net-front", "screens", "plays in the blue paint", "sits in front of the net", "deflections", "tips pucks", "hand-eye", "net front presence"]
+    metrics: ["shots_off_hd_passes"]
+    answerability: partial
+    note: >-
+      Shot location still isn't tracked; Shots off HD Passes is the close
+      proxy — finishing plays at the net off slot feeds. Read it as backing
+      (or undercutting) a net-front/deflection presence, not as a literal
+      location measure.
   - id: entry_driving
     applies_to: micro
     aliases: ["drives entries", "carries the puck in", "gains the zone", "entry machine", "zone entries"]

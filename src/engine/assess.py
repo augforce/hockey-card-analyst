@@ -680,6 +680,10 @@ def _micro_profiles(card: MicroLike, is_defense: bool, cfg: dict[str, Any]) -> l
             shape = "lockdown"
         elif front >= high and ecp <= WEAKNESS_MAX:
             shape = "tight_gap_walked"
+        elif front >= high:
+            # Elite at the line, ordinary coverage after it — the entries
+            # that never happen don't show up in the chance-prevention box.
+            shape = "line_dominant"
         elif front <= WEAKNESS_MAX and ecp >= high:
             shape = "soft_gap_slot"
         elif ecp <= WEAKNESS_MAX and front <= WEAKNESS_MAX:
@@ -688,6 +692,27 @@ def _micro_profiles(card: MicroLike, is_defense: bool, cfg: dict[str, Any]) -> l
             _micro_profile(
                 "rush_defense", shape,
                 ["entry_chance_prevention", "poss_entry_prevention", "entry_denial_rate"],
+                card, cfg,
+            )
+        )
+
+        # Breakout style (D only): exit success against possession retention.
+        # Low retention beside elite success is a working style; high
+        # retention beside failing exits is ambition with a bill attached.
+        es, ep = card.exit_success_rate, card.exit_possession_rate
+        shape = None
+        if es >= high and ep >= high:
+            shape = "complete"
+        elif es >= high and ep <= WEAKNESS_MAX:
+            shape = "safe_and_effective"
+        elif ep >= high and es <= WEAKNESS_MAX:
+            shape = "ambitious_and_costly"
+        elif es <= WEAKNESS_MAX and ep <= WEAKNESS_MAX:
+            shape = "broken"
+        profiles.append(
+            _micro_profile(
+                "breakout_style", shape,
+                ["exit_success_rate", "exit_possession_rate", "pass_exits", "carry_exits"],
                 card, cfg,
             )
         )
@@ -767,8 +792,16 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
             "defenseman's percentiles are not comparable."
         )
 
+    # A D's excluded metrics (finishing) are descriptive on both cards — a
+    # season-vs-projection divergence there is noise, not a value story.
+    skip: set = set()
+    if std_is_d:
+        skip = set(cfg.get("position_rules", {}).get("defense", {}).get("war_excludes", []))
+
     divergences: list[str] = []
     for metric in WAR_COMPONENTS:
+        if metric in skip:
+            continue
         sv, mv = getattr(std, metric), getattr(micro, metric)
         if sv is None or mv is None:
             continue
@@ -819,13 +852,25 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
             f"The play-driving shows up in the tracking: chance contributions at "
             f"{ordinal(micro.chance_contributions)} this season back the EV-offense impact."
         )
-    # D: impact vs tracked rush defense.
+    # D: impact vs tracked rush defense. Corroborating evidence can live at
+    # the blue line (denials + possession prevention) even when chance
+    # prevention on completed entries is only ordinary — the entries that
+    # never happen don't show up in that box.
     if std_is_d:
         ecp = micro.entry_chance_prevention
+        edr, pep = micro.entry_denial_rate, micro.poss_entry_prevention
+        front = (edr + pep) / 2
         if std.ev_defense >= STRENGTH_MIN and ecp >= STRENGTH_MIN:
             insights.append(
                 f"The defensive impact is corroborated in the tracking: entry chance "
                 f"prevention sits at {ordinal(ecp)}."
+            )
+        elif std.ev_defense >= STRENGTH_MIN and front >= STRENGTH_MIN:
+            insights.append(
+                f"The defensive impact is corroborated at the blue line: entry denials "
+                f"{ordinal(edr)} and possession-entry prevention {ordinal(pep)} — chance "
+                f"prevention on completed entries sits at {ordinal(ecp)}, but the entries "
+                "he erases never reach that box."
             )
         elif std.ev_defense <= WEAKNESS_MAX and ecp >= STRENGTH_MIN:
             insights.append(

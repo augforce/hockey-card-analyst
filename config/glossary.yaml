@@ -488,7 +488,11 @@ metrics:
       His rate of offensive-zone loose-puck recoveries plus forecheck pressures
       on opponents trying to exit — how involved he is digging out pucks and
       harassing defenders.
-    caveat_ref: caveats.micro_style_not_value
+    caveat: >-
+      A style read, not value — and only the offensive-zone slice of "motor":
+      wall battles, stick checks, and pursuit elsewhere on the ice aren't
+      tracked, so an ordinary mark here does not mean an ordinary compete
+      level.
   hits:
     aliases:
       ["hits", "body checks", "physicality", "throws the body", "hitting"]

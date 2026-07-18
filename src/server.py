@@ -182,9 +182,12 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
 
     MICROSTAT card claims: style claims that are unverifiable on a standard
     card become ANSWERABLE when the supplied card is a micro card — dimension
-    ids: skating, physicality, forechecking, rush_attack, cycle_game,
-    shot_volume, chance_generation, dangerous_passing_micro, entry_driving,
-    transition_exits, rush_defense, puck_management, retrievals. Use them (or
+    ids: skating, physicality, forechecking, motor (partial), rush_attack,
+    cycle_game, shot_volume, chance_generation, dangerous_passing_micro,
+    playmaking_micro (passer claims grade on tracked passing process — chance
+    assists first — not assist outcomes), entry_driving, transition_exits,
+    rush_defense, puck_management, retrievals, net_front_presence (partial:
+    Shots off HD Passes proxies net-front/deflection presence). Use them (or
     the natural phrase) with a micro card; the same phrases on a standard card
     still come back unverifiable, correctly. Overall-value claims work the
     other way: a micro card has no Proj. WAR, so "he's elite" needs the

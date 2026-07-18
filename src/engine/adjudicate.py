@@ -28,6 +28,17 @@ SkaterLike = Union[SkaterCard, DefenseCard]
 MicroLike = Union[ForwardMicroCard, DefenseMicroCard]
 CardLike = Union[SkaterCard, DefenseCard, GoalieCard, ForwardMicroCard, DefenseMicroCard]
 
+# The other card type the same player could supply. Used to answer honestly
+# when a claim's metric isn't on the supplied card: name the counterpart only
+# when it actually carries the box. Goalies have no counterpart (no goalie
+# microstat card exists).
+_COUNTERPARTS = {
+    SkaterCard: ForwardMicroCard,
+    ForwardMicroCard: SkaterCard,
+    DefenseCard: DefenseMicroCard,
+    DefenseMicroCard: DefenseCard,
+}
+
 Grade = Literal["supported", "partial", "not_supported", "unverifiable"]
 
 
@@ -163,9 +174,11 @@ def _grade(card: CardLike, assertion: Assertion, cfg: dict[str, Any]) -> Asserti
         note = note[0].lower() + note[1:] if note else note
         return verdict("partial", metric=metric, value=value, tier=tier, reason=f"{receipt}, but {note}")
 
-    # Answerable, but no value on this card — we don't guess. Two honest cases:
-    # the metric exists on this card type but is NA (a role absence), or this
-    # card type simply doesn't carry the metric (it lives on the other card).
+    # Answerable, but no value on this card — we don't guess. Three honest
+    # cases: the metric exists on this card type but is NA (a role absence);
+    # the counterpart card type for this player genuinely carries it (say so);
+    # or NO card type carries it for this position (say that instead — never
+    # point at a card that lacks the box).
     if value is None:
         if metric and metric in type(card).model_fields:
             return verdict(
@@ -173,11 +186,18 @@ def _grade(card: CardLike, assertion: Assertion, cfg: dict[str, Any]) -> Asserti
                 metric=metric,
                 reason=f"{label} is NA on this card (no role) — the player isn't used there, so the card can't assess it.",
             )
-        other = "standard" if isinstance(card, (ForwardMicroCard, DefenseMicroCard)) else "microstat"
+        counterpart = _COUNTERPARTS.get(type(card))
+        if counterpart is not None and metric and metric in counterpart.model_fields:
+            other = "standard" if isinstance(card, (ForwardMicroCard, DefenseMicroCard)) else "microstat"
+            return verdict(
+                "unverifiable",
+                metric=metric,
+                reason=f"{label} isn't a box on this card type — the {other} card carries it.",
+            )
         return verdict(
             "unverifiable",
             metric=metric,
-            reason=f"{label} isn't a box on this card type — the {other} card carries it.",
+            reason=f"{label} isn't tracked on either card type for this position — the cards can't assess it.",
         )
 
     tier = classify_percentile(value, cfg)

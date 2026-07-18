@@ -85,8 +85,9 @@ def test_assess_description_teaches_micro_extraction():
 
 def test_adjudicate_description_lists_micro_dimensions():
     desc = _descriptions()["adjudicate_claim"]
-    for dim in ("skating", "physicality", "forechecking", "rush_attack",
-                "rush_defense", "puck_management"):
+    for dim in ("skating", "physicality", "forechecking", "motor", "rush_attack",
+                "rush_defense", "puck_management", "playmaking_micro",
+                "net_front_presence"):
         assert dim in desc, dim
     # And says style claims resolve on a micro card.
     assert "micro" in desc.lower()

@@ -986,3 +986,174 @@ twin) — are canonical.
   drop the disclosure only if the official meaning matches the inference.
 
 Full suite 351 → 352 passed.
+
+## Scouting-report calibration — motor scope + missing-metric honesty (2026-07-18)
+
+Config + one adjudicate fix, from comparing an engine-narrated Celebrini read
+(both cards) against the site's prose scouting report. The comparison mostly
+validated the engine — transition identity, dangerous-passing insight (the
+site's deception/pre-shot-movement passages describe exactly what xG can't
+see), and the improving-but-not-bankable EV defense arc all agreed — but two
+divergences generalized into fixes. Full suite 352 → 359.
+
+- **Motor/compete claims are broader than Forecheck Involvement — new `motor`
+  dimension (micro pool, answerability partial).** The site's loudest theme
+  ("unmatched motor", "elite puck-battler on the wall", stick-lifts, all-ice
+  pursuit) coexists with Celebrini's ordinary 57th forecheck involvement,
+  because that box tracks only offensive-zone recoveries and exit pressures.
+  A motor claim now grades PARTIAL with the number as one slice, never
+  settled by the box; "high motor"/"grinder"/"puck battler" moved off the
+  `forechecking` dimension (which keeps the specifically-forechecking
+  aliases, answerable, unchanged). The forecheck_involvement glossary caveat
+  now scopes the metric the same way. Narration lesson recorded: an earlier
+  read inferred "wins pucks by skating, not hounding" from the 57th — an
+  over-read the scope caveat now prevents.
+- **The missing-metric message must not point at a card that lacks the box.**
+  "Turnover-prone" about a FORWARD resolved to Success per Poss. Play (a
+  D-card-only box) and answered "the standard card carries it" — false; no
+  card tracks forward puck security. `_COUNTERPARTS` maps each card type to
+  its same-player counterpart (goalies map to none); the fallback now names
+  the other card only when it actually carries the metric, else says
+  "isn't tracked on either card type for this position." Regressions
+  guarded: overall-value claims on a micro card still point at the standard
+  card (proj_war_pct really is there); style claims on a standard card still
+  point at the micro card; goalie missing-metric messages claim no
+  counterpart.
+- **Deliberately NOT changed:** the cycle tension. The site praises his
+  cycling craft while the card grades in-zone offense 64th — style prose and
+  per-60 production share can disagree without either being wrong, and the
+  rush-led profile is the correct arbitration. Player-specific scouting
+  claims (breakaway moves, net-crashing timing, puck protection) stay
+  unencodable by design — the engine reads cards, not players.
+
+Tests: `tests/test_scouting_calibration.py` (7) — motor partial with receipt,
+forechecker unchanged, glossary scope caveat, forward-turnover honesty (no
+false pointer), plus the three pointer regressions.
+
+## Scouting-report calibration II — defensemen (2026-07-18)
+
+Config + tests only, from comparing the engine's Luke Hughes read (both
+cards) against the site's prose scouting report. Full suite 359 → 361.
+
+- **Validation, mostly.** The comparison was the tool's strongest showing
+  yet: the prose omitted the turnover crisis entirely ("moves the puck well
+  in transition" vs 19th exit success / 7th retrieval success / 24th success
+  per possession play) and compressed a present, measured defensive crisis
+  (5th projected EVD, 3rd this season, 12th entry chance prevention, falling
+  75→28→25 arrow) into "a lack of elite awareness may hold him back." Both
+  divergences are the failure modes the engine exists to resist — no changes
+  from them. Direct agreements: hits 6th ↔ "hardly ever throws a body
+  check"; the dangerous-passer profile ↔ "quality and efficient playmaking";
+  the PP-ran-hot divergence flag ↔ "flashed serious skills with the man
+  advantage"; discipline 87th ↔ "drawing penalties."
+- **Motor claims about defensemen now cite the D-side slice.** The `motor`
+  dimension cited only forecheck_involvement, which D cards don't carry —
+  so "works hard without the puck, chasing down loose pucks" about a D came
+  back "not tracked at all," which is too strong: D cards track one slice of
+  motor (D-zone retrieval workload). `d_zone_retrievals` appended to the
+  dimension's metrics (position-resolution falls through automatically) and
+  the note reworded to name the per-position slice. Still partial, never
+  settled — wall battles and stick checks remain untracked, per the note.
+- **Skating-on-D honesty confirmed in a test.** "Skates faster than almost
+  any other blueliner" is unverifiable on a D card — Skating Speed is a
+  forward-card-only box — and the counterpart-aware message correctly says
+  the position isn't tracked rather than pointing at a card that lacks the
+  box. Now pinned by `test_skating_claim_on_defenseman_is_honestly_untracked`.
+
+Tests: two added to `tests/test_scouting_calibration.py` (9 total there).
+
+## Scouting-report calibration III — the physical winger (2026-07-18)
+
+Config + description + tests, from the Will Cuylle comparison (both cards vs
+the site's prose report) — the deliberately-chosen inverse archetype: the
+first sample where the prose LEADS with physicality and motor. Full suite
+361 → 365.
+
+- **Net-front claims on a micro card now use the proxy — partial, with the
+  receipt.** Cuylle validated Shots off HD Passes as the net-front proxy in
+  the strongest possible way: a scouted "solid net-front presence with great
+  hand-eye for deflections" posted a 96th there against 23rd in-zone shots
+  and 45th chances — that shape has exactly one explanation. New
+  `net_front_presence` dimension (micro pool, answerability partial,
+  metrics [shots_off_hd_passes]): the claim grades partial with the number
+  cited and the note honest that literal location still isn't tracked. On a
+  standard card the same phrase still routes to `net_front` (unverifiable) —
+  regression-pinned. The prior stance (keep it unverifiable everywhere) was
+  set before evidence existed that the proxy tracks the trait; Cuylle is
+  that evidence.
+- **Passer claims on a tracking card grade on process, not assist
+  outcomes — new `playmaking_micro`.** The site's "not much of a passer" was
+  emphatically supported by process (9th shot assists, 36th chance assists,
+  18th HD passes) yet the engine graded it against primary assists (66th —
+  an outcomes stat that rides on linemates finishing) and pushed back on the
+  scout. `playmaking_micro` shares the standard `playmaking` aliases (pool
+  preference routes the phrase) with metrics ordered chance_assists →
+  primary_shot_assists → primary_assists. Principled, not overfit: grading
+  passing claims on tracked passing process is the same results-vs-process
+  distinction the whole card system is built on. Id-based `playmaking` calls
+  are unchanged (existing test still passes).
+- **Validated, no changes:** hits 97th stayed a style read under maximum
+  pressure (the prose leads with "crushing body-checks"; the engine credits
+  the style while the value verdict rests on the WAR row — his discipline,
+  7th/15th, is where the physicality's cost shows up as value, matching the
+  prose's own "crossing the line" admission). The trajectory bounce note
+  caught the hidden 59th peak season. The forward-EVD repeatability caveat
+  fired on his 91st. And the prose never mentioned that 91st/97th EV defense
+  IS his value case — the same eye-test blind spot for unglamorous value as
+  the Hughes turnover omission, recorded as validation.
+- **Deliberated, kept as-is:** shot_selectivity stayed silent for shots 60 /
+  chances 45 (gap 15 but below `high_min`) even though the prose confirms
+  the perimeter-volume lean. The threshold exists to keep noise-level leans
+  quiet; one confirmed sub-threshold case doesn't justify loosening it.
+  Revisit only if sub-threshold leans keep matching prose.
+
+Tests: four added to test_scouting_calibration.py (net-front partial +
+standard regression, passer-on-process + elite-passer regression), micro-dims
+description list extended, `cuylle_micro.json` golden fixture added.
+
+## Scouting-report calibration IV — the elite shutdown D (2026-07-18)
+
+Config + engine, from the Jaccob Slavin comparison (both cards vs the site's
+prose report) — the positive-defensive archetype, deliberately the last gap
+in the calibration grid. All four fixes are in the POSITIVE direction: the
+engine could name every failure shape but went quiet on excellence. Full
+suite 365 → 371. Golden fixtures slavin.json / slavin_micro.json added.
+
+- **`line_dominant` rush-defense shape.** Front-of-line defense at 96th/95th
+  with chance prevention 63rd fit no shape, so the engine said nothing about
+  the rush defense of the best rush defender yet fed to it — while the
+  site's whole thesis ("specializes in defending one-on-one... closing out
+  rapidly") is those two numbers. New shape: elite front, ordinary ECP —
+  with the note carrying the selection-effect insight that the entries he
+  erases never reach the chance-prevention box. Schaefer regression pinned
+  (still lockdown).
+- **`breakout_style` profile family (D only).** Exit success 94th on
+  possession retention 21st is the site's "makes the right simple play to
+  get it out of danger" — a deliberate style executed well — but the engine
+  left 21st/23rd sitting in the lows reading as flaws. Four shapes off
+  success-vs-retention, with BOTH poles validated by real cards and prose:
+  Slavin (safe_and_effective) and the earlier Hughes card (74th retention /
+  19th success = ambitious_and_costly). This is the D-transition
+  counterpart of scoring_profile: two numbers that can only be read as a
+  pair.
+- **Blue-line corroboration in the synthesis.** The D insight rule keyed
+  only on ECP >= 70, so a 99th-percentile defensive impact got ZERO tracked
+  corroboration despite 96/95 at the line. New branch: when ECP is
+  ordinary but the front is elite, corroborate at the blue line and explain
+  the ECP number rather than ignoring it.
+- **No finishing divergences for a D.** Slavin's finishing ran 48 -> 16 and
+  the synthesis flagged it — noise, since finishing is excluded from a D's
+  value on both cards. The divergence loop now skips war_excludes for
+  defensemen.
+- **Validations, no change:** hits at the 1st percentile for an elite
+  shutdown D is the style-not-value rule's crowning exhibit (the prose
+  never mentions physicality either); "get shots through" matched the
+  volume_led selectivity shape (71st shots / 41st chances — point shots);
+  "can head up-ice with it himself" matched rush_led 90th; the trajectory
+  bounce named the hidden 89th down-year inside a holding-steady-at-elite
+  read; and the site's technique catalogue (stick detail, sprawling) is
+  correctly untracked.
+
+Tests: six added to test_scouting_calibration.py (19 there; line_dominant,
+both breakout poles, blue-line corroboration, D-finishing divergence
+suppression, Schaefer lockdown regression).

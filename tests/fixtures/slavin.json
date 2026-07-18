@@ -1,0 +1,24 @@
+{
+  "name": "Jaccob Slavin",
+  "team": "Carolina Hurricanes",
+  "position": "D",
+  "age": 32,
+  "toi_role": "2nd Pair",
+  "cap": "$6.4M x 7",
+  "ev_offense": 39,
+  "ev_defense": 99,
+  "pp": null,
+  "pk": 100,
+  "finishing": 48,
+  "penalties": 94,
+  "proj_war_pct": 96,
+  "goals": 30,
+  "first_assists": 16,
+  "competition": 98,
+  "teammates": 72,
+  "war_pct_trend": [
+    {"season": "23-24", "value": 98},
+    {"season": "24-25", "value": 89},
+    {"season": "25-26", "value": 95}
+  ]
+}
