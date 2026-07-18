@@ -339,7 +339,9 @@ metrics:
       His rate of offensive-zone entries — carrying the puck across the line or
       dumping it in.
     caveat_ref: caveats.micro_unadjusted
-  # INFERRED — verify against the site glossary (2026-07-18)
+  # INFERRED — the site publishes no official definition for this box (checked
+  # 2026-07-18); the read is inferred from the card's documented tracking
+  # conventions and is canonical here. See DECISIONS.md.
   entries_w_possession:
     aliases:
       ["entries with possession", "controlled entries", "possession entries",
@@ -348,8 +350,8 @@ metrics:
       His rate of controlled zone entries — gaining the line with the puck
       (carried or passed in) rather than dumping it in.
     caveat: >-
-      Definition inferred from the card's tracking conventions and pending
-      verification against the source glossary; controlled entries are the
+      No official definition is published for this box — the read is inferred
+      from the card's documented tracking conventions; controlled entries are the
       valuable kind, so read this alongside raw Zone Entries for the
       carry-vs-dump shape.
 
@@ -411,7 +413,9 @@ metrics:
       puck out. Forwards who grade well here are active coming back for pucks
       in their own end.
     caveat_ref: caveats.micro_unadjusted
-  # INFERRED — verify against the site glossary (2026-07-18)
+  # INFERRED — the site publishes no official definition for this box (checked
+  # 2026-07-18); the read is inferred from the card's documented tracking
+  # conventions and is canonical here. See DECISIONS.md.
   exits_w_possession:
     aliases:
       ["exits with possession", "controlled exits", "possession exits",
@@ -421,8 +425,8 @@ metrics:
       it, by carrying it across the line or passing cleanly to a teammate,
       rather than flipping it out.
     caveat: >-
-      Definition inferred from the card's tracking conventions and pending
-      verification against the source glossary; read it against raw Zone Exits
+      No official definition is published for this box — the read is inferred
+      from the card's documented tracking conventions; read it against raw Zone Exits
       for the control-vs-clear shape.
 
   # --- Micro: composite and style -------------------------------------------
@@ -493,7 +497,9 @@ metrics:
       bias. For all the subjectivity of the stat, it repeats strongly year over
       year.
     caveat_ref: caveats.micro_style_not_value
-  # INFERRED — verify against the site glossary (2026-07-18)
+  # INFERRED — the site publishes no official definition for this box (checked
+  # 2026-07-18); the read is inferred from the card's documented tracking
+  # conventions and is canonical here. See DECISIONS.md.
   d_zone_puck_touches:
     aliases:
       ["d zone puck touches", "defensive zone touches", "d-zone involvement",
@@ -503,8 +509,8 @@ metrics:
       picking up or handling pucks in his own end, a marker of breakout
       involvement and defensive workload.
     caveat: >-
-      Definition inferred from the card's tracking conventions and pending
-      verification against the source glossary; involvement is workload and
+      No official definition is published for this box — the read is inferred
+      from the card's documented tracking conventions; involvement is workload and
       trust, not by itself defensive quality.
 
   # --- Micro: defenseman production -----------------------------------------
@@ -541,7 +547,9 @@ metrics:
       His rate of offensive-zone entries — a defenseman carrying or dumping the
       puck in himself rather than handing it off.
     caveat_ref: caveats.micro_unadjusted
-  # INFERRED — verify against the site glossary (2026-07-18)
+  # INFERRED — the site publishes no official definition for this box (checked
+  # 2026-07-18); the read is inferred from the card's documented tracking
+  # conventions and is canonical here. See DECISIONS.md.
   entry_possession_rate:
     aliases:
       ["entry possession rate", "controlled entry rate", "carries it in (d)"]
@@ -549,8 +557,8 @@ metrics:
       The share of his zone entries made with possession — carried or passed in
       rather than dumped — shown as a percentile rank of that rate.
     caveat: >-
-      Definition inferred from the card's tracking conventions and pending
-      verification against the source glossary; a rate underneath, so a
+      No official definition is published for this box — the read is inferred
+      from the card's documented tracking conventions; a rate underneath, so a
       low-volume entry player can post an extreme number on few attempts.
   exits:
     aliases:
@@ -580,17 +588,21 @@ metrics:
       The turnover flag of the exit trio — a low mark means he coughs the puck
       up in transition; read it with the possession rate for the full breakout
       picture.
-  # INFERRED — verify against the site glossary (2026-07-18)
+  # INFERRED — the site publishes no official definition for this box (checked
+  # 2026-07-18); the read is inferred from the card's documented tracking
+  # conventions and is canonical here. See DECISIONS.md.
   pass_exits:
     aliases:
       ["pass exits", "breakout passes", "passes it out"]
     definition: >-
       His rate of zone exits executed by passing the puck out to a teammate.
     caveat: >-
-      Definition inferred from the card's tracking conventions and pending
-      verification against the source glossary; read it with Carry Exits for
+      No official definition is published for this box — the read is inferred
+      from the card's documented tracking conventions; read it with Carry Exits for
       the pass-vs-skate breakout shape.
-  # INFERRED — verify against the site glossary (2026-07-18)
+  # INFERRED — the site publishes no official definition for this box (checked
+  # 2026-07-18); the read is inferred from the card's documented tracking
+  # conventions and is canonical here. See DECISIONS.md.
   carry_exits:
     aliases:
       ["carry exits", "skates it out", "carries the puck out"]
@@ -598,8 +610,8 @@ metrics:
       His rate of zone exits executed by skating the puck out of the zone
       himself.
     caveat: >-
-      Definition inferred from the card's tracking conventions and pending
-      verification against the source glossary; read it with Pass Exits for
+      No official definition is published for this box — the read is inferred
+      from the card's documented tracking conventions; read it with Pass Exits for
       the pass-vs-skate breakout shape.
   d_zone_retrievals:
     aliases:

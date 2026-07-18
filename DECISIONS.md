@@ -959,3 +959,30 @@ Tests: `tests/test_rapm_context.py` (8) — adjustment-list content, sheltered
 routing with deployment caveat, the repeatability caveat firing for a
 forward EV-defense strength / two_way claim and NOT for Celebrini (33rd) or
 a shutdown defenseman, and glossary identity+repeatability coexistence.
+
+## Inferred micro definitions are now canonical (2026-07-18)
+
+Resolves the "verify against the site glossary" flag from the microstat
+checkpoint entry. Michael checked the source: the site publishes NO official
+definitions for the six undocumented boxes (entries_w_possession,
+exits_w_possession, d_zone_puck_touches, entry_possession_rate, pass_exits,
+carry_exits). There is nothing to verify against, so the inferred readings —
+derived from the documented tracking conventions for the neighboring metrics
+(e.g. Exit Possession Rate's published definition implies its entry-side
+twin) — are canonical.
+
+- **The honesty framing changed, not the definitions.** The caveats promised
+  a verification that can never happen ("pending verification against the
+  source glossary"); they now state the truth: "No official definition is
+  published for this box — the read is inferred from the card's documented
+  tracking conventions," keeping each entry's metric-specific tail. The
+  glossary comments and CLAUDE.md pointer were updated to match.
+- **The disclosure is now test-guarded** (`test_inferred_entries_disclose_
+  the_inference` in test_micro_config.py): each of the six caveats must keep
+  the words "inferred" and "no official definition" — the inference must
+  never silently pass as sourced.
+- If the site ever publishes definitions for these boxes, this entry is the
+  pointer: update the six entries, keep the caveat_ref-free structure, and
+  drop the disclosure only if the official meaning matches the inference.
+
+Full suite 351 → 352 passed.

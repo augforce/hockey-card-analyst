@@ -31,6 +31,19 @@ def test_every_micro_metric_has_a_glossary_entry(metric):
     assert out.metric == expected
 
 
+def test_inferred_entries_disclose_the_inference():
+    """Six micro metrics have no published definition anywhere (checked
+    2026-07-18) — the glossary reads are inferred from the documented tracking
+    conventions, and each caveat must keep saying so."""
+    gloss = load_glossary()["metrics"]
+    for metric in ("entries_w_possession", "exits_w_possession",
+                   "d_zone_puck_touches", "entry_possession_rate",
+                   "pass_exits", "carry_exits"):
+        caveat = gloss[metric]["caveat"].lower()
+        assert "inferred" in caveat, metric
+        assert "no official definition" in caveat, metric
+
+
 def test_micro_caveats_exist_as_single_source_sentences():
     cav = load_config()["caveats"]
     for key in ("micro_single_season", "micro_unadjusted", "micro_style_not_value"):
