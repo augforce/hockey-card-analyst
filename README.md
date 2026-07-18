@@ -135,16 +135,20 @@ projection, no Proj. WAR headline, and no deployment context. The tools honor
 that regime rather than papering over it:
 
 - **Style claims become checkable.** "He's a rush player", "great skater",
-  "physical", "relentless forechecker" — unverifiable on a standard card —
-  are graded against the tracked numbers when a micro card is supplied, with
-  the receipt cited. Style reads (hits, skating speed, forechecking) are never
+  "physical", "relentless forechecker", "high motor", "net-front presence" —
+  unverifiable on a standard card — are graded against the tracked numbers
+  when a micro card is supplied, with the receipt cited. Playmaker claims
+  grade on the passing process (dangerous passes thrown), not just assist
+  outcomes. Style reads (hits, skating speed, forechecking) are never
   treated as value weaknesses; they describe how a player plays.
 - **Built-in profile reads.** The paired reads the tracking methodology
   scripts — shots vs chances (perimeter volume vs selectivity), chance assists
   vs shot assists (dangerous passer vs point-funneler), rush vs in-zone
-  offense, and the defenseman rush-defense trio ("tight gap but gets walked"
-  vs "soft gap protecting the slot") — come back as named profiles with the
-  numbers attached.
+  offense, the defenseman rush-defense trio ("tight gap but gets walked"
+  vs "soft gap protecting the slot", or dominant across the line when all
+  three run high), and a defenseman breakout-style family (four shapes for
+  how he moves the puck out of his own end) — come back as named profiles
+  with the numbers attached.
 - **Both cards together.** Supply a player's standard card and micro card in
   one question and the assessment adds an articulation-only synthesis: where
   this season ran hot or cold against the three-year projection, and where the
@@ -152,7 +156,9 @@ that regime rather than papering over it:
 - **Honest seams.** A micro card has no Proj. WAR, so no overall tier is
   invented ("is he elite?" needs the standard card), and a micro card is never
   compared head-to-head against a standard card — single-season tracked
-  percentiles and a blended projection are different pools.
+  percentiles and a blended projection are different pools. When a claim
+  needs a box the supplied card doesn't carry, the answer names the card
+  type that actually carries it — and says so plainly when none does.
 
 ## PDF reports
 
