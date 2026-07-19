@@ -1212,3 +1212,26 @@ in any capacity.
 Demos re-run: the prose reads naturally with hyphens; the trend arrow
 (78 → 97) is unaffected, it was never an em dash.
 
+
+## Steering hardened after live slips: em dashes and unprompted PDFs (2026-07-19)
+
+Live use surfaced two host-behavior leaks the first pass did not stop.
+
+- **Em dashes still appeared in chat prose.** The rule lived one line deep
+  inside the standing framing of three tools; the host wrote an
+  interpretive line-synergy read full of em dashes anyway. The rule is now
+  a standalone HARD STYLE RULE paragraph near the top of ALL FIVE tool
+  descriptions (including explain_metric and render_report), explicitly
+  covering interpretive reads that never touch a tool. The server-side
+  scrub was never the issue: the leak is text the host composes itself,
+  and description steering is the only lever the server has over that.
+- **A PDF was generated without being asked for.** The old wording said
+  "close by offering the PDF ... generated with render_report", which the
+  host collapsed into offer-and-do. Every offer instruction now reads: the
+  offer is a QUESTION, never an action; do NOT call render_report in the
+  same turn as the answer; wait for yes. render_report itself opens with
+  NEVER call this tool unprompted, with the single exception of the user
+  asking for a PDF/report up front.
+
+Guards: test_pdf_is_ask_first_never_unprompted (test_reports_tool.py) and
+a five-tool HARD STYLE RULE assertion (test_no_em_dashes.py).

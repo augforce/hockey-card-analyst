@@ -66,6 +66,11 @@ def _parse_card(card: Any, which: str = "card"):
 def assess_player(card: dict[str, Any], micro_card: Optional[dict[str, Any]] = None) -> dict[str, Any]:
     """Assess one player's card: overall tier, strengths, weaknesses, deployment, trajectory, caveats, and a one-line summary.
 
+    HARD STYLE RULE: never use em dashes in anything you write to the user -
+    chat answers, report fields, titles. Use a comma, colon, or plain hyphen
+    instead. This applies to every sentence you compose, including interpretive
+    reads that never touch a tool.
+
     YOU (Claude) read the card image and extract the fields; this server never sees
     the image - pass it clean structured data. The server maps percentiles to
     tiers, picks the strengths/weaknesses, and attaches the caveats. Narrate from
@@ -150,10 +155,13 @@ def assess_player(card: dict[str, Any], micro_card: Optional[dict[str, Any]] = N
     the card and note it should be independently verified; keep card-derived verdicts
     (traceable to the numbers) visibly separate from outside context (unverified).
 
-    After presenting this assessment, ALWAYS close your answer by offering the
-    user a downloadable PDF report of it - generated with the render_report tool
-    (kind "assess_skater", "assess_goalie", or "assess_micro" for a micro-card
-    assessment), passing THIS result verbatim.
+    After presenting this assessment, ALWAYS close your answer by ASKING the
+    user whether they'd like a downloadable PDF report of it (render_report,
+    kind "assess_skater", "assess_goalie", or "assess_micro" for a micro-card
+    assessment, passing THIS result verbatim). The offer is a question, never
+    an action: do NOT call render_report in the same turn as the answer. Wait
+    for the user to say yes - the only exception is when they explicitly asked
+    for a PDF/report/download up front.
     """
     parsed = _parse_card(card)
     parsed_micro = None
@@ -173,6 +181,10 @@ def assess_player(card: dict[str, Any], micro_card: Optional[dict[str, Any]] = N
 @mcp.tool
 def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> dict[str, Any]:
     """Grade a claim about a player against the card. ALWAYS route claims through this tool - never eyeball a claim yourself.
+
+    HARD STYLE RULE: never use em dashes in anything you write to the user -
+    chat answers, report fields, titles. Use a comma, colon, or plain hyphen
+    instead.
 
     YOU decompose the natural-language claim into a list of assertions; the server
     grades each one. Each assertion is {dimension, direction[, text]} where
@@ -226,10 +238,13 @@ def adjudicate_claim(card: dict[str, Any], assertions: list[dict[str, Any]]) -> 
     predictions. Numbers are percentiles unless noted. Never use em dashes
     anywhere in your answer; use commas, colons, or plain hyphens instead.
 
-    After presenting the graded claim, ALWAYS close your answer by offering the
-    user a downloadable PDF report of it - generated with the render_report tool
-    (kind "claim_check", the original claim as `title`), passing THIS result
-    verbatim.
+    After presenting the graded claim, ALWAYS close your answer by ASKING the
+    user whether they'd like a downloadable PDF report of it (render_report,
+    kind "claim_check", the original claim as `title`, passing THIS result
+    verbatim). The offer is a question, never an action: do NOT call
+    render_report in the same turn as the answer. Wait for the user to say yes -
+    the only exception is when they explicitly asked for a PDF/report/download
+    up front.
     """
     parsed = _parse_card(card)
     try:
@@ -248,6 +263,10 @@ def compare_players(
     focus: Optional[str] = None,
 ) -> dict[str, Any]:
     """Compare two players: per-component gaps, an overall edge (or an honest split), a durability flag, and caveats.
+
+    HARD STYLE RULE: never use em dashes in anything you write to the user -
+    chat answers, report fields, titles. Use a comma, colon, or plain hyphen
+    instead.
 
     Percentiles are ranked within a position pool, so the server compares WITHIN a
     pool only: forward vs forward, D vs D, goalie vs goalie - and micro vs micro
@@ -278,9 +297,12 @@ def compare_players(
     predictions. Numbers are percentiles unless noted. Never use em dashes
     anywhere in your answer; use commas, colons, or plain hyphens instead.
 
-    After presenting the comparison, ALWAYS close your answer by offering the
-    user a downloadable PDF report of it - generated with the render_report tool
-    (kind "compare"), passing THIS result verbatim.
+    After presenting the comparison, ALWAYS close your answer by ASKING the
+    user whether they'd like a downloadable PDF report of it (render_report,
+    kind "compare", passing THIS result verbatim). The offer is a question,
+    never an action: do NOT call render_report in the same turn as the answer.
+    Wait for the user to say yes - the only exception is when they explicitly
+    asked for a PDF/report/download up front.
     """
     return _scrub(_compare(_parse_card(card_a, "card_a"), _parse_card(card_b, "card_b"), focus).model_dump())
 
@@ -288,6 +310,10 @@ def compare_players(
 @mcp.tool
 def explain_metric(metric: str) -> dict[str, Any]:
     """Define a single card metric: what it measures, plus its one most important interpretive caveat.
+
+    HARD STYLE RULE: never use em dashes in anything you write to the user -
+    chat answers, report fields, titles. Use a comma, colon, or plain hyphen
+    instead.
 
     A thin dictionary lookup over the card's percentile boxes (skater and goalie).
     Pass the schema field name (e.g. `ev_defense`, `bad_starts`) or a natural
@@ -313,11 +339,18 @@ def render_report(
 ) -> dict[str, Any]:
     """Render an answer into a downloadable, styled PDF report; returns the absolute file path.
 
-    After completing ANY assess / compare / claim answer, ALWAYS end by asking
-    the user if they'd like a downloadable PDF report of it - every time, as
-    the closing line of your answer, not only when they hint at it. Generate
-    the PDF when they say yes (or asked for a report/PDF/download up front),
-    then give them the returned path.
+    NEVER call this tool unprompted. Generate a PDF ONLY when the user has
+    explicitly said yes to your offer, or explicitly asked for a
+    PDF/report/download up front. Presenting an answer and generating its PDF
+    in the same turn is wrong: the offer is a question, and you must wait for
+    the answer. After completing ANY assess / compare / claim answer, ALWAYS
+    end by asking the user if they'd like a downloadable PDF report of it -
+    every time, as the closing line of your answer, not only when they hint at
+    it. When they say yes, generate it and give them the returned path.
+
+    HARD STYLE RULE: never use em dashes in anything you write to the user -
+    chat answers, report fields, titles. Use a comma, colon, or plain hyphen
+    instead.
 
     `result` must be the EXACT structured object the engine tool just returned
     (assess_player / compare_players / adjudicate_claim), passed through

@@ -110,9 +110,18 @@ def test_interpretive_report_scrubs_claude_authored_em_dashes():
 
 
 def test_descriptions_steer_against_em_dashes():
+    # The rule must be a prominent HARD STYLE RULE on EVERY tool, not a buried
+    # aside: the host writes prose after whichever tool it just used (and live
+    # use showed the buried version being ignored, 2026-07-19).
     descs = {
         t.name: " ".join(t.description.split())
         for t in asyncio.run(server.mcp.list_tools())
     }
-    for name in ("assess_player", "adjudicate_claim", "compare_players", "render_report"):
-        assert "Never use em dashes" in descs[name], name
+    for name in (
+        "assess_player",
+        "adjudicate_claim",
+        "compare_players",
+        "explain_metric",
+        "render_report",
+    ):
+        assert "HARD STYLE RULE: never use em dashes" in descs[name], name

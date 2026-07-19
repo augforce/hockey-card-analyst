@@ -68,6 +68,20 @@ def test_engine_tools_tell_claude_to_offer_the_pdf():
     assert "ALWAYS" in tools["render_report"]
 
 
+def test_pdf_is_ask_first_never_unprompted():
+    # Live use (2026-07-19) showed the host generating the PDF in the same
+    # turn as the answer. The offer must be a question: no render_report call
+    # until the user says yes (or asked for a PDF up front).
+    tools = {
+        t.name: " ".join(t.description.split())
+        for t in asyncio.run(server.mcp.list_tools())
+    }
+    for name in ("assess_player", "compare_players", "adjudicate_claim"):
+        assert "do NOT call render_report in the same turn" in tools[name], name
+        assert "The offer is a question" in tools[name], name
+    assert "NEVER call this tool unprompted" in tools["render_report"]
+
+
 def test_assess_report_written_and_named_after_the_player(reports_dir, skater_result):
     out = server.render_report("assess_skater", skater_result)
     path = Path(out["path"])
