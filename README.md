@@ -66,12 +66,13 @@ card support.
 **(Using Claude Sonnet 5 with High thinking)**
 
 ### **"Give me a scouting report on how the Jack Hughes/Jesper Bratt/Anthony Mantha line will work together":**
-<img width="700" height="803" alt="Screenshot 2026-07-19 at 6 24 12 AM" src="https://github.com/user-attachments/assets/a3143e89-6e8a-43ba-bf5e-bd8f6b0e7e04" />
-<img width="708" height="563" alt="Screenshot 2026-07-19 at 6 24 26 AM" src="https://github.com/user-attachments/assets/6b520c49-ab40-4e12-a944-223791364c3f" />
+
+<img width="705" height="616" alt="Screenshot 2026-07-19 at 7 23 07 AM" src="https://github.com/user-attachments/assets/7df41c00-0053-4684-a726-e7d514785e7d" />
+<img width="704" height="681" alt="Screenshot 2026-07-19 at 7 23 24 AM" src="https://github.com/user-attachments/assets/4ca4f250-b156-4700-ba46-1226252fa6fc" />
 
 ### **PDF Report:**
 
-[scouting-report-hughes-bratt-mantha-line_interpretive_2026-07-19.pdf](https://github.com/user-attachments/files/30164304/scouting-report-hughes-bratt-mantha-line_interpretive_2026-07-19.pdf)
+[line-report-hughes-c-bratt-rw-mantha-lw_interpretive_2026-07-19.pdf](https://github.com/user-attachments/files/30164842/line-report-hughes-c-bratt-rw-mantha-lw_interpretive_2026-07-19.pdf)
 
 ## Why you can trust it
 
