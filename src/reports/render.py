@@ -14,7 +14,7 @@ from typing import Any, Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup, escape
 
-from engine.common import ordinal
+from engine.common import ordinal, strip_em_dashes
 from reports.pdf import html_to_pdf
 
 _TEMPLATES = Path(__file__).parent / "templates"
@@ -74,7 +74,7 @@ def render_html(kind: str, result: Any, title: Optional[str] = None) -> str:
     """Render one report kind to a self-contained HTML document."""
     if kind not in REPORT_KINDS:
         raise ValueError(
-            f"Unknown report kind {kind!r} — expected one of {sorted(REPORT_KINDS)}."
+            f"Unknown report kind {kind!r} - expected one of {sorted(REPORT_KINDS)}."
         )
     data = _as_dict(result)
     context = _BUILDERS[kind](data)
@@ -86,7 +86,11 @@ def render_html(kind: str, result: Any, title: Optional[str] = None) -> str:
         generated=datetime.date.today().isoformat(),
         font_faces=_font_faces(),
     )
-    return _env.get_template(f"{kind}.html").render(**context)
+    html = _env.get_template(f"{kind}.html").render(**context)
+    # No-em-dash rule (2026-07-19): the PDF must never show one, wherever the
+    # text came from - engine results, template literals, or Claude-authored
+    # interpretive content.
+    return strip_em_dashes(html)
 
 
 def render_pdf(kind: str, result: Any, title: Optional[str] = None) -> bytes:
@@ -170,7 +174,7 @@ def _build_assess_skater(a: dict[str, Any]) -> dict[str, Any]:
     return {
         **_tone(_tone_from_pct(a["overall_percentile"])),
         "default_title": a["name"],
-        "player_line": " · ".join(filter(None, [a.get("team"), a.get("position")])),
+        "player_line": a.get("position") or "",
         "headline": f"{a['overall_tier']} {kind_word}",
         "verdict_line": f"{ordinal(a['overall_percentile'])} percentile projected WAR.",
         "pct": a["overall_percentile"],
@@ -196,9 +200,9 @@ def _build_assess_micro(a: dict[str, Any]) -> dict[str, Any]:
         **_tone("neutral"),
         "default_title": a["name"],
         "player_line": " · ".join(
-            filter(None, [a.get("team"), a.get("position"), f"{a['season']} microstats"])
+            filter(None, [a.get("position"), f"{a['season']} microstats"])
         ),
-        "headline": f"Microstat profile — {kind_word}, {a['season']}",
+        "headline": f"Microstat profile - {kind_word}, {a['season']}",
         "verdict_line": None,
         "overall_note": a.get("overall_note"),
         "strengths": _bar_reads(a.get("strengths", [])),
@@ -227,7 +231,7 @@ def _build_assess_goalie(a: dict[str, Any]) -> dict[str, Any]:
     return {
         **_tone(_tone_from_pct(a["overall_percentile"])),
         "default_title": a["name"],
-        "player_line": " · ".join(filter(None, [a.get("team"), a.get("role")])),
+        "player_line": a.get("role") or "",
         "headline": f"{a['overall_tier']} goaltender",
         "verdict_line": f"{ordinal(a['overall_percentile'])} percentile projected WAR.",
         "pct": a["overall_percentile"],
@@ -320,7 +324,7 @@ def _build_claim_check(adj: dict[str, Any]) -> dict[str, Any]:
                 "status": GRADE_STATUS.get(v["grade"], v["grade"].upper()),
                 "color": STATUS_COLORS.get(v["grade"], STATUS_COLORS["unverifiable"]),
                 "receipt": receipt,
-                "evidence": v["reason"] + (f" — {v['caveat']}" if v.get("caveat") else ""),
+                "evidence": v["reason"] + (f" - {v['caveat']}" if v.get("caveat") else ""),
             }
         )
     return {

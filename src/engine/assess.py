@@ -34,9 +34,9 @@ GOALIE_START_QUALITY = ["quality_starts", "excellent_starts", "bad_starts"]
 # Value-bearing WAR components, in display order. For a defenseman, any metric in
 # `position_rules.defense.war_excludes` (Finishing) is pulled out of this set.
 WAR_COMPONENTS = ["ev_offense", "ev_defense", "pp", "pk", "finishing", "penalties"]
-# Extra descriptive metrics — never themselves the WAR verdict (PLAN section 4).
+# Extra descriptive metrics - never themselves the WAR verdict (PLAN section 4).
 DESCRIPTIVE = ["goals", "first_assists"]
-# Usage metrics — deployment, never a strength or weakness (PLAN section 5).
+# Usage metrics - deployment, never a strength or weakness (PLAN section 5).
 DEPLOYMENT = ["competition", "teammates"]
 
 # Microstat card metric groupings. The WAR-component row is the value read; the
@@ -80,7 +80,7 @@ class ComponentRead(BaseModel):
 class ScoringProfileRead(BaseModel):
     """EV offense (play-driving) read against finishing (conversion).
 
-    Articulation only — never moves the tier or the WAR verdict. `shape` is one
+    Articulation only - never moves the tier or the WAR verdict. `shape` is one
     of both_high / positive_regression / negative_regression; the two percentiles
     it weighs are carried alongside the note so a narrator can cite them.
     """
@@ -94,7 +94,7 @@ class ScoringProfileRead(BaseModel):
 
 class MicroProfileRead(BaseModel):
     """One paired microstat read (shot selectivity, passing quality, attack
-    style, D rush defense). Articulation only — never a tier or verdict; the
+    style, D rush defense). Articulation only - never a tier or verdict; the
     reads carry the numbers so a narrator can cite them."""
 
     family: str
@@ -118,7 +118,6 @@ class Assessment(BaseModel):
     """Structured assessment of a single skater (the server's return shape)."""
 
     name: str
-    team: Optional[str] = None
     position: str
     overall_tier: str
     overall_percentile: int
@@ -144,7 +143,6 @@ class MicroAssessment(BaseModel):
     """
 
     name: str
-    team: Optional[str] = None
     position: str
     season: str
     card_kind: str = "micro"
@@ -181,7 +179,6 @@ class GoalieAssessment(BaseModel):
     """Structured assessment of a goalie (the server's goalie return shape)."""
 
     name: str
-    team: Optional[str] = None
     role: str
     overall_tier: str
     overall_percentile: int
@@ -203,20 +200,20 @@ def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None
     Returns an Assessment for skaters, a GoalieAssessment for goalies, or a
     MicroAssessment for a microstat card. When BOTH cards for one player are
     supplied (standard `card` + `micro_card`), the standard assessment gains an
-    articulation-only `micro_insights` synthesis — the tier never moves.
+    articulation-only `micro_insights` synthesis - the tier never moves.
     """
     cfg = config if config is not None else load_config()
     if isinstance(card, (ForwardMicroCard, DefenseMicroCard)):
         if micro_card is not None:
             raise ValueError(
                 "pass the STANDARD card as `card` and the microstat card as "
-                "`micro_card` — two micro cards can't be combined."
+                "`micro_card` - two micro cards can't be combined."
             )
         return assess_micro(card, cfg)
     if isinstance(card, GoalieCard):
         if micro_card is not None:
             raise ValueError(
-                "there is no goalie microstat card — goalies are assessed from "
+                "there is no goalie microstat card - goalies are assessed from "
                 "the standard card only."
             )
         return assess_goalie(card, cfg)
@@ -237,7 +234,7 @@ def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None
         if metric in excluded:
             continue
         value = getattr(card, metric)
-        if value is None:  # NA — absence of a role, not a weakness.
+        if value is None:  # NA - absence of a role, not a weakness.
             deployment.append(_na_note(metric))
             continue
         read = _read(metric, value, cfg)
@@ -246,13 +243,13 @@ def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None
         elif read.percentile <= WEAKNESS_MAX:
             weaknesses.append(read)
 
-    # Descriptive metrics — supporting colour, never the WAR verdict.
+    # Descriptive metrics - supporting colour, never the WAR verdict.
     for metric in DESCRIPTIVE:
         value = getattr(card, metric, None)
         if value is not None:
             descriptive.append(_read(metric, value, cfg))
 
-    # Position-excluded metrics (defenseman Finishing) — descriptive only.
+    # Position-excluded metrics (defenseman Finishing) - descriptive only.
     for metric in excluded:
         value = getattr(card, metric, None)
         if value is None:
@@ -263,7 +260,7 @@ def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None
                 update={
                     "note": (
                         f"{LABELS.get(metric, metric)} is shown on the card but is excluded "
-                        "from a defenseman's projected WAR — descriptive only, not credited "
+                        "from a defenseman's projected WAR - descriptive only, not credited "
                         "to his value."
                     )
                 }
@@ -278,7 +275,7 @@ def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None
         tier = classify_percentile(value, cfg)
         deployment.append(
             f"{LABELS[metric]}: {ordinal(value)} percentile ({tier.label}). "
-            "Deployment, not value — already baked into WAR."
+            "Deployment, not value - already baked into WAR."
         )
 
     strengths.sort(key=lambda r: r.percentile, reverse=True)
@@ -290,9 +287,7 @@ def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None
     summary = _summary(card, overall, strengths, weaknesses, trajectory, is_defense)
 
     return Assessment(
-        name=card.name,
-        team=card.team,
-        position=card.position,
+        name=card.name,        position=card.position,
         overall_tier=overall.label,
         overall_percentile=card.proj_war_pct,
         overall_note=overall.note,
@@ -323,7 +318,7 @@ def _read(metric: str, value: int, cfg: dict[str, Any]) -> ComponentRead:
 
 def _na_note(metric: str) -> str:
     return (
-        f"No {LABELS[metric].lower()} role (NA) — an absence of usage, not a weakness."
+        f"No {LABELS[metric].lower()} role (NA) - an absence of usage, not a weakness."
     )
 
 
@@ -340,7 +335,7 @@ def _caveats(
         caveats.append(cav["finishing_volatility"])
     # Defense repeatability: a forward's defensive impact is the less
     # repeatable half of play-driving (the model's priors regress it ~2x as
-    # hard toward average as offense) — attach when the verdict leans on it.
+    # hard toward average as offense) - attach when the verdict leans on it.
     # Forwards only: the published trend coefficients are forward-specific.
     if not is_defense and any(s.metric == "ev_defense" for s in strengths):
         caveats.append(cav["defense_repeatability"])
@@ -354,7 +349,7 @@ def _caveats(
     # Young-sample uncertainty: the card is a 3-year weighted average, so a young
     # skater's number rests on a short, recent, still-developing sample. Pair it
     # with the trajectory when the trend points up. Position-agnostic. An unknown
-    # age (blank on the card) is not young — the caveat needs evidence to fire.
+    # age (blank on the card) is not young - the caveat needs evidence to fire.
     if card.age is not None and card.age <= cfg["age_uncertainty"]["max_age"]:
         note = cav["young_sample"]
         if _trend_is_up(card):
@@ -362,7 +357,7 @@ def _caveats(
         caveats.append(note)
     # Replacement-level anchor (TopDownHockey): 0 WAR sits at ~the 37th
     # percentile, so a projection at or below it is replacement-level-or-worse,
-    # not merely "below average." Articulation only — the tier never moves.
+    # not merely "below average." Articulation only - the tier never moves.
     war_read = cfg.get("war_reading") or {}
     rep = war_read.get("replacement_pct")
     if rep is not None and card.proj_war_pct <= rep:
@@ -374,7 +369,7 @@ def _scoring_profile(
     card: SkaterLike, is_defense: bool, cfg: dict[str, Any]
 ) -> Optional[ScoringProfileRead]:
     """Read EV offense (play-driving, repeatable) against finishing (conversion,
-    volatile). Articulation only — it never feeds the tier or the WAR verdict.
+    volatile). Articulation only - it never feeds the tier or the WAR verdict.
 
     Forwards only: a defenseman's finishing is excluded from his value, so a
     scoring read off it would contradict that exclusion. Returns None when
@@ -442,7 +437,7 @@ def _bounce_note(values: list[float], cfg: dict[str, Any]) -> Optional[str]:
     An interior season counts only when it breaks past BOTH endpoints (a
     monotonic rise/fall can never trip this) and deviates from the straight
     endpoint-to-endpoint line by more than `trajectory.bounce_margin` (config)
-    — so flat-series chart noise stays quiet. Articulation only: this never
+    - so flat-series chart noise stays quiet. Articulation only: this never
     moves a tier or verdict.
     """
     if len(values) < 3:
@@ -477,7 +472,7 @@ def _trajectory(card: SkaterLike, cfg: dict[str, Any]) -> Optional[str]:
     bounce = _bounce_note([p.value for p in trend], cfg)
     return (
         f"Projected-WAR percentile {first} → {last} over {len(trend)} seasons "
-        f"— {_trend_phrase(first, last)}"
+        f"- {_trend_phrase(first, last)}"
         + (f", {bounce}." if bounce else ".")
     )
 
@@ -516,7 +511,7 @@ def assess_micro(card: MicroLike, cfg: dict[str, Any]) -> MicroAssessment:
     """Assess a microstat card: WAR-row value reads, paired style profiles,
     tracked-data standouts and soft spots, and the style trio kept apart.
 
-    The single-season and unadjusted caveats always attach — this card is one
+    The single-season and unadjusted caveats always attach - this card is one
     season of raw tracked rates, a different regime from the standard card.
     """
     is_defense = isinstance(card, DefenseMicroCard)
@@ -535,7 +530,7 @@ def assess_micro(card: MicroLike, cfg: dict[str, Any]) -> MicroAssessment:
         if metric in excluded:
             continue
         value = getattr(card, metric)
-        if value is None:  # NA — absence of a role, not a weakness.
+        if value is None:  # NA - absence of a role, not a weakness.
             deployment.append(_na_note(metric))
             continue
         read = _read(metric, value, cfg)
@@ -544,7 +539,7 @@ def assess_micro(card: MicroLike, cfg: dict[str, Any]) -> MicroAssessment:
         elif read.percentile <= WEAKNESS_MAX:
             weaknesses.append(read)
 
-    # Position-excluded metrics (defenseman Finishing) — descriptive only.
+    # Position-excluded metrics (defenseman Finishing) - descriptive only.
     for metric in excluded:
         value = getattr(card, metric, None)
         if value is None:
@@ -555,7 +550,7 @@ def assess_micro(card: MicroLike, cfg: dict[str, Any]) -> MicroAssessment:
                 update={
                     "note": (
                         f"{LABELS.get(metric, metric)} is shown on the card but is excluded "
-                        "from a defenseman's value — descriptive only, not credited to it."
+                        "from a defenseman's value - descriptive only, not credited to it."
                     )
                 }
             )
@@ -564,7 +559,7 @@ def assess_micro(card: MicroLike, cfg: dict[str, Any]) -> MicroAssessment:
     strengths.sort(key=lambda r: r.percentile, reverse=True)
     weaknesses.sort(key=lambda r: r.percentile)
 
-    # Tracked-data standouts and soft spots — descriptive, never the verdict.
+    # Tracked-data standouts and soft spots - descriptive, never the verdict.
     metric_set = D_MICRO_METRICS if is_defense else F_MICRO_METRICS
     style_set = D_STYLE_METRICS if is_defense else F_STYLE_METRICS
     micro_highs = sorted(
@@ -590,16 +585,14 @@ def assess_micro(card: MicroLike, cfg: dict[str, Any]) -> MicroAssessment:
 
     position_noun = "defenseman" if is_defense else "forward"
     overall_note = (
-        "A microstat card has no Proj. WAR headline — the value read here comes "
+        "A microstat card has no Proj. WAR headline - the value read here comes "
         f"from the six WAR components, for the {card.season} season only. An "
         "overall tier needs the standard card."
     )
     summary = _micro_summary(card, position_noun, strengths, weaknesses, profiles, micro_highs)
 
     return MicroAssessment(
-        name=card.name,
-        team=card.team,
-        position=card.position,
+        name=card.name,        position=card.position,
         season=card.season,
         overall_note=overall_note,
         strengths=strengths,
@@ -632,7 +625,7 @@ def _micro_profile(
 
 def _micro_profiles(card: MicroLike, is_defense: bool, cfg: dict[str, Any]) -> list[MicroProfileRead]:
     """The paired style reads the tracking methodology scripts. Articulation
-    only — a family with no clear shape is simply omitted, never forced."""
+    only - a family with no clear shape is simply omitted, never forced."""
     spec = cfg["micro_profiles"]
     high, gap = spec["high_min"], spec["gap"]
     profiles: list[MicroProfileRead] = []
@@ -657,7 +650,7 @@ def _micro_profiles(card: MicroLike, is_defense: bool, cfg: dict[str, Any]) -> l
         _micro_profile("passing_quality", shape, ["chance_assists", "primary_shot_assists"], card, cfg)
     )
 
-    # Attack style: rush vs in-zone offense — style, not value.
+    # Attack style: rush vs in-zone offense - style, not value.
     r, iz = card.rush_offense, card.in_zone_offense
     shape = None
     if r >= high and r - iz >= gap:
@@ -671,7 +664,7 @@ def _micro_profiles(card: MicroLike, is_defense: bool, cfg: dict[str, Any]) -> l
     )
 
     # Rush defense (D only): the three metrics read together, chance prevention
-    # first — it's the bottom line of the trio.
+    # first - it's the bottom line of the trio.
     if is_defense:
         ecp = card.entry_chance_prevention
         front = (card.entry_denial_rate + card.poss_entry_prevention) / 2
@@ -681,7 +674,7 @@ def _micro_profiles(card: MicroLike, is_defense: bool, cfg: dict[str, Any]) -> l
         elif front >= high and ecp <= WEAKNESS_MAX:
             shape = "tight_gap_walked"
         elif front >= high:
-            # Elite at the line, ordinary coverage after it — the entries
+            # Elite at the line, ordinary coverage after it - the entries
             # that never happen don't show up in the chance-prevention box.
             shape = "line_dominant"
         elif front <= WEAKNESS_MAX and ecp >= high:
@@ -764,7 +757,7 @@ def _micro_summary(
             "tracked standouts: "
             + ", ".join(f"{h.label.lower()} ({ordinal(h.percentile)})" for h in micro_highs[:3])
         )
-    return "; ".join(parts) + ". One season of tracked data — shape, not a settled level."
+    return "; ".join(parts) + ". One season of tracked data - shape, not a settled level."
 
 
 # --- Both-cards synthesis (standard + micro, articulation only) --------------
@@ -782,17 +775,17 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
         raise ValueError("`micro_card` must be a microstat card (card_kind 'micro').")
     if std.name.strip().casefold() != micro.name.strip().casefold():
         raise ValueError(
-            f"the two cards name different players ({std.name!r} vs {micro.name!r}) — "
+            f"the two cards name different players ({std.name!r} vs {micro.name!r}) - "
             "synthesis needs both cards for the SAME player."
         )
     std_is_d = isinstance(std, DefenseCard)
     if std_is_d != isinstance(micro, DefenseMicroCard):
         raise ValueError(
-            "the two cards are from different position pools — a forward's and a "
+            "the two cards are from different position pools - a forward's and a "
             "defenseman's percentiles are not comparable."
         )
 
-    # A D's excluded metrics (finishing) are descriptive on both cards — a
+    # A D's excluded metrics (finishing) are descriptive on both cards - a
     # season-vs-projection divergence there is noise, not a value story.
     skip: set = set()
     if std_is_d:
@@ -810,7 +803,7 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
             ran = "hot" if mv > sv else "cold"
             divergences.append(
                 f"This season's {LABELS[metric].lower()} ({ordinal(mv)}) sits well "
-                f"{direction} the three-year projection ({ordinal(sv)}) — the season "
+                f"{direction} the three-year projection ({ordinal(sv)}) - the season "
                 f"ran {ran} there relative to the settled level."
             )
 
@@ -819,13 +812,13 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
     if not std_is_d and std.finishing >= STRENGTH_MIN:
         if micro.chances >= STRENGTH_MIN:
             insights.append(
-                f"The finishing verdict is backed by chance volume — chances sit at "
+                f"The finishing verdict is backed by chance volume - chances sit at "
                 f"{ordinal(micro.chances)} this season, so the conversion rests on real "
                 "chance generation. That tempers the finishing-volatility caveat."
             )
         elif micro.chances <= WEAKNESS_MAX:
             insights.append(
-                f"The finishing verdict runs ahead of thin chance volume — chances sit at "
+                f"The finishing verdict runs ahead of thin chance volume - chances sit at "
                 f"only {ordinal(micro.chances)} this season, which sharpens the "
                 "finishing-volatility caveat."
             )
@@ -836,14 +829,14 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
         if fa >= STRENGTH_MIN:
             insights.append(
                 f"The playmaking reads as the dangerous kind: high-danger passes "
-                f"{ordinal(hd)} and chance assists {ordinal(micro.chance_assists)} — "
+                f"{ordinal(hd)} and chance assists {ordinal(micro.chance_assists)} - "
                 "the passing shape this model is known to underrate, now with tracked "
                 "evidence behind it."
             )
         elif fa > WEAKNESS_MAX:
             insights.append(
                 f"The borderline playmaking number hides dangerous passing: high-danger "
-                f"passes sit at {ordinal(hd)} — the underrated-passer caveat resolves "
+                f"passes sit at {ordinal(hd)} - the underrated-passer caveat resolves "
                 "into tracked evidence in his favor."
             )
     # Play-driving vs tracked creation.
@@ -854,7 +847,7 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
         )
     # D: impact vs tracked rush defense. Corroborating evidence can live at
     # the blue line (denials + possession prevention) even when chance
-    # prevention on completed entries is only ordinary — the entries that
+    # prevention on completed entries is only ordinary - the entries that
     # never happen don't show up in that box.
     if std_is_d:
         ecp = micro.entry_chance_prevention
@@ -868,7 +861,7 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
         elif std.ev_defense >= STRENGTH_MIN and front >= STRENGTH_MIN:
             insights.append(
                 f"The defensive impact is corroborated at the blue line: entry denials "
-                f"{ordinal(edr)} and possession-entry prevention {ordinal(pep)} — chance "
+                f"{ordinal(edr)} and possession-entry prevention {ordinal(pep)} - chance "
                 f"prevention on completed entries sits at {ordinal(ecp)}, but the entries "
                 "he erases never reach that box."
             )
@@ -876,7 +869,7 @@ def _synthesize(std: SkaterLike, micro, cfg: dict[str, Any]) -> MicroSynthesis:
             insights.append(
                 f"A tension worth naming: the isolated defensive impact is weak "
                 f"({ordinal(std.ev_defense)}), yet tracked rush defense is strong (entry "
-                f"chance prevention {ordinal(ecp)}) — the leak may be in-zone coverage "
+                f"chance prevention {ordinal(ecp)}) - the leak may be in-zone coverage "
                 "rather than the rush."
             )
         elif std.ev_defense <= WEAKNESS_MAX and ecp <= WEAKNESS_MAX:
@@ -937,9 +930,7 @@ def assess_goalie(card: GoalieCard, cfg: dict[str, Any]) -> GoalieAssessment:
         caveats.append(cfg["goalie_rules"]["save_lines"])
 
     return GoalieAssessment(
-        name=card.name,
-        team=card.team,
-        role=card.role,
+        name=card.name,        role=card.role,
         overall_tier=overall.label,
         overall_percentile=card.proj_war_pct,
         overall_note=overall.note,
@@ -965,21 +956,21 @@ def _danger_shape(high: int, med: int, low: int, cfg: dict[str, Any]) -> str:
         )
     elif high >= STRENGTH_MIN and low >= STRENGTH_MIN:
         shape = (
-            f"Strong across danger levels — high-danger {ordinal(high)} and low-danger "
+            f"Strong across danger levels - high-danger {ordinal(high)} and low-danger "
             f"{ordinal(low)} both hold up."
         )
     elif low <= WEAKNESS_MAX:
         shape = (
-            f"Weak on routine low-danger shots ({ordinal(low)}, {lt}) — a "
+            f"Weak on routine low-danger shots ({ordinal(low)}, {lt}) - a "
             f"leaking-soft-goals flag; high-danger sits at {ordinal(high)}."
         )
     else:
         shape = (
             f"High-danger {ordinal(high)}, mid {ordinal(med)}, low-danger {ordinal(low)} "
-            f"— read where the value comes from."
+            f"- read where the value comes from."
         )
     if low <= WEAKNESS_MAX and "leaking" not in shape:
-        shape += " Low-danger is a soft spot — a leaking-soft-goals risk."
+        shape += " Low-danger is a soft spot - a leaking-soft-goals risk."
     return shape
 
 
@@ -989,15 +980,15 @@ def _start_quality_shape(quality: int, excellent: int, bad: int, cfg: dict[str, 
     bt = classify_percentile(bad, cfg).label
     parts = []
     if quality >= STRENGTH_MIN:
-        parts.append(f"High floor — gives his team a chance most nights (quality starts {ordinal(quality)}, {qt}).")
+        parts.append(f"High floor - gives his team a chance most nights (quality starts {ordinal(quality)}, {qt}).")
     elif quality <= WEAKNESS_MAX:
         parts.append(f"Low floor (quality starts {ordinal(quality)}, {qt}).")
     else:
         parts.append(f"Average floor (quality starts {ordinal(quality)}, {qt}).")
     if excellent >= STRENGTH_MIN:
-        parts.append(f"Real ceiling — can steal games (excellent starts {ordinal(excellent)}, {et}).")
+        parts.append(f"Real ceiling - can steal games (excellent starts {ordinal(excellent)}, {et}).")
     else:
-        parts.append(f"Modest ceiling — not a game-stealer (excellent starts {ordinal(excellent)}, {et}).")
+        parts.append(f"Modest ceiling - not a game-stealer (excellent starts {ordinal(excellent)}, {et}).")
     if bad >= STRENGTH_MIN:
         parts.append(f"Rarely a disaster (bad starts {ordinal(bad)}, {bt}).")
     elif bad <= WEAKNESS_MAX:
@@ -1008,7 +999,7 @@ def _start_quality_shape(quality: int, excellent: int, bad: int, cfg: dict[str, 
 
 
 def _consistency_note(value: int, tier: str, climbing: bool) -> str:
-    base = f"Consistency is {ordinal(value)} ({tier}) — a volatility flag, not a skill."
+    base = f"Consistency is {ordinal(value)} ({tier}) - a volatility flag, not a skill."
     if value <= WEAKNESS_MAX and climbing:
         return base + (
             " Paired with a steep recent WAR climb, the projection may be riding a "
@@ -1029,7 +1020,7 @@ def _workload_note(card: GoalieCard, cfg: dict[str, Any]) -> str:
     parts = [f"Role: {card.role}."]
     if card.gp_pct is not None:
         gt = classify_percentile(card.gp_pct, cfg).label
-        parts.append(f"Games played {ordinal(card.gp_pct)} ({gt}) — workload/deployment, not value.")
+        parts.append(f"Games played {ordinal(card.gp_pct)} ({gt}) - workload/deployment, not value.")
     return " ".join(parts)
 
 
@@ -1041,7 +1032,7 @@ def _goalie_trajectory(card: GoalieCard, cfg: dict[str, Any]) -> Optional[str]:
         bounce = _bounce_note([p.value for p in trend], cfg)
         parts.append(
             f"WAR-per-60 standing {ordinal(first)} → {ordinal(last)} over {len(trend)} "
-            f"seasons — {_trend_phrase(first, last)}"
+            f"seasons - {_trend_phrase(first, last)}"
             + (f", {bounce}" if bounce else "")
             + " (a percentile rank, so read it as rising standing, not a raw rate)."
         )
@@ -1052,13 +1043,13 @@ def _goalie_trajectory(card: GoalieCard, cfg: dict[str, Any]) -> Optional[str]:
         if last_gap > first_gap:
             parts.append(
                 f"Actual save % held ({sv[0].sv}→{sv[-1].sv}) while expected save % fell "
-                f"({sv[0].xsv}→{sv[-1].xsv}) — he's beating expectation by more each year "
+                f"({sv[0].xsv}→{sv[-1].xsv}) - he's beating expectation by more each year "
                 f"(rising goals saved above expected), which is what drives the WAR up."
             )
         else:
             parts.append(
                 f"Save % vs expected gap moved {first_gap:+.1f} → {last_gap:+.1f} points "
-                f"— read the two lines together, never alone."
+                f"- read the two lines together, never alone."
             )
     return " ".join(parts) if parts else None
 
@@ -1071,9 +1062,9 @@ def _goalie_summary(card, overall, strengths, weaknesses, consistency) -> str:
     if weaknesses:
         tension.append(", ".join(f"{w.label.lower()} {ordinal(w.percentile)}" for w in weaknesses[:2]))
     return (
-        f"{card.name} projects as {_article(overall.label)} {overall.label} starter — "
+        f"{card.name} projects as {_article(overall.label)} {overall.label} starter - "
         f"{'; '.join(strong)}. But hold that against the volatility: {'; '.join(tension)}, "
         f"and the WAR standing climbed steeply rather than holding. The honest read: a "
-        f"genuinely strong starter whose multi-year track record is short and uneven — "
+        f"genuinely strong starter whose multi-year track record is short and uneven - "
         f"reliability over game-stealing, not a settled elite."
     )

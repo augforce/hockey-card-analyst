@@ -3,11 +3,11 @@
 The card percentiles ride on the site's expected-goals model, and the rebuild
 write-up establishes three reading rules the config now encodes:
 - The tracking substrate has drifted across recent seasons and the model is
-  recalibrated per season — cross-season level shifts in the Save% vs Expected
+  recalibrated per season - cross-season level shifts in the Save% vs Expected
   Save% gap deserve slack (part of a move can be model/tracking drift, not the
   goalie).
 - Penalty-kill save performance is measured against power-play shots, where
-  the xG model is at its weakest — the noisiest goalie read.
+  the xG model is at its weakest - the noisiest goalie read.
 - A skater's PK defense inherits the same weakness for the same reason.
 
 All articulation-only; nothing moves a tier or verdict.

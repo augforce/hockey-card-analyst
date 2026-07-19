@@ -3,11 +3,11 @@
 Three reading rules the source establishes:
 - The impact components adjust for far more context than teammates/competition:
   zone starts, score state, home ice, back-to-backs, and power-play-expiry
-  shifts — so "his numbers are a deployment artifact" claims are largely
+  shifts - so "his numbers are a deployment artifact" claims are largely
   priced in already.
 - A forward's defensive impact is the less repeatable half of play-driving
   (the model's own priors regress past defense roughly twice as hard toward
-  average as past offense) — verdicts leaning on a forward's EV defense carry
+  average as past offense) - verdicts leaning on a forward's EV defense carry
   that caveat.
 - "Sheltered" / "easy minutes" claims route to the deployment machinery.
 

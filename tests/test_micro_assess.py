@@ -2,13 +2,13 @@
 
 Design rules under test:
 - The WAR-component row is the value read (same thresholds as the standard
-  card, D finishing excluded); the microstat columns are descriptive detail —
+  card, D finishing excluded); the microstat columns are descriptive detail -
   they explain HOW, never the value verdict.
 - Hits / Skating Speed / Forecheck Involvement are style reads, never value
   strengths or weaknesses, whatever the percentile.
 - Paired profiles (shot selectivity, passing quality, attack style, D rush
   defense) are articulation only.
-- A micro card has no Proj. WAR headline — the assessment says so instead of
+- A micro card has no Proj. WAR headline - the assessment says so instead of
   inventing an overall tier.
 - With BOTH cards supplied for the same player, the standard assessment gains
   articulation-only synthesis (insights + season-vs-projection divergences);
@@ -87,7 +87,7 @@ def test_attack_style_profile_reads_rush_led(celebrini_micro):
 
 
 def test_no_profile_forced_when_gap_is_too_small(celebrini_micro):
-    # chances 91 vs shots 79 (gap 12 < 15) — no selectivity story is told.
+    # chances 91 vs shots 79 (gap 12 < 15) - no selectivity story is told.
     out = assess_player(celebrini_micro)
     assert "shot_selectivity" not in {p.family for p in out.profiles}
 
@@ -95,7 +95,7 @@ def test_no_profile_forced_when_gap_is_too_small(celebrini_micro):
 def test_style_metrics_are_style_reads_not_weaknesses(celebrini_micro):
     out = assess_player(celebrini_micro)
     assert {r.metric for r in out.style_reads} == {"skating_speed", "forecheck_involvement", "hits"}
-    # Hits 27th must NOT appear in the lows — it's a style fact.
+    # Hits 27th must NOT appear in the lows - it's a style fact.
     assert all(r.metric != "hits" for r in out.micro_lows)
     hits = next(r for r in out.style_reads if r.metric == "hits")
     assert hits.percentile == 27
@@ -134,7 +134,7 @@ def test_summary_names_the_season(celebrini_micro):
 def test_defense_finishing_excluded_from_micro_value(schaefer_micro):
     out = assess_player(schaefer_micro)
     strength_metrics = {s.metric for s in out.strengths}
-    # ev_offense 96, penalties 99 — but NOT finishing 95 (excluded for a D).
+    # ev_offense 96, penalties 99 - but NOT finishing 95 (excluded for a D).
     assert "ev_offense" in strength_metrics
     assert "penalties" in strength_metrics
     assert "finishing" not in strength_metrics
@@ -161,7 +161,7 @@ def test_rush_defense_profile_present_for_d(schaefer_micro):
 
 
 def test_passing_quality_reads_dangerous_for_schaefer(schaefer_micro):
-    # Chance assists 77 vs primary shot assists 51 — the dangerous-passer shape.
+    # Chance assists 77 vs primary shot assists 51 - the dangerous-passer shape.
     out = assess_player(schaefer_micro)
     profiles = {p.family: p for p in out.profiles}
     assert profiles["passing_quality"].shape == "dangerous"

@@ -36,7 +36,7 @@ def test_celebrini_fixture_loads_with_verified_values():
     assert card.competition == 89
     assert card.teammates == 72
 
-    # PK is NA — an absence of role, not a zero. Must read as None.
+    # PK is NA - an absence of role, not a zero. Must read as None.
     assert card.pk is None
 
     # Trend present and shaped, values not asserted (approximate).
@@ -67,7 +67,7 @@ def test_gritsyuk_fixture_loads_without_team_or_age():
     assert card.competition == 55
     assert card.teammates == 63
 
-    # PK is NA — an absence of role, not a zero. Must read as None.
+    # PK is NA - an absence of role, not a zero. Must read as None.
     assert card.pk is None
 
 

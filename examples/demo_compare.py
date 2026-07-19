@@ -1,4 +1,4 @@
-"""ILLUSTRATIVE DEMO — NOT SERVER CODE.
+"""ILLUSTRATIVE DEMO - NOT SERVER CODE.
 
 Renders the structured `compare_players()` output AND the plain-English answer a
 human (Claude Desktop) would narrate from it. The headline is the GENUINE SPLIT
@@ -36,10 +36,10 @@ def _defense(name):
 
 
 def narrate(cmp):
-    """Stand-in for Claude Desktop's narration — derived only from the Comparison."""
+    """Stand-in for Claude Desktop's narration - derived only from the Comparison."""
     if not cmp.compatible:
         return f"Can't compare these two: {cmp.reason}"
-    out = [f"{cmp.a_name} vs {cmp.b_name} — both {cmp.pool}s, so the percentile pools line up."]
+    out = [f"{cmp.a_name} vs {cmp.b_name} - both {cmp.pool}s, so the percentile pools line up."]
     out.append("Component by component:")
     for c in cmp.components:
         if c.leader is None:
@@ -63,7 +63,7 @@ def main():
         _skater("compare_split_sniper.json"), _skater("compare_split_shutdown.json")
     )
     print("=" * 78)
-    print("GENUINE SPLIT (the case to read) — does it refuse to crown a winner?")
+    print("GENUINE SPLIT (the case to read) - does it refuse to crown a winner?")
     print("=" * 78)
     print("\n--- STRUCTURED (what the server returns) ---")
     print(split.model_dump_json(indent=2))

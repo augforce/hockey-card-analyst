@@ -84,7 +84,7 @@ def units_result():
         "players": ["Jack Hughes", "Arseny Gritsyuk", "Jesper Bratt"],
         "units": [
             {
-                "name": "Line 1 — Hughes (C) / Gritsyuk (LW) / Bratt (RW)",
+                "name": "Line 1 - Hughes (C) / Gritsyuk (LW) / Bratt (RW)",
                 "players": [
                     {"name": "Hughes", "read": "Elite EV offense and finishing, but weak EV defense.",
                      "key_numbers": "98 EVO · 85 FIN · 34 EVD"},
@@ -139,7 +139,7 @@ def test_assess_skater_html_renders_strength_bars_and_caveats(skater_result):
 
 def test_assess_skater_html_renders_descriptive_reads():
     # Goals / primary assists are supporting color in the engine's
-    # `descriptive` list — the report shows them, labeled as color not value,
+    # `descriptive` list - the report shows them, labeled as color not value,
     # so chat and PDF carry the same data.
     hughes = assess_player(SkaterCard(**_load("hughes.json")))
     html = render_html("assess_skater", hughes)
@@ -189,7 +189,7 @@ def test_claim_check_html_shows_graded_rows(claim_result):
 
 
 def test_interpretive_caveat_frames_the_read(interpretive_result):
-    # The honest caveat sits under the badge, BEFORE the confident prose —
+    # The honest caveat sits under the badge, BEFORE the confident prose -
     # it frames the interpretive read rather than qualifying it at the end.
     html = render_html("interpretive", interpretive_result)
     assert html.index(interpretive_result["caveat"]) < html.index(
@@ -207,7 +207,7 @@ def test_interpretive_html_is_badged(interpretive_result):
 
 def test_interpretive_units_render_player_rows_and_works_concerns(units_result):
     html = unescape(render_html("interpretive", units_result))
-    assert "Line 1 — Hughes (C) / Gritsyuk (LW) / Bratt (RW)" in html
+    assert "Line 1 - Hughes (C) / Gritsyuk (LW) / Bratt (RW)" in html
     for row in units_result["units"][0]["players"]:
         assert row["name"] in html
         assert row["read"] in html
@@ -226,7 +226,7 @@ def test_interpretive_units_render_player_rows_and_works_concerns(units_result):
 def test_interpretive_units_without_sections_are_enough():
     html = render_html("interpretive", {
         "title": "Units only",
-        "units": [{"name": "Pairing — A / B", "works": ["Their skills complement."]}],
+        "units": [{"name": "Pairing - A / B", "works": ["Their skills complement."]}],
     })
     assert "Their skills complement." in html
 
@@ -245,7 +245,7 @@ def test_interpretive_markdown_never_renders_literally():
             "body": "**Hughes** is *elite*.\n- covers the gap\n- feeds two finishers",
         }],
         "units": [{
-            "name": "Line 1 — **Hughes** / Bratt",
+            "name": "Line 1 - **Hughes** / Bratt",
             "players": [{"name": "**Hughes**", "read": "**elite** EVO"}],
             "works": ["**Bratt** feeds two finishers"],
             "concerns": ["- all three are the same hand"],

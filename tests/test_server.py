@@ -1,6 +1,6 @@
 """Smoke tests for the fastmcp wiring (Phase 6).
 
-No new behavior — these confirm the three tools are registered, that each is a
+No new behavior - these confirm the three tools are registered, that each is a
 thin pass-through to the engine returning structured data, that goalie/skater
 dispatch works, and that a bad card fails loudly with a ToolError rather than a
 wrong answer.
@@ -116,13 +116,38 @@ def test_interpretive_reads_carry_unit_shape_and_reasoning_frames():
 def test_render_report_steers_structured_units_and_plain_text():
     desc = _descriptions()["render_report"]
     # Structured answers (per-line / per-pairing) go through `units`, prose
-    # through `sections` — and everything is plain text, never markdown.
+    # through `sections` - and everything is plain text, never markdown.
     assert "units" in desc
     assert "key_numbers" in desc
     assert "per-unit structure" in desc
     assert "genuinely freeform" in desc
     assert "PLAIN TEXT" in desc
     assert "markdown" in desc.lower()
+
+
+# --- Team affiliation is ignored (2026-07-19) --------------------------------
+# Card logos go stale with trades, so team is never surfaced: the input field is
+# accepted for compatibility but no output carries it, and the description tells
+# the host not to extract or mention it.
+
+
+def test_assessment_outputs_carry_no_team():
+    for fixture, micro in (
+        ("celebrini.json", None),                     # skater
+        ("thompson.json", None),                      # goalie
+        ("celebrini_micro.json", None),               # micro
+        ("celebrini.json", "celebrini_micro.json"),   # both-cards synthesis
+    ):
+        out = server.assess_player(
+            _load(fixture), micro_card=_load(micro) if micro else None
+        )
+        assert "team" not in out, fixture
+
+
+def test_assess_description_steers_ignoring_the_team_logo():
+    desc = _descriptions()["assess_player"]
+    assert "IGNORE the team/logo" in desc
+    assert "do not extract, pass, or mention team affiliation" in desc
 
 
 def test_verdict_tools_carry_the_standing_disclaimer():

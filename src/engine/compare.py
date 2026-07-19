@@ -5,7 +5,7 @@ Order of operations:
    pool, so forward-vs-forward and D-vs-D are fair; forward-vs-D or skater-vs-
    goalie is not, and is refused (never a clean winner across pools).
 2. Component-by-component, each with both values and the gap.
-3. Overall edge — but it REFUSES to crown a single winner when the components
+3. Overall edge - but it REFUSES to crown a single winner when the components
    genuinely split (A ahead on offense while B is ahead on defense). It only
    calls an edge when one player leads broadly or decisively on projected WAR.
    Same discipline as adjudicate's half-right read.
@@ -42,7 +42,7 @@ WAR_COMPONENTS = ["ev_offense", "ev_defense", "pp", "pk", "finishing", "penaltie
 OFFENSE_METRICS = ["ev_offense", "pp", "finishing"]
 DEFENSE_METRICS = ["ev_defense", "pk"]
 # Goalie components and the two areas that can split: ceiling (game-stealing) vs
-# floor (reliability) — the floor-vs-ceiling reading rule (PLAN section 5).
+# floor (reliability) - the floor-vs-ceiling reading rule (PLAN section 5).
 GOALIE_COMPONENTS = [
     "even_strength", "penalty_kill", "high_danger", "med_danger", "low_danger",
     "quality_starts", "excellent_starts", "bad_starts", "rebound_control",
@@ -64,7 +64,7 @@ def _spec(pool: str) -> dict:
     axes: forwards/D split offense-vs-defense, goalies split ceiling-vs-floor.
 
     Micro pools: the tracked columns join the component display, but the edge
-    logic (the `areas`) stays on the WAR-component row — microstats are
+    logic (the `areas`) stays on the WAR-component row - microstats are
     descriptive, never the value verdict."""
     if pool == "goalie":
         return {
@@ -133,12 +133,12 @@ def compare_players(
         # three-year-weighted projection are not the same pool.
         if {pool_a, pool_b} in ({"forward", "forward_micro"}, {"defense", "defense_micro"}):
             reason = (
-                f"{card_a.name}'s card and {card_b.name}'s card are different regimes — "
+                f"{card_a.name}'s card and {card_b.name}'s card are different regimes - "
                 "one is a standard card (three-year-weighted projections), the other a "
                 "microstat card (this season's 5v5 per-60 percentiles). "
                 + cfg["micro_rules"]["war_row"]
             )
-            overall_text = "Different card regimes (standard vs microstat) — comparison refused."
+            overall_text = "Different card regimes (standard vs microstat) - comparison refused."
             refusal_caveats = [cfg["caveats"]["micro_single_season"]]
         else:
             reason = (
@@ -146,7 +146,7 @@ def compare_players(
                 "percentiles are ranked in different position pools, so the two are not "
                 "apples-to-apples and the card cannot crown a winner across them."
             )
-            overall_text = "Different position pools — comparison refused."
+            overall_text = "Different position pools - comparison refused."
             refusal_caveats = [cfg["caveats"]["within_position_only"]]
         return Comparison(
             compatible=False,
@@ -172,7 +172,7 @@ def compare_players(
         card_a, card_b, norm_focus, spec, excluded, cfg, pool
     )
 
-    # Every micro comparison rides on one season of tracked data — say so.
+    # Every micro comparison rides on one season of tracked data - say so.
     if pool in ("forward_micro", "defense_micro"):
         caveats = [cfg["caveats"]["micro_single_season"]] + caveats
 
@@ -231,7 +231,7 @@ def _compare_component(metric: str, a, b) -> ComponentComparison:
     if av is None or bv is None:
         return ComponentComparison(
             metric=metric, label=label, a_value=av, b_value=bv,
-            leader=None, note="NA for one or both players — not comparable.",
+            leader=None, note="NA for one or both players - not comparable.",
         )
     gap = av - bv
     if abs(gap) < MARGIN:
@@ -314,8 +314,8 @@ def _decide(a, b, focus, spec, excluded, cfg, pool):
         if proj_gap is not None and abs(proj_gap) >= PROJ_DECISIVE:
             edge = "A" if proj_gap > 0 else "B"
             text = (
-                f"{a_area_name} leads on {a_label} and {b_area_name} leads on {b_label} — a "
-                f"genuine split — but {_name(edge, a, b)}'s projected WAR is clearly higher "
+                f"{a_area_name} leads on {a_label} and {b_area_name} leads on {b_label} - a "
+                f"genuine split - but {_name(edge, a, b)}'s projected WAR is clearly higher "
                 f"({a_proj} vs {b_proj}), so the overall edge goes to "
                 f"{_name(edge, a, b)} with that tradeoff noted."
             )
@@ -325,13 +325,13 @@ def _decide(a, b, focus, spec, excluded, cfg, pool):
             text = (
                 f"Better at what, not better overall. {a_area_name} leads on {a_label}, "
                 f"{b_area_name} leads on {b_label}; a micro card has no overall WAR "
-                f"headline to break the tie. No single winner — it's a tradeoff."
+                f"headline to break the tie. No single winner - it's a tradeoff."
             )
         else:
             text = (
                 f"Better at what, not better overall. {a_area_name} leads on {a_label}, "
                 f"{b_area_name} leads on {b_label}; projected WAR is level "
-                f"({a_proj} vs {b_proj}). No single winner — it's a tradeoff."
+                f"({a_proj} vs {b_proj}). No single winner - it's a tradeoff."
             )
         return None, "split", None, [], text
 
@@ -353,10 +353,10 @@ def _decide(a, b, focus, spec, excluded, cfg, pool):
     if proj_gap is not None:
         proj_note = f"(projected WAR {a_proj} vs {b_proj})"
     else:
-        proj_note = "(WAR-component row, this season only — no overall headline on a micro card)"
+        proj_note = "(WAR-component row, this season only - no overall headline on a micro card)"
     if edge is None:
         text = (
-            f"Too close to call — {a.name} and {b.name} are within a hair across the "
+            f"Too close to call - {a.name} and {b.name} are within a hair across the "
             f"board {proj_note}."
         )
     else:
@@ -390,24 +390,24 @@ def _durability_skater(edge: str, a, b, excluded: set):
     play_driving = max(lead_gaps.get("ev_offense", 0), lead_gaps.get("ev_defense", 0))
     if finishing_gap is not None and finishing_gap > play_driving:
         return (
-            "Less durable — this edge leans on finishing, which swings year to year; "
+            "Less durable - this edge leans on finishing, which swings year to year; "
             "a play-driving edge would be steadier.",
             True,
         )
-    return ("Durable — built mainly on play-driving (the repeatable RAPM components).", False)
+    return ("Durable - built mainly on play-driving (the repeatable RAPM components).", False)
 
 
 def _durability_goalie(edge: str, a, b):
     winner = a if edge == "A" else b
     if winner.consistency <= WEAKNESS_MAX:
         return (
-            f"Less durable — the edge rests on a goalie whose consistency is "
+            f"Less durable - the edge rests on a goalie whose consistency is "
             f"{ordinal(winner.consistency)}, and goalie performance is the least stable "
             f"thing in the model.",
             True,
         )
     return (
-        "Durable enough — the leader's consistency holds up, though goalie projections "
+        "Durable enough - the leader's consistency holds up, though goalie projections "
         "are always the model's least stable.",
         False,
     )

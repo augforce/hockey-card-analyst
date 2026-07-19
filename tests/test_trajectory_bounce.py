@@ -4,7 +4,7 @@ The endpoint read stays the spine; when an interior season breaks past BOTH
 endpoints and deviates from the straight endpoint-to-endpoint line by more
 than `trajectory.bounce_margin` (config), the string appends the shape
 ("with a peak season (97th) in between" / "with a down year (…) in between").
-Monotonic and flat series are unchanged — Thompson's 38→90→99 stays clean.
+Monotonic and flat series are unchanged - Thompson's 38→90→99 stays clean.
 Articulation only: no tier or verdict changes.
 """
 import copy
@@ -77,7 +77,7 @@ def test_monotonic_skater_riser_stays_clean():
 
 def test_flat_series_unchanged():
     a = assess_player(_skater([("23-24", 55), ("24-25", 56), ("25-26", 55)]))
-    assert a.trajectory.endswith("— holding steady.")      # no note, no level tag
+    assert a.trajectory.endswith("- holding steady.")      # no note, no level tag
     assert "in between" not in a.trajectory
 
 
@@ -123,5 +123,5 @@ def test_default_margin_ignores_chart_noise():
 def test_two_point_trend_unchanged():
     a = assess_player(SkaterCard(**_load("celebrini.json")))
     assert a.trajectory == (
-        "Projected-WAR percentile 78 → 97 over 2 seasons — pointing sharply up."
+        "Projected-WAR percentile 78 → 97 over 2 seasons - pointing sharply up."
     )

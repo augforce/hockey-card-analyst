@@ -1,7 +1,7 @@
-"""explain_metric — a thin lookup over the metric glossary (skater + goalie).
+"""explain_metric - a thin lookup over the metric glossary (skater + goalie).
 
 It DEFINES a card metric: what it measures, plus the single most important
-interpretive caveat for it. It deliberately does NOT reason about any player — a
+interpretive caveat for it. It deliberately does NOT reason about any player - a
 "why is this a risk for him" question is for the host model to answer from these
 definitions plus the player's assessment, not for this tool to compute.
 
@@ -48,7 +48,7 @@ def _normalize(text: str) -> str:
 
 def _alias_index(glossary: dict[str, Any]) -> dict[str, str]:
     """Map every normalized lookup key (canonical field name + aliases) to its
-    metric. Raises on a collision — two metrics must never claim the same key, or
+    metric. Raises on a collision - two metrics must never claim the same key, or
     the lookup would silently mislead."""
     index: dict[str, str] = {}
     for metric, entry in glossary["metrics"].items():
@@ -65,7 +65,7 @@ def _alias_index(glossary: dict[str, Any]) -> dict[str, str]:
 
 
 def _resolve_caveat(entry: dict[str, Any], cfg: dict[str, Any]) -> str:
-    """Return the entry's caveat — inline text, or the canonical sentence pointed
+    """Return the entry's caveat - inline text, or the canonical sentence pointed
     at by `caveat_ref` (a dotted path into interpretation.yaml). Exactly one of
     the two must be present."""
     if entry.get("caveat"):
@@ -83,7 +83,7 @@ def explain_metric(metric: str, config: Optional[dict[str, Any]] = None) -> Metr
     """Look up one card metric and return its definition and key caveat.
 
     Accepts the schema field name or a common alias / natural phrasing. Unknown
-    input returns found=False with a clear message — it never guesses.
+    input returns found=False with a clear message - it never guesses.
     """
     cfg = config if config is not None else load_config()
     glossary = load_glossary()

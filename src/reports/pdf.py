@@ -3,7 +3,7 @@
 WeasyPrint's native libraries (gobject/pango/harfbuzz) live under Homebrew's
 prefix on macOS, which is not on dyld's default search path. cffi falls back
 to ctypes.util.find_library, whose macOS implementation reads
-DYLD_FALLBACK_LIBRARY_PATH from os.environ AT CALL TIME — so extending it
+DYLD_FALLBACK_LIBRARY_PATH from os.environ AT CALL TIME - so extending it
 here, before the import, is enough. No launcher/env configuration needed,
 which matters because Claude Desktop launches the MCP server itself.
 """

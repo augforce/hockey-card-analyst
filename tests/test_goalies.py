@@ -1,4 +1,4 @@
-"""Phase 5 — goalies through all three tools (PLAN sections 5, 6, 12).
+"""Phase 5 - goalies through all three tools (PLAN sections 5, 6, 12).
 
 Reuses the same engine (tiers, four grades, split refusal, position guard) over
 the goalie schema and the goalie reading rules. The headline is the Thompson

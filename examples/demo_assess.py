@@ -1,4 +1,4 @@
-"""ILLUSTRATIVE DEMO — NOT SERVER CODE.
+"""ILLUSTRATIVE DEMO - NOT SERVER CODE.
 
 This script renders the plain-English paragraph a human (Claude Desktop) would
 narrate from an `assess_player()` result, alongside the structured object the
@@ -44,7 +44,7 @@ def phrase(read):
 
 
 def narrate(a):
-    """Stand-in for Claude Desktop's narration — derived only from the Assessment."""
+    """Stand-in for Claude Desktop's narration - derived only from the Assessment."""
     pos = "defenseman" if a.position == "D" else "forward"
     plural = "defensemen" if a.position == "D" else "forwards"
     article = "an" if a.overall_tier[:1].lower() in "aeiou" else "a"
@@ -56,9 +56,9 @@ def narrate(a):
             return note
         return None
 
-    who = f"{a.name} ({a.team})" if a.team else a.name
+    who = a.name
     out = [
-        f"{who} grades as {article} {a.overall_tier.lower()} {pos} — "
+        f"{who} grades as {article} {a.overall_tier.lower()} {pos} - "
         f"{ordinal(a.overall_percentile)} percentile in projected WAR among {plural}."
     ]
     if once(a.overall_note):
@@ -75,7 +75,7 @@ def narrate(a):
             out.append("On the descriptive side: " + ", ".join(phrase(r) for r in plain) + ".")
         for r in flagged:
             if once(r.note):
-                out.append(f"{phrase(r).capitalize()} — but {r.note[0].lower()}{r.note[1:]}")
+                out.append(f"{phrase(r).capitalize()} - but {r.note[0].lower()}{r.note[1:]}")
             else:
                 out.append(phrase(r).capitalize() + ".")
     if a.weaknesses:
@@ -84,7 +84,7 @@ def narrate(a):
     if a.scoring_profile:
         sp = a.scoring_profile
         out.append(
-            f"Scoring profile — {sp.label.lower()}: EV offense {ordinal(sp.ev_offense)} "
+            f"Scoring profile - {sp.label.lower()}: EV offense {ordinal(sp.ev_offense)} "
             f"vs finishing {ordinal(sp.finishing)}. {sp.note}"
         )
     if a.deployment:
@@ -109,6 +109,6 @@ def show(title, card):
 
 
 if __name__ == "__main__":
-    show("CELEBRINI (forward) — golden fixture; scoring profile = both-high", SkaterCard(**_load("celebrini.json")))
-    show("DOROFEYEV (forward) — scoring profile = negative-regression (conversion-led)", SkaterCard(**_load("dorofeyev.json")))
-    show("SYNTHETIC D — finishing-exclusion proof; no scoring profile", DefenseCard(**_load("synthetic_dman.json")))
+    show("CELEBRINI (forward) - golden fixture; scoring profile = both-high", SkaterCard(**_load("celebrini.json")))
+    show("DOROFEYEV (forward) - scoring profile = negative-regression (conversion-led)", SkaterCard(**_load("dorofeyev.json")))
+    show("SYNTHETIC D - finishing-exclusion proof; no scoring profile", DefenseCard(**_load("synthetic_dman.json")))

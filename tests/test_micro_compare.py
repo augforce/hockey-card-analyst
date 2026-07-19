@@ -2,7 +2,7 @@
 
 Rules under test:
 - Micro vs micro compares within a pool (forward-micro or defense-micro), with
-  the overall edge decided from the WAR-component row — there is no Proj. WAR
+  the overall edge decided from the WAR-component row - there is no Proj. WAR
   headline on a micro card, so no headline tiebreak exists and a genuine split
   stays a split.
 - Micro vs standard is refused even for the same player: single-season
@@ -82,7 +82,7 @@ def test_micro_split_stays_a_split_without_a_headline_tiebreak():
     assert out.compatible is True
     assert out.edge_kind == "split"
     assert out.overall_edge is None
-    # No Proj. WAR on a micro card — the split text must not invent one.
+    # No Proj. WAR on a micro card - the split text must not invent one.
     assert "tradeoff" in out.overall.lower()
 
 

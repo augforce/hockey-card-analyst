@@ -1,4 +1,4 @@
-"""ILLUSTRATIVE DEMO — NOT SERVER CODE.
+"""ILLUSTRATIVE DEMO - NOT SERVER CODE.
 
 Narration stand-in for the microstat-card paths: a micro assessment on its own
 (forward and defenseman), and the both-cards synthesis attached to a standard
@@ -40,7 +40,7 @@ def phrase(read):
 def narrate_micro(a):
     """Stand-in narration derived only from the MicroAssessment."""
     pos = "defenseman" if a.position == "D" else "forward"
-    who = f"{a.name} ({a.team})" if a.team else a.name
+    who = a.name
     out = [f"{who}'s {a.season} microstat card, read as a {pos}."]
     out.append(a.overall_note)
     if a.strengths:
@@ -52,7 +52,7 @@ def narrate_micro(a):
         out.append("WAR-row soft spots: " + "; ".join(phrase(r) for r in a.weaknesses) + ".")
     for d in a.descriptive:
         if d.note:
-            out.append(f"{phrase(d).capitalize()} — but {d.note[0].lower()}{d.note[1:]}")
+            out.append(f"{phrase(d).capitalize()} - but {d.note[0].lower()}{d.note[1:]}")
     for p in a.profiles:
         nums = ", ".join(f"{r.label.lower()} {ordinal(r.percentile)}" for r in p.reads)
         out.append(f"{p.label} ({nums}). {p.note}")
@@ -60,7 +60,7 @@ def narrate_micro(a):
         out.append(
             "Tracked standouts: "
             + ", ".join(phrase(r) for r in a.micro_highs[:5])
-            + (" — descriptive shape, not the value verdict." )
+            + (" - descriptive shape, not the value verdict." )
         )
     if a.micro_lows:
         out.append(
@@ -68,7 +68,7 @@ def narrate_micro(a):
         )
     if a.style_reads:
         nums = ", ".join(f"{r.label.lower()} {ordinal(r.percentile)}" for r in a.style_reads)
-        out.append(f"Style reads ({nums}) — how he plays, never a value weakness.")
+        out.append(f"Style reads ({nums}) - how he plays, never a value weakness.")
     if a.deployment:
         out.append(" ".join(a.deployment))
     if a.caveats:
@@ -104,11 +104,11 @@ if __name__ == "__main__":
     celebrini_std = SkaterCard(**_load("celebrini.json"))
 
     a = assess_player(celebrini_micro)
-    show("CELEBRINI MICRO (forward) — STRUCTURED", a.model_dump_json(indent=2))
-    show("CELEBRINI MICRO (forward) — NARRATED", narrate_micro(a))
+    show("CELEBRINI MICRO (forward) - STRUCTURED", a.model_dump_json(indent=2))
+    show("CELEBRINI MICRO (forward) - NARRATED", narrate_micro(a))
 
     d = assess_player(schaefer_micro)
-    show("SCHAEFER MICRO (defenseman) — NARRATED", narrate_micro(d))
+    show("SCHAEFER MICRO (defenseman) - NARRATED", narrate_micro(d))
 
     combined = assess_player(celebrini_std, micro_card=celebrini_micro)
-    show("CELEBRINI BOTH CARDS — SYNTHESIS NARRATED", narrate_synthesis(combined))
+    show("CELEBRINI BOTH CARDS - SYNTHESIS NARRATED", narrate_synthesis(combined))

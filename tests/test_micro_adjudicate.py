@@ -2,7 +2,7 @@
 
 The point of the micro card in the claim pipeline: style claims that are
 honestly unverifiable on a standard card (skating, physicality, forechecking,
-rush-vs-cycle) become answerable — with a number as the receipt — when the
+rush-vs-cycle) become answerable - with a number as the receipt - when the
 micro card is supplied. The same aliases still land on `skater_style`
 (unverifiable) for a standard card; the pool preference in `_resolve` routes
 them to the micro dimensions for a micro card.
@@ -49,7 +49,7 @@ def test_physical_claim_refuted_with_receipt_and_style_caveat(celebrini_micro):
     assert v.grade == "not_supported"
     assert v.metric == "hits"
     assert v.value == 27
-    # The style caveat must ride along even on a refutation — a low Hits number
+    # The style caveat must ride along even on a refutation - a low Hits number
     # is a style fact, not a value weakness, and the narrator needs that.
     assert v.caveat is not None
     assert "style" in v.caveat.lower()
@@ -110,7 +110,7 @@ def test_power_play_weakness_supported_on_micro_war_row(schaefer_micro):
 
 def test_overall_claim_needs_the_standard_card(celebrini_micro):
     # "he's elite" -> overall_skater -> proj_war_pct, which a micro card
-    # doesn't carry. Must be unverifiable and point at the standard card —
+    # doesn't carry. Must be unverifiable and point at the standard card -
     # NOT the misleading "no role (NA)" wording.
     v = _one(celebrini_micro, "overall_skater", "high", "he's elite")
     assert v.grade == "unverifiable"
@@ -119,7 +119,7 @@ def test_overall_claim_needs_the_standard_card(celebrini_micro):
 
 
 def test_na_role_on_micro_still_reads_as_na(celebrini_micro):
-    # Celebrini's micro card has PK = NA — role absence wording is right here.
+    # Celebrini's micro card has PK = NA - role absence wording is right here.
     v = _one(celebrini_micro, "penalty_kill")
     assert v.grade == "unverifiable"
     assert "na" in v.reason.lower()
@@ -127,7 +127,7 @@ def test_na_role_on_micro_still_reads_as_na(celebrini_micro):
 
 def test_playmaking_resolves_to_primary_assists_on_micro(celebrini_micro):
     # The playmaking dimension lists first_assists (standard) then
-    # primary_assists (micro spelling) — the micro card must resolve.
+    # primary_assists (micro spelling) - the micro card must resolve.
     v = _one(celebrini_micro, "playmaking")
     assert v.grade == "supported"
     assert v.metric == "primary_assists"

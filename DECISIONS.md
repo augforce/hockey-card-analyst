@@ -1157,3 +1157,58 @@ suite 365 → 371. Golden fixtures slavin.json / slavin_micro.json added.
 Tests: six added to test_scouting_calibration.py (19 there; line_dominant,
 both breakout poles, blue-line corroboration, D-finishing divergence
 suppression, Schaefer lockdown regression).
+
+## Team affiliation is no longer surfaced (2026-07-19)
+
+User call: the tool must not report the team/logo on a card — mid-season
+trades make the printed logo stale, so a team read (or a logo mismatch
+between a player's two cards) is noise presented as insight, not context
+worth having.
+
+- **Outputs dropped `team`.** `Assessment`, `GoalieAssessment`, and
+  `MicroAssessment` no longer carry the field, so no host narration can be
+  built on it; the report `player_line`s now show position/role (and
+  season for micro) only.
+- **Input schemas still accept `team`, silently.** With `extra="forbid"` a
+  hard removal would make every old extraction fail validation for a field
+  that used to be correct. Accepted-but-ignored is the honest middle: the
+  field goes nowhere, and the schema comments say so.
+- **Description steering updated.** `assess_player` no longer lists `team`
+  among the extraction fields and now says outright: IGNORE the team/logo
+  on the card — do not extract, pass, or mention team affiliation. The
+  card-scope language elsewhere (trades/current team are out of scope)
+  already pointed this way; this closes the "context" loophole that let
+  the logo leak into narration.
+
+Tests: description steering and the no-team output shape are guarded in
+test_server.py (all four assess paths, including the both-cards
+synthesis); the Gritsyuk missing-context test dropped its `a.team is None`
+assertion.
+
+## No em dashes on any output surface (2026-07-19)
+
+User call: em dashes must never appear in the tool's answers or the PDFs,
+in any capacity.
+
+- **Source purge.** Every em dash in config YAML, src, templates, examples,
+  and tests was replaced with a plain hyphen (about 350 occurrences). The
+  canonical text is now written dash-free rather than cleaned after the
+  fact, so tests that compare config text to output text stay consistent.
+- **Runtime backstop.** `engine.common.strip_em_dashes` (the character is
+  spelled as an escape so the source stays clean) is applied at the two
+  output boundaries: every server tool result before it returns, and the
+  final HTML in `render_html` before the PDF. The renderer scrub also
+  covers Claude-authored interpretive content, which the server never sees.
+- **Host steering.** The standing-framing line in assess / adjudicate /
+  compare and the interpretive contract in render_report now say: never
+  use em dashes; use commas, colons, or plain hyphens instead. This covers
+  the chat prose the host writes on top of the structured data.
+- **Guard.** `tests/test_no_em_dashes.py` scans config, src, templates,
+  tests, fixtures, and examples for the character; asserts every tool
+  output and every rendered report kind is clean (including an interpretive
+  result deliberately seeded with em dashes); and guards the description
+  steering.
+
+Demos re-run: the prose reads naturally with hyphens; the trend arrow
+(78 → 97) is unaffected, it was never an em dash.
+

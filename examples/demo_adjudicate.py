@@ -1,4 +1,4 @@
-"""ILLUSTRATIVE DEMO — NOT SERVER CODE.
+"""ILLUSTRATIVE DEMO - NOT SERVER CODE.
 
 Renders the structured `adjudicate_claim()` output AND the plain-English answer a
 human (Claude Desktop) would narrate from it, for the PLAN section 3 four-part
@@ -27,7 +27,7 @@ FX = REPO / "tests" / "fixtures"
 # What a fan said. Claude Desktop would decompose this into the assertions below;
 # the server only grades them.
 CLAIM = (
-    "He sits in front of the net and scores goals — you'll love him unless he's "
+    "He sits in front of the net and scores goals - you'll love him unless he's "
     "asked to do more, and he's probably your leading scorer next season."
 )
 ASSERTIONS = [
@@ -47,11 +47,11 @@ LEAD = {
 
 
 def narrate(adj):
-    """Stand-in for Claude Desktop's narration — derived only from the verdicts."""
+    """Stand-in for Claude Desktop's narration - derived only from the verdicts."""
     out = ["Here's what the card actually says, piece by piece."]
     for v in adj.verdicts:
         piece = v.text or v.dimension
-        out.append(f"- {LEAD[v.grade]} — “{piece}”: {v.reason}")
+        out.append(f"- {LEAD[v.grade]} - “{piece}”: {v.reason}")
         if v.caveat:
             out.append(f"    (Caveat: {v.caveat})")
     out.append("")

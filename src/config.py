@@ -4,7 +4,7 @@
 lookups: tier bands, caveats, position rules, goalie reading rules, and the
 claim-to-metric dimension dictionary. Engine modules read it from here.
 
-Not listed in PLAN section 10's tree — added as the single place that resolves
+Not listed in PLAN section 10's tree - added as the single place that resolves
 and parses the config so every engine module shares one loader.
 """
 from __future__ import annotations

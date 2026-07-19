@@ -4,13 +4,13 @@ Comparing an engine-narrated Celebrini read against the site's prose scouting
 report exposed two generalizable gaps:
 
 1. Motor/compete claims are broader than Forecheck Involvement. That metric
-   tracks only offensive-zone recoveries and exit pressures — wall battles,
+   tracks only offensive-zone recoveries and exit pressures - wall battles,
    stick checks, and all-ice pursuit are invisible to it, so a "high motor"
    claim must grade as PARTIAL (with the number as a partial receipt), never
    as settled by the one box.
 2. Forwards have no puck-security metric on either card (D cards have
    Success per Poss. Play). The missing-metric message must not claim the
-   other card carries a metric it doesn't — "turnover-prone" about a forward
+   other card carries a metric it doesn't - "turnover-prone" about a forward
    is honestly untracked anywhere.
 """
 import json
@@ -43,7 +43,7 @@ def test_high_motor_claim_is_partial_not_settled():
 
 
 def test_forechecker_claim_still_answerable():
-    # A specifically-forechecking claim IS what the box measures — unchanged.
+    # A specifically-forechecking claim IS what the box measures - unchanged.
     v = _one(ForwardMicroCard(**_load("celebrini_micro.json")), "forechecker")
     assert v.grade == "partial"  # 57th is middling for a 'high' claim
     assert v.metric == "forecheck_involvement"
@@ -57,7 +57,7 @@ def test_forecheck_glossary_caveat_scopes_the_metric():
 
 def test_motor_claim_on_defenseman_cites_retrieval_workload():
     """A D micro card has no forecheck box, but it does carry one slice of
-    motor — D-zone retrieval workload. The claim stays partial, with that
+    motor - D-zone retrieval workload. The claim stays partial, with that
     number as the receipt (never 'not tracked at all')."""
     from schemas import DefenseMicroCard
 
@@ -101,7 +101,7 @@ def test_net_front_claim_on_standard_card_stays_unverifiable():
 # --- Passer claims grade on process, not assist outcomes (Cuylle round) ------
 # Cuylle: primary assists 66th (outcomes, linemate-dependent) against 36th
 # chance assists / 9th shot assists / 18th HD passes (process). "Not much of
-# a passer" must grade on the process metrics — the scout was right.
+# a passer" must grade on the process metrics - the scout was right.
 
 
 def test_passer_claim_on_micro_grades_on_chance_assists():
@@ -170,7 +170,7 @@ def test_synthesis_corroborates_at_the_blue_line():
 
 
 def test_no_finishing_divergence_for_a_defenseman():
-    # Slavin's finishing ran 48 -> 16, a >=15 gap — but it's excluded from a
+    # Slavin's finishing ran 48 -> 16, a >=15 gap - but it's excluded from a
     # D's value on both cards, so flagging it is noise, not a value story.
     combined, _ = _slavin_cards()
     assert all("finishing" not in d.lower() for d in combined.micro_insights.divergences)
@@ -198,7 +198,7 @@ def test_turnover_claim_on_forward_is_untracked_anywhere():
 
 
 def test_overall_claim_on_micro_still_points_at_standard_card():
-    # Regression: proj_war_pct genuinely IS on the standard card — keep saying so.
+    # Regression: proj_war_pct genuinely IS on the standard card - keep saying so.
     v = _one(ForwardMicroCard(**_load("celebrini_micro.json")), "overall_skater")
     assert v.grade == "unverifiable"
     assert "standard card" in v.reason.lower()
@@ -214,7 +214,7 @@ def test_micro_only_metric_on_standard_card_points_at_micro_card():
 
 def test_goalie_missing_metric_gets_generic_honesty():
     # A skater-only metric asked of a goalie card must not claim any other
-    # card carries it — goalies have no counterpart card type.
+    # card carries it - goalies have no counterpart card type.
     v = _one(GoalieCard(**_load("thompson.json")), "sheltered")
     assert v.grade == "unverifiable"
     assert "microstat card carries" not in v.reason.lower()

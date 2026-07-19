@@ -1,6 +1,6 @@
 """Tests for shared scale helpers.
 
-The ordinal suffix is the kind of thing tests miss because nobody asserts it —
+The ordinal suffix is the kind of thing tests miss because nobody asserts it -
 it slipped through once as "72th". One small test here so it doesn't slip again
 as claim reasons and comparison output reuse it.
 """

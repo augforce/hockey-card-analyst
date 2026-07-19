@@ -3,7 +3,7 @@
 The microstat ($10-tier) card is a different data regime from the standard card:
 single-season percentiles at 5v5 per 60 (AllThreeZones microstats; TopDownHockey
 WAR components), no Proj. WAR headline, no age/TOI/cap/competition/teammates,
-no trend charts. Forwards and defensemen carry different microstat sets — the
+no trend charts. Forwards and defensemen carry different microstat sets - the
 golden fixtures here were hand-verified off the real Celebrini (F) and Schaefer
 (D) card images.
 
@@ -39,7 +39,7 @@ def test_celebrini_micro_fixture_loads_with_verified_values():
     assert card.pp == 75
     assert card.penalties == 93
     assert card.finishing == 91
-    # PK is NA — an absence of role, not a zero. Must read as None.
+    # PK is NA - an absence of role, not a zero. Must read as None.
     assert card.pk is None
 
     # Shooting column.
@@ -81,7 +81,7 @@ def test_schaefer_micro_fixture_loads_with_verified_values():
     assert card.position == "D"
     assert card.season == "2025-26"
 
-    # WAR-component row — PP and PK both present on this card.
+    # WAR-component row - PP and PK both present on this card.
     assert card.ev_offense == 96
     assert card.ev_defense == 65
     assert card.pp == 12
@@ -124,7 +124,7 @@ def test_schaefer_micro_fixture_loads_with_verified_values():
 
 
 def test_micro_card_has_no_proj_war_or_deployment_context():
-    """The micro card carries no Proj. WAR headline and no deployment boxes —
+    """The micro card carries no Proj. WAR headline and no deployment boxes -
     passing them must fail loudly (extra='forbid'), not silently absorb."""
     data = _load("celebrini_micro.json")
     for extra in ("proj_war_pct", "competition", "teammates", "toi_role"):
@@ -150,7 +150,7 @@ def test_micro_requires_card_kind_and_season():
 
 
 def test_forward_micro_rejects_defense_micro_fields():
-    """A D micro card mis-extracted as a forward must fail loudly — the D-only
+    """A D micro card mis-extracted as a forward must fail loudly - the D-only
     boxes (rush-defense metrics) are unknown fields on the forward schema."""
     data = _load("schaefer_micro.json")
     data["position"] = "F"
@@ -166,7 +166,7 @@ def test_defense_micro_rejects_forward_micro_fields():
 
 
 def test_na_pp_is_none_not_zero():
-    """NA on the WAR row is an absence of role — same invariant as the standard
+    """NA on the WAR row is an absence of role - same invariant as the standard
     card. The fixture's pk: null must parse to None, never 0."""
     card = ForwardMicroCard(**_load("celebrini_micro.json"))
     assert card.pk is None
@@ -184,7 +184,7 @@ def test_parse_card_discriminates_micro_forward_and_defense():
 
 
 def test_parse_card_micro_without_position_fails_loudly():
-    """A micro card's pool comes from the footer text, not a position box — the
+    """A micro card's pool comes from the footer text, not a position box - the
     extraction must say which pool it read. No position -> loud error, never a
     silent forward default."""
     import server

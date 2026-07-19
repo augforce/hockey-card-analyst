@@ -1,11 +1,11 @@
 """WAR-methodology reading anchors (TopDownHockey write-up, distilled 2026-07-18).
 
 Four things the source methodology states that the config now encodes:
-- Replacement level (0 WAR) sits at ~the 37th percentile — a projection at or
+- Replacement level (0 WAR) sits at ~the 37th percentile - a projection at or
   below it reads as replacement-level-or-worse, not merely "below average."
 - The model overweights shooting and understates play-driving (ridge shrinkage
   + replacement-level shooting), by the author's own account.
-- The expected-goal model is weakest on the power play — PP is the noisiest of
+- The expected-goal model is weakest on the power play - PP is the noisiest of
   the six components.
 - WAR is a point estimate of value added, not ability; EV excludes empty-net
   play; a penalty minute prices at ~0.11 goals.

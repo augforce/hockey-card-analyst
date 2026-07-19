@@ -3,7 +3,7 @@
 <div class="verdict" style="border-color: {{ tone_color }}; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: {{ tone_color }}12">
   <div style="flex: 1">
     <div class="eyebrow" style="color: {{ tone_color }}">// Verdict</div>
-    <div class="headline">{{ headline }}{% if line %} — <span style="color: {{ tone_color }}">{{ line }}</span>{% endif %}</div>
+    <div class="headline">{{ headline }}{% if line %} - <span style="color: {{ tone_color }}">{{ line }}</span>{% endif %}</div>
     {% if subline %}<div class="subline">{{ subline }}</div>{% endif %}
   </div>
   {% if pct is not none %}

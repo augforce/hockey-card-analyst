@@ -3,7 +3,7 @@
 The server does NOT parse language: it receives assertions already decomposed
 into {dimension, direction} and grades each against the card. The headline test
 is the section 3 four-part claim run on Celebrini, which must surface all four
-grades — including the unverifiable ones.
+grades - including the unverifiable ones.
 """
 import json
 from pathlib import Path
@@ -23,7 +23,7 @@ def celebrini():
 
 # The section 3 four-part claim, decomposed the way Claude Desktop would.
 # "asked to do more" maps to BOTH playmaking and defense (section 3), so it
-# yields two assertions — and they disagree, which is the point.
+# yields two assertions - and they disagree, which is the point.
 FOUR_PART = [
     {"dimension": "finishing", "direction": "high", "text": "scores goals"},
     {"dimension": "playmaking", "direction": "low", "text": "limited if asked to do more"},

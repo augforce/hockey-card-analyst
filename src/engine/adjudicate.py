@@ -6,10 +6,10 @@ module grades each one against the card and returns a verdict with the cited
 metric value and a one-line reason, plus an overall read.
 
 Grades:
-- supported     — the metric agrees with the claimed direction.
-- not_supported — the metric contradicts the claimed direction (number is the receipt).
-- partial       — the card half-answers it (team-relative, or right direction but middling).
-- unverifiable  — the card cannot see it (net-front, playing style, team context,
+- supported     - the metric agrees with the claimed direction.
+- not_supported - the metric contradicts the claimed direction (number is the receipt).
+- partial       - the card half-answers it (team-relative, or right direction but middling).
+- unverifiable  - the card cannot see it (net-front, playing style, team context,
                   an NA role, or an unknown dimension). First-class, never a guess.
 """
 from __future__ import annotations
@@ -83,7 +83,7 @@ def adjudicate_claim(
     overall = _overall(verdicts)
     if isinstance(card, (ForwardMicroCard, DefenseMicroCard)):
         overall += (
-            " Verdicts come from one season of tracked data (5v5, per 60) — "
+            " Verdicts come from one season of tracked data (5v5, per 60) - "
             "shape, not a settled level."
         )
     return Adjudication(verdicts=verdicts, overall=overall)
@@ -124,7 +124,7 @@ def _resolve(dimension: str, cfg: dict[str, Any], pool: Optional[str] = None) ->
 def _primary_metric(card: CardLike, entry: dict[str, Any]):
     """First card metric on the entry that has a value. Fallback prefers a
     metric that at least exists on this card type (an NA role) over one the
-    card type doesn't carry at all — the two get different honest messages."""
+    card type doesn't carry at all - the two get different honest messages."""
     metrics = entry.get("metrics", []) or []
     for metric in metrics:
         if getattr(card, metric, None) is not None:
@@ -154,7 +154,7 @@ def _grade(card: CardLike, assertion: Assertion, cfg: dict[str, Any]) -> Asserti
     if entry is None:
         return verdict(
             "unverifiable",
-            reason=f"'{assertion.dimension}' is not a recognized card dimension — the card can't speak to it.",
+            reason=f"'{assertion.dimension}' is not a recognized card dimension - the card can't speak to it.",
         )
 
     answerability = entry.get("answerability", "answerable")
@@ -174,17 +174,17 @@ def _grade(card: CardLike, assertion: Assertion, cfg: dict[str, Any]) -> Asserti
         note = note[0].lower() + note[1:] if note else note
         return verdict("partial", metric=metric, value=value, tier=tier, reason=f"{receipt}, but {note}")
 
-    # Answerable, but no value on this card — we don't guess. Three honest
+    # Answerable, but no value on this card - we don't guess. Three honest
     # cases: the metric exists on this card type but is NA (a role absence);
     # the counterpart card type for this player genuinely carries it (say so);
-    # or NO card type carries it for this position (say that instead — never
+    # or NO card type carries it for this position (say that instead - never
     # point at a card that lacks the box).
     if value is None:
         if metric and metric in type(card).model_fields:
             return verdict(
                 "unverifiable",
                 metric=metric,
-                reason=f"{label} is NA on this card (no role) — the player isn't used there, so the card can't assess it.",
+                reason=f"{label} is NA on this card (no role) - the player isn't used there, so the card can't assess it.",
             )
         counterpart = _COUNTERPARTS.get(type(card))
         if counterpart is not None and metric and metric in counterpart.model_fields:
@@ -192,12 +192,12 @@ def _grade(card: CardLike, assertion: Assertion, cfg: dict[str, Any]) -> Asserti
             return verdict(
                 "unverifiable",
                 metric=metric,
-                reason=f"{label} isn't a box on this card type — the {other} card carries it.",
+                reason=f"{label} isn't a box on this card type - the {other} card carries it.",
             )
         return verdict(
             "unverifiable",
             metric=metric,
-            reason=f"{label} isn't tracked on either card type for this position — the cards can't assess it.",
+            reason=f"{label} isn't tracked on either card type for this position - the cards can't assess it.",
         )
 
     tier = classify_percentile(value, cfg)
@@ -226,11 +226,11 @@ def _reason(label: str, direction: str, value: int, tier: str, grade: Grade) -> 
     claimed = "high" if direction == "high" else "low"
     receipt = f"{label} is {ordinal(value)} ({tier})"
     if grade == "supported":
-        return f"{receipt} — backs a '{claimed}' claim."
+        return f"{receipt} - backs a '{claimed}' claim."
     if grade == "not_supported":
         opposite = "strong" if direction == "low" else "weak"
-        return f"Claim says {claimed}, but {receipt} — the card says the opposite ({opposite} side)."
-    return f"{receipt} — only middling, so a '{claimed}' claim is overstated."
+        return f"Claim says {claimed}, but {receipt} - the card says the opposite ({opposite} side)."
+    return f"{receipt} - only middling, so a '{claimed}' claim is overstated."
 
 
 def _caveat(entry: dict[str, Any], grade: Grade, cfg: dict[str, Any]) -> Optional[str]:

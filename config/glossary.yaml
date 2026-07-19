@@ -1,18 +1,18 @@
 # glossary.yaml
-# Plain-language meaning for every card metric — skater and goalie — written in
+# Plain-language meaning for every card metric - skater and goalie - written in
 # OUR OWN WORDS. Nothing here is copied from hockeystats.com; it is the reading
 # methodology distilled by hand, the same as interpretation.yaml.
 #
 # One entry per card metric. Each entry has two content fields:
-#   definition — what the metric measures, in plain language.
-#   caveat     — the single most important interpretive note for it.
+#   definition - what the metric measures, in plain language.
+#   caveat     - the single most important interpretive note for it.
 # `aliases` are lookup keys for explain_metric (the schema field name plus common
 # natural phrasings); the canonical field name itself always resolves.
 #
 # Single source of truth: where a metric's most important caveat is one the engine
 # already attaches (finishing volatility, goalie consistency, deployment, dangerous
-# passing, rebound control), the entry uses `caveat_ref` — a dotted path into
-# interpretation.yaml — instead of retyping the sentence. The caveat lives in one
+# passing, rebound control), the entry uses `caveat_ref` - a dotted path into
+# interpretation.yaml - instead of retyping the sentence. The caveat lives in one
 # place and the glossary points at it. Every entry has exactly one of `caveat` /
 # `caveat_ref`.
 
@@ -24,7 +24,7 @@ metrics:
        "overall value", "wins above replacement", "overall rating", "how good is he"]
     definition: >-
       His projected Wins Above Replacement as a percentile against others at his
-      position — the model's single best estimate of total on-ice value for next
+      position - the model's single best estimate of total on-ice value for next
       season, blending every component below into one number. Zero WAR
       (replacement level) sits at roughly the 37th percentile.
     caveat_ref: war_reading.point_estimate
@@ -35,7 +35,7 @@ metrics:
       ["competition", "competition faced", "quality of competition", "opposition",
        "tough minutes", "who he plays against", "matched against top lines"]
     definition: >-
-      The quality of the opposition he is matched against — how tough the players
+      The quality of the opposition he is matched against - how tough the players
       he lines up against are, as a percentile.
     caveat_ref: caveats.deployment_not_value
   teammates:
@@ -43,7 +43,7 @@ metrics:
       ["teammates", "quality of teammates", "linemates", "who he plays with",
        "help", "carried by his linemates"]
     definition: >-
-      The quality of the linemates and partners he plays with — how much on-ice
+      The quality of the linemates and partners he plays with - how much on-ice
       help he gets, as a percentile.
     caveat_ref: caveats.deployment_not_value
 
@@ -53,39 +53,39 @@ metrics:
       ["ev offense", "even strength offense", "5v5 offense", "play driving offense",
        "offensive impact", "drives offense", "even strength offensive impact"]
     definition: >-
-      His even-strength offensive impact — his isolated effect on the expected
+      His even-strength offensive impact - his isolated effect on the expected
       goals (scoring chances) his team creates while he is on the ice, isolated
       by regression (RAPM) that adjusts for teammates, opponents, zone starts,
       score state, home ice, back-to-backs, and shifts starting off an expiring
       power play. Even strength here means 5v5, 4v4, or 3v3 with both goalies
-      in net — empty-net play is excluded. Play-driving, not his own point
+      in net - empty-net play is excluded. Play-driving, not his own point
       total.
     caveat: >-
       Repeatable play-driving (the part that carries year to year) and an on-ice
-      impact, not individual scoring — he can drive offense without filling his
+      impact, not individual scoring - he can drive offense without filling his
       own scoresheet.
   ev_defense:
     aliases:
       ["ev defense", "even strength defense", "5v5 defense", "defensive impact",
        "two way", "shutdown", "defensive play driving", "suppresses chances"]
     definition: >-
-      His even-strength defensive impact — his isolated effect on the expected
+      His even-strength defensive impact - his isolated effect on the expected
       goals (scoring chances) his team allows while he is on the ice, isolated
       by regression (RAPM) that adjusts for teammates, opponents, zone starts,
       score state, home ice, back-to-backs, and shifts starting off an expiring
       power play. Even strength here means 5v5, 4v4, or 3v3 with both goalies
-      in net — empty-net play is excluded.
+      in net - empty-net play is excluded.
     caveat_ref: caveats.defense_repeatability
   pp:
     aliases:
       ["pp", "power play", "power play offense", "man advantage",
        "on the power play", "pp1", "special teams offense"]
     definition: >-
-      His on-ice value on the power play — how much he adds to the team's
+      His on-ice value on the power play - how much he adds to the team's
       man-advantage offense, as a percentile (NA when he has no power-play role).
     caveat: >-
-      A role stat: NA means he does not play the power play — an absence of usage,
-      not a weakness — and never a zero. Already part of WAR, and the noisiest of
+      A role stat: NA means he does not play the power play - an absence of usage,
+      not a weakness - and never a zero. Already part of WAR, and the noisiest of
       the six components: the expected-goal model underneath is at its weakest on
       the power play, so give PP reads extra slack.
   pk:
@@ -94,10 +94,10 @@ metrics:
     aliases:
       ["pk", "shorthanded", "kills penalties", "penalty killer", "pk role"]
     definition: >-
-      His on-ice value killing penalties — how much he helps suppress chances
+      His on-ice value killing penalties - how much he helps suppress chances
       shorthanded, as a percentile (NA when he has no penalty-kill role).
     caveat: >-
-      A role stat: NA means no penalty-kill role — an absence of usage, not a
+      A role stat: NA means no penalty-kill role - an absence of usage, not a
       weakness. Do not read a missing PK as a zero. And give PK reads extra
       slack: penalty-kill defense is measured against power-play shots, where
       the expected-goals model is at its weakest.
@@ -107,7 +107,7 @@ metrics:
        "shooting talent", "scores goals", "goal scorer", "shooting percentage skill"]
     definition: >-
       How well he converts his chances into goals relative to an average shooter
-      from the same locations — finishing talent layered on top of shot volume,
+      from the same locations - finishing talent layered on top of shot volume,
       not the volume itself.
     caveat_ref: caveats.finishing_volatility
   penalties:
@@ -115,7 +115,7 @@ metrics:
       ["penalties", "discipline", "penalty differential", "takes too many penalties",
        "undisciplined", "draws penalties", "stays out of the box"]
     definition: >-
-      His discipline — his penalty differential (the non-offsetting penalties he
+      His discipline - his penalty differential (the non-offsetting penalties he
       draws versus the ones he takes), as a percentile, where a higher mark helps
       his team's special-teams margin. The model prices a penalty minute at about
       0.11 goals, and a drawn penalty helps both ways: power-play time gained, and
@@ -131,10 +131,10 @@ metrics:
       ["goals", "goal rate", "goal scoring", "how many goals", "individual goals",
        "goals per 60"]
     definition: >-
-      His individual goal-scoring rate as a percentile — how often he personally
+      His individual goal-scoring rate as a percentile - how often he personally
       scores, before any teammate or competition adjustment.
     caveat: >-
-      Descriptive colour, not a value verdict — raw output that does not separate
+      Descriptive colour, not a value verdict - raw output that does not separate
       his own finishing from the chances his linemates create. Read it alongside
       EV offense and finishing, never alone.
   first_assists:
@@ -142,7 +142,7 @@ metrics:
       ["first assists", "primary assists", "playmaking", "passer", "setup passes",
        "the last pass", "sets up goals", "vision", "primary helpers"]
     definition: >-
-      His primary-assist rate as a percentile — how often he makes the pass that
+      His primary-assist rate as a percentile - how often he makes the pass that
       directly sets up a goal (the last pass before the shot).
     caveat_ref: caveats.dangerous_passing
 
@@ -152,10 +152,10 @@ metrics:
       ["gp", "games played", "workload", "starts", "how much he plays",
        "games played percentile", "workhorse load"]
     definition: >-
-      His games-played percentile — how much of the net he actually carries, a
+      His games-played percentile - how much of the net he actually carries, a
       workload marker for the role he is given.
     caveat: >-
-      Workload and deployment, not quality — a heavy or light load describes how
+      Workload and deployment, not quality - a heavy or light load describes how
       he is used, not how well he stops pucks. Kept separate from the value
       metrics.
 
@@ -165,21 +165,21 @@ metrics:
       ["even strength saves", "5v5 saves", "even strength save performance",
        "even strength goaltending", "saves at even strength"]
     definition: >-
-      His save performance at five-on-five — goals saved above expected on
+      His save performance at five-on-five - goals saved above expected on
       even-strength shots, as a percentile.
     caveat: >-
       Built on goals saved above expected (shot quality already accounted for),
-      not raw save percentage — it credits the difficulty of what he faced.
+      not raw save percentage - it credits the difficulty of what he faced.
   penalty_kill:
     aliases:
       ["penalty kill saves", "shorthanded saves", "pk save performance",
        "saves on the penalty kill", "shorthanded goaltending", "pk save rate"]
     definition: >-
-      His save performance while shorthanded — goals saved above expected on the
+      His save performance while shorthanded - goals saved above expected on the
       penalty kill, as a percentile.
     caveat: >-
       A goaltending metric (goals saved above expected shorthanded), not the
-      skaters' penalty kill — it isolates the goalie's own part of killing
+      skaters' penalty kill - it isolates the goalie's own part of killing
       penalties. It is also the noisiest goalie read: shorthanded saves are
       measured against power-play shots, where the expected-goals model is at
       its weakest.
@@ -190,7 +190,7 @@ metrics:
       ["high danger", "high danger saves", "high danger save percentage",
        "hard saves", "dangerous chances", "slot saves", "in tight saves"]
     definition: >-
-      His save performance on high-danger shots — goals saved above expected on
+      His save performance on high-danger shots - goals saved above expected on
       the most dangerous chances (slot, rebounds, in-tight), as a percentile.
     caveat: >-
       One leg of the danger profile: strong high-danger with ordinary low-danger
@@ -201,20 +201,20 @@ metrics:
       ["med danger", "medium danger", "mid danger saves", "medium danger saves",
        "middle danger"]
     definition: >-
-      His save performance on medium-danger shots — goals saved above expected on
+      His save performance on medium-danger shots - goals saved above expected on
       the middle band of chance quality, as a percentile.
     caveat: >-
-      The middle of the danger profile — most useful read next to high- and
+      The middle of the danger profile - most useful read next to high- and
       low-danger, not on its own.
   low_danger:
     aliases:
       ["low danger", "low danger saves", "routine shots", "easy saves",
        "soft goals", "leaks easy goals", "low danger save percentage"]
     definition: >-
-      His save performance on low-danger shots — goals saved above expected on the
+      His save performance on low-danger shots - goals saved above expected on the
       routine, lower-quality shots he is expected to stop, as a percentile.
     caveat: >-
-      Weak low-danger is a leaking-soft-goals flag — those are the shots a goalie
+      Weak low-danger is a leaking-soft-goals flag - those are the shots a goalie
       should handle, so a low mark here matters more than the shot quality
       suggests.
 
@@ -224,35 +224,35 @@ metrics:
       ["quality starts", "floor", "reliability", "gives you a chance", "steady",
        "dependable starts", "reliable"]
     definition: >-
-      How often he gives his team a fair chance to win — his rate of starts where
+      How often he gives his team a fair chance to win - his rate of starts where
       he saved at least as many goals as expected (goals saved above expected at
       or above zero), as a percentile. The floor of his game.
     caveat: >-
       The floor of the start-quality profile (reliability), distinct from the
-      ceiling — pair it with excellent and bad starts; a high floor with a modest
+      ceiling - pair it with excellent and bad starts; a high floor with a modest
       ceiling is reliability over game-stealing.
   excellent_starts:
     aliases:
       ["excellent starts", "ceiling", "game stealer", "steals games", "robs people",
        "highlight reel", "larceny", "stolen games"]
     definition: >-
-      His rate of game-stealing starts — nights he saved roughly two or more goals
+      His rate of game-stealing starts - nights he saved roughly two or more goals
       above expected, strong enough to win his team a game on his own, as a
       percentile. The ceiling.
     caveat: >-
       The ceiling of the start-quality profile (can he steal games), not the
-      floor — a modest mark means dependable but not a game-stealer. Read it with
+      floor - a modest mark means dependable but not a game-stealer. Read it with
       quality starts.
   bad_starts:
     aliases:
       ["bad starts", "bad starts avoided", "no stinkers", "never has a stinker",
        "disaster rate", "blowups", "no bad nights", "avoids disasters"]
     definition: >-
-      How rarely he has a disaster outing — his rate of bad starts (nights he
+      How rarely he has a disaster outing - his rate of bad starts (nights he
       allowed about two or more goals above expected), oriented so a higher
       percentile means fewer of them.
     caveat: >-
-      Oriented so higher is better — a high mark means he rarely melts down, NOT
+      Oriented so higher is better - a high mark means he rarely melts down, NOT
       that he has many bad nights. Do not invert it.
 
   # --- Goalie: reliability and puck handling --------------------------------
@@ -261,7 +261,7 @@ metrics:
       ["rebound control", "rebounds", "controls rebounds", "second chances",
        "no second chances", "puck control", "rebound suppression"]
     definition: >-
-      How well he controls rebounds — steering pucks to safe areas and limiting
+      How well he controls rebounds - steering pucks to safe areas and limiting
       second-chance shots, as a percentile.
     caveat_ref: goalie_rules.rebound_control
   consistency:
@@ -269,16 +269,16 @@ metrics:
       ["consistency", "consistent", "predictability", "you know what you'll get",
        "stable", "volatility", "predictable year to year"]
     definition: >-
-      How predictable he is from year to year — a percentile for the stability of
+      How predictable he is from year to year - a percentile for the stability of
       his results, not how good those results are.
     caveat_ref: goalie_rules.consistency_volatility
 
   # ==========================================================================
-  # Microstat ($10-tier) card metrics — single-season 5v5 per-60 percentiles.
+  # Microstat ($10-tier) card metrics - single-season 5v5 per-60 percentiles.
   # Microstats tracked by AllThreeZones; Skating Speed from NHL Edge tracking.
   # All definitions reworded in our own words, same as everything above.
   # `primary_assists` (the micro card's spelling) resolves to the existing
-  # `first_assists` entry via its alias — same stat, no duplicate entry.
+  # `first_assists` entry via its alias - same stat, no duplicate entry.
   # ==========================================================================
 
   # --- Micro: shooting ------------------------------------------------------
@@ -291,7 +291,7 @@ metrics:
       split matters enormously: players in this dataset score on about 15.6% of
       chances versus 1.4% of everything else.
     caveat: >-
-      Read it against Shots — a player whose chances outpace his raw attempts is
+      Read it against Shots - a player whose chances outpace his raw attempts is
       selective and dangerous; one whose attempts outpace his chances is living
       on the perimeter.
   shots:
@@ -299,7 +299,7 @@ metrics:
       ["shot attempts", "shot volume", "attempts", "shoots a lot",
        "shots per 60"]
     definition: >-
-      His rate of all shot attempts, dangerous or not — pure volume from
+      His rate of all shot attempts, dangerous or not - pure volume from
       anywhere on the ice.
     caveat: >-
       Volume alone says little: grading higher in Shots than in Chances usually
@@ -309,15 +309,15 @@ metrics:
       ["in zone shots", "cycle shots", "shots off the cycle",
        "in-zone shot attempts"]
     definition: >-
-      His rate of shot attempts generated from in-zone possession — cycles and
-      forechecks — rather than off the rush; everything that isn't a rush
+      His rate of shot attempts generated from in-zone possession - cycles and
+      forechecks - rather than off the rush; everything that isn't a rush
       attempt.
     caveat_ref: caveats.micro_unadjusted
   rush_shots:
     aliases:
       ["rush shots", "shots off the rush", "rush attempts"]
     definition: >-
-      His rate of shot attempts off the rush — a controlled entry turning
+      His rate of shot attempts off the rush - a controlled entry turning
       quickly and directly into an attempt.
     caveat_ref: caveats.micro_unadjusted
   shots_off_hd_passes:
@@ -325,21 +325,21 @@ metrics:
       ["shots off hd passes", "shots off high danger passes",
        "shots off slot passes", "one timers off slot passes"]
     definition: >-
-      His rate of shot attempts taken directly off high-danger passes — feeds
+      His rate of shot attempts taken directly off high-danger passes - feeds
       from behind the net or across the slot. A high mark means he gets himself
       to dangerous scoring areas, usually alongside skilled playmakers.
     caveat: >-
-      The closest thing on any card to a net-front read — it marks a player
-      getting to dangerous areas — but literal shot location and screens still
+      The closest thing on any card to a net-front read - it marks a player
+      getting to dangerous areas - but literal shot location and screens still
       aren't tracked.
   zone_entries:
     aliases:
       ["zone entries", "entries per 60 (f)", "carries it in", "dump and chase entries"]
     definition: >-
-      His rate of offensive-zone entries — carrying the puck across the line or
+      His rate of offensive-zone entries - carrying the puck across the line or
       dumping it in.
     caveat_ref: caveats.micro_unadjusted
-  # INFERRED — the site publishes no official definition for this box (checked
+  # INFERRED - the site publishes no official definition for this box (checked
   # 2026-07-18); the read is inferred from the card's documented tracking
   # conventions and is canonical here. See DECISIONS.md.
   entries_w_possession:
@@ -347,10 +347,10 @@ metrics:
       ["entries with possession", "controlled entries", "possession entries",
        "carries the puck in with control"]
     definition: >-
-      His rate of controlled zone entries — gaining the line with the puck
+      His rate of controlled zone entries - gaining the line with the puck
       (carried or passed in) rather than dumping it in.
     caveat: >-
-      No official definition is published for this box — the read is inferred
+      No official definition is published for this box - the read is inferred
       from the card's documented tracking conventions; controlled entries are the
       valuable kind, so read this alongside raw Zone Entries for the
       carry-vs-dump shape.
@@ -361,11 +361,11 @@ metrics:
       ["chance assists", "passes to chances", "sets up scoring chances",
        "chance assist rate"]
     definition: >-
-      His rate of passes leading directly to a legitimate scoring chance —
+      His rate of passes leading directly to a legitimate scoring chance -
       setup passes that put a teammate in a scoring position and get the goalie
       moving before the shot.
     caveat: >-
-      The high-value half of the passing profile — read it against Primary Shot
+      The high-value half of the passing profile - read it against Primary Shot
       Assists to see whether his passes create danger or just feed volume.
   primary_shot_assists:
     aliases:
@@ -376,7 +376,7 @@ metrics:
       not.
     caveat: >-
       Grading higher here than in Chance Assists usually means funneling pucks
-      low-to-high toward the point — good for sustaining possession, but shots
+      low-to-high toward the point - good for sustaining possession, but shots
       off those passes go in only about 2.5% of the time, so the ceiling is
       much lower than it looks.
   in_zone_shot_assists:
@@ -384,13 +384,13 @@ metrics:
       ["in zone shot assists", "cycle assists", "passes off the cycle"]
     definition: >-
       His rate of passes leading directly to shot attempts out of in-zone
-      possession — cycles and forechecks.
+      possession - cycles and forechecks.
     caveat_ref: caveats.micro_unadjusted
   rush_shot_assists:
     aliases:
       ["rush shot assists", "passes off the rush", "transition assists"]
     definition: >-
-      His rate of passes leading directly to shot attempts off the rush —
+      His rate of passes leading directly to shot attempts off the rush -
       feeding a teammate in transition.
     caveat_ref: caveats.micro_unadjusted
   high_danger_passes:
@@ -398,22 +398,22 @@ metrics:
       ["high danger passes", "slot passes", "passes across the slot",
        "royal road passes", "passes from behind the net"]
     definition: >-
-      His rate of passes into the slot from behind the net or across it — the
+      His rate of passes into the slot from behind the net or across it - the
       most dangerous passes in hockey, the ones that move goalies and precede
       goals.
     caveat: >-
       A player who generates these at a high rate is likely to beat his
-      expected-goals numbers — this is exactly the dangerous-passing shape the
+      expected-goals numbers - this is exactly the dangerous-passing shape the
       model is known to underrate.
   zone_exits:
     aliases:
       ["zone exits", "exits the zone", "breakouts (f)"]
     definition: >-
-      His rate of defensive-zone exits — carrying, passing, or clearing the
+      His rate of defensive-zone exits - carrying, passing, or clearing the
       puck out. Forwards who grade well here are active coming back for pucks
       in their own end.
     caveat_ref: caveats.micro_unadjusted
-  # INFERRED — the site publishes no official definition for this box (checked
+  # INFERRED - the site publishes no official definition for this box (checked
   # 2026-07-18); the read is inferred from the card's documented tracking
   # conventions and is canonical here. See DECISIONS.md.
   exits_w_possession:
@@ -421,11 +421,11 @@ metrics:
       ["exits with possession", "controlled exits", "possession exits",
        "clean breakouts"]
     definition: >-
-      His rate of controlled zone exits — getting the puck out while keeping
+      His rate of controlled zone exits - getting the puck out while keeping
       it, by carrying it across the line or passing cleanly to a teammate,
       rather than flipping it out.
     caveat: >-
-      No official definition is published for this box — the read is inferred
+      No official definition is published for this box - the read is inferred
       from the card's documented tracking conventions; read it against raw Zone Exits
       for the control-vs-clear shape.
 
@@ -435,7 +435,7 @@ metrics:
       ["skating speed", "speed", "skating", "fast", "top speed", "bursts",
        "how fast is he"]
     definition: >-
-      A percentile built from NHL Edge tracking data — a blend of top speed and
+      A percentile built from NHL Edge tracking data - a blend of top speed and
       how often he hits 20+ mph bursts. It reads both how fast he can skate and
       how often he actually gets there.
     caveat: >-
@@ -447,14 +447,14 @@ metrics:
       ["chance contributions", "chances plus chance assists",
        "total chance creation"]
     definition: >-
-      His chances and chance assists combined — one number for how much
+      His chances and chance assists combined - one number for how much
       dangerous offense he is directly involved in creating, shot or pass.
     caveat_ref: caveats.micro_unadjusted
   shot_contributions:
     aliases:
       ["shot contributions", "shots plus shot assists", "total shot involvement"]
     definition: >-
-      His shot attempts and primary shot assists combined — total involvement
+      His shot attempts and primary shot assists combined - total involvement
       in generating attempts of any quality.
     caveat: >-
       A volume composite: read it against Chance Contributions to see whether
@@ -464,21 +464,21 @@ metrics:
       ["in zone offense", "cycle offense", "in-zone attempts plus assists",
        "offensive zone possession offense"]
     definition: >-
-      His in-zone shot attempts and in-zone shot assists combined — how much of
+      His in-zone shot attempts and in-zone shot assists combined - how much of
       his offense comes from sustained o-zone possession, cycles, and
       forechecks.
     caveat: >-
-      One half of the style axis — read it against Rush Offence for the
+      One half of the style axis - read it against Rush Offence for the
       rush-vs-cycle shape; neither side of that axis is itself value.
   rush_offense:
     aliases:
       ["rush offense", "transition offense", "rush attempts plus assists",
        "offense off the rush"]
     definition: >-
-      His rush shot attempts and rush shot assists combined — how much of his
+      His rush shot attempts and rush shot assists combined - how much of his
       offense comes directly off controlled entries in transition.
     caveat: >-
-      One half of the style axis — read it against In-Zone Offence for the
+      One half of the style axis - read it against In-Zone Offence for the
       rush-vs-cycle shape; neither side of that axis is itself value.
   forecheck_involvement:
     aliases:
@@ -486,10 +486,10 @@ metrics:
        "o-zone puck recoveries", "hounds the puck"]
     definition: >-
       His rate of offensive-zone loose-puck recoveries plus forecheck pressures
-      on opponents trying to exit — how involved he is digging out pucks and
+      on opponents trying to exit - how involved he is digging out pucks and
       harassing defenders.
     caveat: >-
-      A style read, not value — and only the offensive-zone slice of "motor":
+      A style read, not value - and only the offensive-zone slice of "motor":
       wall battles, stick checks, and pursuit elsewhere on the ice aren't
       tracked, so an ordinary mark here does not mean an ordinary compete
       level.
@@ -501,7 +501,7 @@ metrics:
       bias. For all the subjectivity of the stat, it repeats strongly year over
       year.
     caveat_ref: caveats.micro_style_not_value
-  # INFERRED — the site publishes no official definition for this box (checked
+  # INFERRED - the site publishes no official definition for this box (checked
   # 2026-07-18); the read is inferred from the card's documented tracking
   # conventions and is canonical here. See DECISIONS.md.
   d_zone_puck_touches:
@@ -509,11 +509,11 @@ metrics:
       ["d zone puck touches", "defensive zone touches", "d-zone involvement",
        "touches in his own end"]
     definition: >-
-      His rate of puck touches in the defensive zone — how often he is the one
+      His rate of puck touches in the defensive zone - how often he is the one
       picking up or handling pucks in his own end, a marker of breakout
       involvement and defensive workload.
     caveat: >-
-      No official definition is published for this box — the read is inferred
+      No official definition is published for this box - the read is inferred
       from the card's documented tracking conventions; involvement is workload and
       trust, not by itself defensive quality.
 
@@ -523,7 +523,7 @@ metrics:
       ["nz shot assists", "neutral zone shot assists", "neutral zone feeds"]
     definition: >-
       His rate of passes from the neutral zone leading directly to a shot
-      attempt — a defender giving his forwards chances in transition.
+      attempt - a defender giving his forwards chances in transition.
     caveat_ref: caveats.micro_unadjusted
   dz_shot_assists:
     aliases:
@@ -531,15 +531,15 @@ metrics:
        "stretch pass assists"]
     definition: >-
       His rate of passes from the defensive zone leading directly to a shot
-      attempt — essentially stretch passes that turn straight into offense.
+      attempt - essentially stretch passes that turn straight into offense.
     caveat: >-
-      The rarest pass on the card — a low percentile here is common and says
+      The rarest pass on the card - a low percentile here is common and says
       little on its own; a high one marks a genuine stretch-pass weapon.
   passes:
     aliases:
       ["passes", "pass volume", "puck mover", "moves the puck", "pass rate"]
     definition: >-
-      His rate of completed passes across all three zones — the volume marker
+      His rate of completed passes across all three zones - the volume marker
       for a puck-moving defenseman.
     caveat_ref: caveats.micro_unadjusted
 
@@ -548,37 +548,37 @@ metrics:
     aliases:
       ["entries", "d entries", "joins the rush", "activates off the line"]
     definition: >-
-      His rate of offensive-zone entries — a defenseman carrying or dumping the
+      His rate of offensive-zone entries - a defenseman carrying or dumping the
       puck in himself rather than handing it off.
     caveat_ref: caveats.micro_unadjusted
-  # INFERRED — the site publishes no official definition for this box (checked
+  # INFERRED - the site publishes no official definition for this box (checked
   # 2026-07-18); the read is inferred from the card's documented tracking
   # conventions and is canonical here. See DECISIONS.md.
   entry_possession_rate:
     aliases:
       ["entry possession rate", "controlled entry rate", "carries it in (d)"]
     definition: >-
-      The share of his zone entries made with possession — carried or passed in
-      rather than dumped — shown as a percentile rank of that rate.
+      The share of his zone entries made with possession - carried or passed in
+      rather than dumped - shown as a percentile rank of that rate.
     caveat: >-
-      No official definition is published for this box — the read is inferred
+      No official definition is published for this box - the read is inferred
       from the card's documented tracking conventions; a rate underneath, so a
       low-volume entry player can post an extreme number on few attempts.
   exits:
     aliases:
       ["exits", "d exits", "breakouts", "gets it out"]
     definition: >-
-      His rate of defensive-zone exits — carrying, passing, or clearing the
+      His rate of defensive-zone exits - carrying, passing, or clearing the
       puck out of his own end.
     caveat: >-
-      Volume, not quality — read it with Exit Possession Rate and Exit Success
+      Volume, not quality - read it with Exit Possession Rate and Exit Success
       Rate to see whether the exits keep the puck or just relieve pressure.
   exit_possession_rate:
     aliases:
       ["exit possession rate", "controlled exit rate", "exits with control"]
     definition: >-
-      The share of his zone exits that keep possession — carried out or passed
-      cleanly to a teammate — shown as a percentile rank of that rate.
+      The share of his zone exits that keep possession - carried out or passed
+      cleanly to a teammate - shown as a percentile rank of that rate.
     caveat: >-
       A percentage underneath the percentile: a low mark means he clears or
       dumps pucks out frequently rather than breaking out with control.
@@ -589,10 +589,10 @@ metrics:
       The share of his exit attempts that actually get the puck out of the
       zone, shown as a percentile rank of that rate.
     caveat: >-
-      The turnover flag of the exit trio — a low mark means he coughs the puck
+      The turnover flag of the exit trio - a low mark means he coughs the puck
       up in transition; read it with the possession rate for the full breakout
       picture.
-  # INFERRED — the site publishes no official definition for this box (checked
+  # INFERRED - the site publishes no official definition for this box (checked
   # 2026-07-18); the read is inferred from the card's documented tracking
   # conventions and is canonical here. See DECISIONS.md.
   pass_exits:
@@ -601,10 +601,10 @@ metrics:
     definition: >-
       His rate of zone exits executed by passing the puck out to a teammate.
     caveat: >-
-      No official definition is published for this box — the read is inferred
+      No official definition is published for this box - the read is inferred
       from the card's documented tracking conventions; read it with Carry Exits for
       the pass-vs-skate breakout shape.
-  # INFERRED — the site publishes no official definition for this box (checked
+  # INFERRED - the site publishes no official definition for this box (checked
   # 2026-07-18); the read is inferred from the card's documented tracking
   # conventions and is canonical here. See DECISIONS.md.
   carry_exits:
@@ -614,7 +614,7 @@ metrics:
       His rate of zone exits executed by skating the puck out of the zone
       himself.
     caveat: >-
-      No official definition is published for this box — the read is inferred
+      No official definition is published for this box - the read is inferred
       from the card's documented tracking conventions; read it with Pass Exits for
       the pass-vs-skate breakout shape.
   d_zone_retrievals:
@@ -622,20 +622,20 @@ metrics:
       ["d zone retrievals", "retrievals", "loose puck recoveries",
        "picks up pucks"]
     definition: >-
-      His rate of loose-puck recoveries in the defensive zone — how heavy a
+      His rate of loose-puck recoveries in the defensive zone - how heavy a
       retrieval workload he carries turning defensive sequences into
       transition.
     caveat: >-
-      Workload, not outcome — pair it with Retrieval Success to see whether the
+      Workload, not outcome - pair it with Retrieval Success to see whether the
       heavy lifting actually comes out clean.
   retrieval_success:
     aliases:
       ["retrieval success", "clean retrievals", "wins his retrievals"]
     definition: >-
-      The rate at which his defensive-zone retrievals succeed — recovering the
-      puck without turning it over under pressure — shown as a percentile.
+      The rate at which his defensive-zone retrievals succeed - recovering the
+      puck without turning it over under pressure - shown as a percentile.
     caveat: >-
-      The quality half of the retrieval pair — a defender can be high-workload
+      The quality half of the retrieval pair - a defender can be high-workload
       (many retrievals) and still leak turnovers here, or low-workload but
       clean.
 
@@ -645,22 +645,22 @@ metrics:
       ["success per poss play", "success per possession play", "puck management",
        "plays made per touch", "turnover rate adjusted"]
     definition: >-
-      The rate at which his possession plays — entries, exits, and retrievals —
+      The rate at which his possession plays - entries, exits, and retrievals -
       succeed, as a percentile. A workload-aware read of puck management that a
       raw giveaway count can't give you.
     caveat: >-
       Grading low here means turning the puck over at a high rate relative to
-      how active he is — more damning than a giveaway total, which punishes
+      how active he is - more damning than a giveaway total, which punishes
       active players for volume.
   entry_denial_rate:
     aliases:
       ["entry denial rate", "denies entries", "stops them at the line",
        "kills entries at the blue line"]
     definition: >-
-      How often opponents' attempts to gain the zone die at his blue line —
+      How often opponents' attempts to gain the zone die at his blue line -
       entries broken up outright with stick or body.
     caveat: >-
-      One leg of the rush-defense trio — read it with possession prevention and
+      One leg of the rush-defense trio - read it with possession prevention and
       chance prevention; denials alone can coexist with getting beaten once the
       line is gained.
   poss_entry_prevention:
@@ -668,7 +668,7 @@ metrics:
       ["poss entry prevention", "possession entry prevention", "forces dump ins",
        "no controlled entries against"]
     definition: >-
-      How often he keeps opponents from entering the zone with possession —
+      How often he keeps opponents from entering the zone with possession -
       forcing a give-up or a dump-in instead of a controlled entry.
     caveat: >-
       A gap read: a low mark means a soft gap conceding the line with the puck.
@@ -680,7 +680,7 @@ metrics:
        "rush chance suppression", "kills the rush"]
     definition: >-
       How well he keeps opponents' zone entries from turning into scoring
-      chances — the bottom line of rush defense.
+      chances - the bottom line of rush defense.
     caveat: >-
       The most important of the three rush-defense metrics: strong denials with
       weak chance prevention reads as a tight gap that gets walked, while weak

@@ -33,7 +33,7 @@ def test_every_micro_metric_has_a_glossary_entry(metric):
 
 def test_inferred_entries_disclose_the_inference():
     """Six micro metrics have no published definition anywhere (checked
-    2026-07-18) — the glossary reads are inferred from the documented tracking
+    2026-07-18) - the glossary reads are inferred from the documented tracking
     conventions, and each caveat must keep saying so."""
     gloss = load_glossary()["metrics"]
     for metric in ("entries_w_possession", "exits_w_possession",

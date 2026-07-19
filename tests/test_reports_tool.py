@@ -27,7 +27,7 @@ def _load(name):
 
 @pytest.fixture(autouse=True)
 def reports_dir(tmp_path, monkeypatch):
-    """Point the tool at a temp dir — tests never write to ~/Documents."""
+    """Point the tool at a temp dir - tests never write to ~/Documents."""
     out = tmp_path / "HockeyCardReports"
     monkeypatch.setenv("HOCKEY_CARD_REPORTS_DIR", str(out))
     return out
@@ -60,7 +60,7 @@ def test_assess_description_forbids_promoting_descriptive_to_strengths():
 
 def test_engine_tools_tell_claude_to_offer_the_pdf():
     # The offer instruction must live on the tools Claude JUST USED when it
-    # finishes an answer — render_report's own description isn't in its
+    # finishes an answer - render_report's own description isn't in its
     # attention at that moment (confirmed live in Phase 3).
     tools = {t.name: t.description for t in asyncio.run(server.mcp.list_tools())}
     for name in ("assess_player", "compare_players", "adjudicate_claim"):
@@ -129,7 +129,7 @@ def test_interpretive_report_from_structured_units():
         "tone": "mixed",
         "players": ["Jack Hughes", "Jesper Bratt"],
         "units": [{
-            "name": "Line 1 — Hughes / Bratt",
+            "name": "Line 1 - Hughes / Bratt",
             "players": [{"name": "Hughes", "read": "Elite EV offense.", "key_numbers": "98 EVO"}],
             "works": ["Bratt's playmaking feeds two finishers."],
             "concerns": ["No shutdown center."],

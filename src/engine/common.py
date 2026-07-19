@@ -11,6 +11,27 @@ STRENGTH_MIN = 70
 WEAKNESS_MAX = 44
 
 
+# No-em-dash rule (2026-07-19, user call): no output surface may contain an em
+# dash - not the structured tool results, not the PDFs. Source text is written
+# dash-free (guarded by tests/test_no_em_dashes.py); this scrub is the runtime
+# backstop at the output boundaries. The character is spelled as an escape so
+# this file itself stays clean under the source scan.
+_EM_DASH = "\u2014"
+
+
+def strip_em_dashes(value):
+    """Recursively replace em dashes with plain hyphens in any output structure."""
+    if isinstance(value, str):
+        return value.replace(_EM_DASH, "-")
+    if isinstance(value, dict):
+        return {k: strip_em_dashes(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [strip_em_dashes(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(strip_em_dashes(v) for v in value)
+    return value
+
+
 def ordinal(n: int) -> str:
     """Render an integer with its English ordinal suffix (1 -> '1st', 72 -> '72nd')."""
     if 10 <= n % 100 <= 20:
@@ -46,7 +67,7 @@ LABELS = {
     "rebound_control": "Rebound control",
     "consistency": "Consistency",
     "gp_pct": "Games played",
-    # Microstat card — shared
+    # Microstat card - shared
     "chances": "Chances",
     "shots": "Shots",
     "primary_assists": "Primary assists",
@@ -57,7 +78,7 @@ LABELS = {
     "in_zone_offense": "In-zone offense",
     "rush_offense": "Rush offense",
     "hits": "Hits",
-    # Microstat card — forward
+    # Microstat card - forward
     "in_zone_shots": "In-zone shots",
     "rush_shots": "Rush shots",
     "shots_off_hd_passes": "Shots off HD passes",
@@ -71,7 +92,7 @@ LABELS = {
     "skating_speed": "Skating speed",
     "forecheck_involvement": "Forecheck involvement",
     "d_zone_puck_touches": "D-zone puck touches",
-    # Microstat card — defenseman
+    # Microstat card - defenseman
     "nz_shot_assists": "NZ shot assists",
     "dz_shot_assists": "DZ shot assists",
     "passes": "Passes",

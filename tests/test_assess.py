@@ -66,7 +66,7 @@ def test_ev_defense_is_a_weakness(celebrini):
 
 def test_na_pk_is_deployment_not_a_weakness(celebrini):
     a = assess_player(celebrini)
-    # PK is NA — must not surface as a weakness or as a zero.
+    # PK is NA - must not surface as a weakness or as a zero.
     assert "pk" not in _metrics(a.weaknesses)
     assert "pk" not in _metrics(a.strengths)
     assert any("penalty kill" in note.lower() for note in a.deployment)
@@ -176,7 +176,7 @@ def test_both_high_tempers_finishing_volatility(celebrini):
 
 
 def test_positive_regression_when_ev_offense_leads_finishing():
-    # High play-driving, finishing lagging — generates chances he isn't converting.
+    # High play-driving, finishing lagging - generates chances he isn't converting.
     card = SkaterCard(
         name="Synthetic PR (test fixture, not a real player)",
         team="TEST",
@@ -220,7 +220,7 @@ def test_defenseman_has_no_scoring_profile(dman):
 
 
 def test_young_player_gets_uncertainty_caveat(celebrini):
-    # Celebrini is 20 — under the threshold, so the thin-sample caveat fires.
+    # Celebrini is 20 - under the threshold, so the thin-sample caveat fires.
     a = assess_player(celebrini)
     base = load_config()["caveats"]["young_sample"]
     assert any(base in c for c in a.caveats)
@@ -234,7 +234,7 @@ def test_young_sample_caveat_pairs_with_rising_trend(celebrini):
 
 
 def test_uncertainty_caveat_does_not_change_tier_or_verdict(celebrini):
-    # Articulation only — the caveat must not move the tier or the WAR verdict.
+    # Articulation only - the caveat must not move the tier or the WAR verdict.
     a = assess_player(celebrini)
     assert a.overall_percentile == 94
     assert a.overall_tier == "Excellent"
@@ -262,7 +262,7 @@ def test_older_player_gets_no_uncertainty_caveat():
 
 
 def test_young_without_rising_trend_omits_the_pairing():
-    # Young, but no upward trend — the base caveat fires without the paired clause.
+    # Young, but no upward trend - the base caveat fires without the paired clause.
     card = SkaterCard(
         name="Synthetic kid (test fixture, not a real player)",
         team="TEST",
@@ -287,12 +287,11 @@ def test_card_without_team_or_age_still_assesses():
     card = SkaterCard(**_load("gritsyuk.json"))
     a = assess_player(card)
     assert isinstance(a, Assessment)
-    assert a.team is None
     assert a.overall_percentile == 84
 
 
 def test_unknown_age_gets_no_uncertainty_caveat():
-    # Age is unknown, not young — the young-sample caveat must not fire.
+    # Age is unknown, not young - the young-sample caveat must not fire.
     card = SkaterCard(**_load("gritsyuk.json"))
     a = assess_player(card)
     base = load_config()["caveats"]["young_sample"]

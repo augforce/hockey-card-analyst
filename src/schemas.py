@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # A card percentile: an integer 0-100. Every percentile box on a HockeyStats
 # card is already oriented so that higher is better (PLAN section 4, goalie
-# direction note) — do not invert any of them.
+# direction note) - do not invert any of them.
 Percentile = Annotated[int, Field(ge=0, le=100)]
 
 # Forward positions as shown on the card. DefenseCard is fixed to "D"; goalies
@@ -38,11 +38,13 @@ class SkaterTrendPoint(_StrictModel):
 
 
 class _SkaterBase(_StrictModel):
-    # Context (does not affect value). Team and age may be missing from the
-    # card itself (e.g. a UFA card with a blank Age line and no team shown);
-    # absence is unknown context, never a value signal.
+    # Context (does not affect value). Age may be missing from the card itself
+    # (e.g. a UFA card with a blank Age line); absence is unknown context,
+    # never a value signal. `team` is accepted for compatibility but IGNORED -
+    # the logo/team on a card goes stale with trades, so team affiliation is
+    # never read, echoed, or reported (2026-07-19).
     name: str
-    team: Optional[str] = None
+    team: Optional[str] = None  # accepted but ignored - never surfaced
     age: Optional[int] = Field(default=None, ge=15, le=60)
     toi_role: Optional[str] = None
     cap: Optional[str] = None
@@ -77,8 +79,8 @@ class SkaterCard(_SkaterBase):
 class DefenseCard(_SkaterBase):
     """A defenseman's standard card.
 
-    Structurally identical to a forward, but Finishing — though it may appear on
-    the card — is excluded from projected WAR (PLAN section 4). That exclusion is
+    Structurally identical to a forward, but Finishing - though it may appear on
+    the card - is excluded from projected WAR (PLAN section 4). That exclusion is
     enforced in the engine via `position_rules.defense.war_excludes` in the
     config, not in this schema.
     """
@@ -103,7 +105,7 @@ class _MicroBase(_StrictModel):
 
     card_kind: Literal["micro"]
     name: str
-    team: Optional[str] = None
+    team: Optional[str] = None  # accepted but ignored - never surfaced (see _SkaterBase)
     season: str
 
     # WAR-component row (single-season). Same orientation and NA rules as the
@@ -132,7 +134,7 @@ class _MicroBase(_StrictModel):
 class ForwardMicroCard(_MicroBase):
     """A forward's microstat card (verified against the real Celebrini card).
 
-    The card itself shows no position box — the footer says "percentile ranks
+    The card itself shows no position box - the footer says "percentile ranks
     among forwards"; extraction passes position "F" (or C/LW/RW if known).
     """
 
@@ -176,7 +178,7 @@ class DefenseMicroCard(_MicroBase):
     passes: Percentile
 
     # Transition column. Exit Possession Rate / Exit Success Rate are rates
-    # underneath but shown as percentile ranks — same 0-100 orientation.
+    # underneath but shown as percentile ranks - same 0-100 orientation.
     entries: Percentile
     entry_possession_rate: Percentile
     exits: Percentile
@@ -217,13 +219,14 @@ class GoalieCard(_StrictModel):
 
     The current HockeyStats goalie card does not split WAR into 5v5/4v5/All; it
     is a single headline plus ten percentile boxes. Every percentile here is
-    already oriented so higher is better — including Bad Starts (higher = better
+    already oriented so higher is better - including Bad Starts (higher = better
     at avoiding them) and Consistency. Do not invert any of them.
     """
 
-    # Context (team/age may be missing from the card itself — see _SkaterBase)
+    # Context (age may be missing from the card itself - see _SkaterBase;
+    # team is accepted but ignored, same as skaters)
     name: str
-    team: Optional[str] = None
+    team: Optional[str] = None  # accepted but ignored - never surfaced
     age: Optional[int] = Field(default=None, ge=15, le=60)
     gp_pct: Optional[Percentile] = None  # games-played percentile (workload)
     role: Literal["Starter", "1A", "1B", "Backup"]

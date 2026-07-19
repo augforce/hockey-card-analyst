@@ -1,6 +1,6 @@
 """Render one PDF per report kind from the golden fixtures, for eyeballing.
 
-Like the other demos this is the window into how the output READS — here,
+Like the other demos this is the window into how the output READS - here,
 how the report design actually looks on the page. Not server
 code; never imported by src/. PDFs land in examples/report_previews/.
 """
@@ -73,7 +73,7 @@ def main():
             "interpretive",
             {
                 "title": "Celebrini and Hughes on the same line",
-                "subtitle": "Line-synergy question — read across two validated cards",
+                "subtitle": "Line-synergy question - read across two validated cards",
                 "tone": "positive",
                 "players": ["Macklin Celebrini", "Jack Hughes"],
                 "sections": [
@@ -82,7 +82,7 @@ def main():
                              "and 93rd, finishing 92nd and 88th. Either can carry a shift; "
                              "together they compound rather than overlap."},
                     {"heading": "The risk",
-                     "body": "Neither profiles as the defensive conscience — both EV "
+                     "body": "Neither profiles as the defensive conscience - both EV "
                              "defense reads sit well below the line, so the pairing "
                              "tilts high-event in both directions."},
                 ],
@@ -107,7 +107,7 @@ def main():
                              "Raddysh is an offense-first puck mover (78th EV offense, 75th "
                              "power play) with only average EV defense (51st). Rielly is a "
                              "pure offense generator (87th EV offense) with an EV defense "
-                             "mark of 1st percentile — among the worst at the position."},
+                             "mark of 1st percentile - among the worst at the position."},
                     {"heading": "What works",
                      "body": "Both defensemen take few penalties (Raddysh 67th, Rielly 71st "
                              "discipline), which keeps Bobrovsky off the penalty kill, exactly "
@@ -122,7 +122,7 @@ def main():
                           "unit-level model. Bobrovsky's consistency mark (33rd percentile) "
                           "means his high-danger weakness is not a fixed floor.",
                 "summary": "This trio's biggest risk is compounding, not offsetting, "
-                           "weaknesses — Rielly's defensive gap feeds shots into the exact "
+                           "weaknesses - Rielly's defensive gap feeds shots into the exact "
                            "area Bobrovsky handles worst.",
             },
             None,
@@ -132,7 +132,7 @@ def main():
         "interpretive_roster_construction.pdf": (
             "interpretive",
             {
-                "title": "Optimal Line Construction — Card-Based Synergy Read",
+                "title": "Optimal Line Construction - Card-Based Synergy Read",
                 "subtitle": "Four forward lines from fourteen validated cards",
                 "tone": "mixed",
                 "players": [
@@ -144,7 +144,7 @@ def main():
                 ],
                 "units": [
                     {
-                        "name": "Line 1 — Hughes (C) / Gritsyuk (LW) / Bratt (RW)",
+                        "name": "Line 1 - Hughes (C) / Gritsyuk (LW) / Bratt (RW)",
                         "players": [
                             {"name": "Hughes",
                              "read": "98th percentile, Elite: elite EV offense and finishing, but weak EV defense.",
@@ -153,7 +153,7 @@ def main():
                              "read": "84th, Strong: elite EV defense directly covers Hughes' gap, plus strong finishing.",
                              "key_numbers": "95 EVD · 79 FIN"},
                             {"name": "Bratt",
-                             "read": "91st, Excellent: elite EV offense and power play; a positive-regression case — his EV offense sits well above his finishing, so there's more scoring in the tank.",
+                             "read": "91st, Excellent: elite EV offense and power play; a positive-regression case - his EV offense sits well above his finishing, so there's more scoring in the tank.",
                              "key_numbers": "97 EVO · 49 FIN"},
                         ],
                         "works": [
@@ -166,20 +166,20 @@ def main():
                         ],
                     },
                     {
-                        "name": "Line 2 — Hischier (C) / Meier (LW) / Mercer (RW)",
+                        "name": "Line 2 - Hischier (C) / Meier (LW) / Mercer (RW)",
                         "players": [
                             {"name": "Hischier",
                              "read": "97th, Elite: elite EV offense and power play; the only real hole is the penalty kill.",
                              "key_numbers": "5 PK"},
                             {"name": "Meier",
-                             "read": "71st, Strong: elite-adjacent EV offense, weak EV defense — also a positive-regression case.",
+                             "read": "71st, Strong: elite-adjacent EV offense, weak EV defense - also a positive-regression case.",
                              "key_numbers": "84 EVO · 30 EVD"},
                             {"name": "Mercer",
                              "read": "54th, Average: elite penalty kill and strong EV defense, weak finishing and power play.",
                              "key_numbers": "92 PK · 70 EVD"},
                         ],
                         "works": [
-                            "Mercer is the stabilizer — his PK and defense cover Meier's biggest hole while Hischier's playmaking ties the line together.",
+                            "Mercer is the stabilizer - his PK and defense cover Meier's biggest hole while Hischier's playmaking ties the line together.",
                             "Balanced handedness (2 LH, 1 RH on his strong side).",
                         ],
                         "concerns": [
@@ -187,10 +187,10 @@ def main():
                         ],
                     },
                     {
-                        "name": "Line 3 — Hayton (C) / Rodrigues (LW) / Brown (RW)",
+                        "name": "Line 3 - Hayton (C) / Rodrigues (LW) / Brown (RW)",
                         "players": [
                             {"name": "Hayton",
-                             "read": "39th, Below average: strong two-way, but 3rd-percentile finishing — generates without converting.",
+                             "read": "39th, Below average: strong two-way, but 3rd-percentile finishing - generates without converting.",
                              "key_numbers": "83 EVO · 78 EVD · 3 FIN"},
                             {"name": "Rodrigues",
                              "read": "53rd, Average: strong EV defense plus elite penalty kill.",
@@ -200,20 +200,20 @@ def main():
                              "key_numbers": "80 PK"},
                         ],
                         "works": [
-                            "Legitimate matchup/shutdown trio — two strong defensive profiles plus real PK depth (81/80). Good for tough defensive-zone assignments.",
+                            "Legitimate matchup/shutdown trio - two strong defensive profiles plus real PK depth (81/80). Good for tough defensive-zone assignments.",
                         ],
                         "concerns": [
-                            "Almost no finishing anywhere on this line (3/20/15). This is a line built to suppress, not score — don't expect secondary scoring from it.",
+                            "Almost no finishing anywhere on this line (3/20/15). This is a line built to suppress, not score - don't expect secondary scoring from it.",
                         ],
                     },
                     {
-                        "name": "Line 4 — Glass (C) / Noesen (LW) / Bjugstad (RW)",
+                        "name": "Line 4 - Glass (C) / Noesen (LW) / Bjugstad (RW)",
                         "players": [
                             {"name": "Glass",
-                             "read": "65th, Above average: elite EV defense, weak EV offense — trending up sharply per his WAR chart.",
+                             "read": "65th, Above average: elite EV defense, weak EV offense - trending up sharply per his WAR chart.",
                              "key_numbers": "98 EVD · 38 EVO"},
                             {"name": "Noesen",
-                             "read": "40th, Below average: strong EV defense on the card, but 7th-percentile discipline and heavily sheltered usage — the defensive number is soft evidence.",
+                             "read": "40th, Below average: strong EV defense on the card, but 7th-percentile discipline and heavily sheltered usage - the defensive number is soft evidence.",
                              "key_numbers": "74 EVD · 7 DISC"},
                             {"name": "Bjugstad",
                              "read": "34th, Below average: no flagged strengths, but his EV offense and goals (descriptive) are the only offense on this line.",
@@ -224,7 +224,7 @@ def main():
                             "Bjugstad provides the only spark of secondary scoring.",
                         ],
                         "concerns": [
-                            "Two poor-discipline forwards (Bjugstad 15th, Noesen 7th) stacked together — this line will take penalties.",
+                            "Two poor-discipline forwards (Bjugstad 15th, Noesen 7th) stacked together - this line will take penalties.",
                             "All three shoot right, so there's zero off-wing shooting angle variety.",
                         ],
                     },
@@ -232,7 +232,7 @@ def main():
                 "sections": [
                     {"heading": "Extras (not graded into the 12)",
                      "body": "Boqvist and Hameenaho graded out as replacement-level or "
-                             "worse (30th and 2nd percentile, zero flagged strengths) — "
+                             "worse (30th and 2nd percentile, zero flagged strengths) - "
                              "Hameenaho's card explicitly carries the small-sample caveat "
                              "the engine attaches to young players. They're the 13th/14th "
                              "forwards, not lines 5-6. Lombardi has no card to grade, so "
@@ -240,7 +240,7 @@ def main():
                              "a slot."},
                 ],
                 "caveat": "This is a synergy read built from four individual player cards "
-                          "per line, not an engine verdict — there is no unit-level model "
+                          "per line, not an engine verdict - there is no unit-level model "
                           "behind it. Line chemistry, deployment, and coaching usage in "
                           "real games can meaningfully change how these combinations "
                           "actually perform on ice.",

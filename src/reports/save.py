@@ -2,7 +2,7 @@
 
 The MCP tool's backend. The passed result must round-trip through the
 ENGINE'S OWN output model for that kind (Assessment, GoalieAssessment,
-Comparison, Adjudication) — a retyped, reconstructed, or wrong-kind result
+Comparison, Adjudication) - a retyped, reconstructed, or wrong-kind result
 fails loudly instead of rendering a plausible-looking wrong report. The
 interpretive kind has its own strict schema since Claude authors it.
 """
@@ -91,14 +91,14 @@ def save_report(kind: str, result: Any, title: Optional[str] = None) -> Path:
     """Validate, render, write; returns the absolute path. Raises ValueError."""
     if kind not in RESULT_MODELS:
         raise ValueError(
-            f"Unknown report kind {kind!r} — expected one of {sorted(RESULT_MODELS)}."
+            f"Unknown report kind {kind!r} - expected one of {sorted(RESULT_MODELS)}."
         )
     model = RESULT_MODELS[kind]
     try:
         validated = model.model_validate(result)
     except ValidationError as exc:
         raise ValueError(
-            f"`result` does not match the {model.__name__} shape for kind {kind!r} — "
+            f"`result` does not match the {model.__name__} shape for kind {kind!r} - "
             f"pass the engine result verbatim (never retyped or reconstructed):\n{exc}"
         )
     stub = _slug(_name_stub(kind, validated, title))
