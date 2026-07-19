@@ -65,12 +65,13 @@ card support.
 
 **(Using Claude Sonnet 5 with High thinking)**
 
-### **"The Flyers are attempting to aquire Leo Carlsson by signing him to an offer sheet carrying an $18M cap hit for the next five years. Is this player worth it? What's making him so valuable?":**
-<img width="719" height="813" alt="Screenshot 2026-07-04 at 7 35 29 AM" src="https://github.com/user-attachments/assets/29953286-085a-40bb-beaf-e00a68fd8fb5" />
+### **"Give me a scouting report on how the Jack Hughes/Jesper Bratt/Anthony Mantha line will work together":**
+<img width="708" height="563" alt="Screenshot 2026-07-19 at 6 24 26 AM" src="https://github.com/user-attachments/assets/6b520c49-ab40-4e12-a944-223791364c3f" />
+<img width="700" height="803" alt="Screenshot 2026-07-19 at 6 24 12 AM" src="https://github.com/user-attachments/assets/a3143e89-6e8a-43ba-bf5e-bd8f6b0e7e04" />
 
 ### **PDF Report:**
-[leo-carlsson_assess-skater_2026-07-04.pdf](https://github.com/user-attachments/files/29659645/leo-carlsson_assess-skater_2026-07-04.pdf)
 
+[scouting-report-hughes-bratt-mantha-line_interpretive_2026-07-19.pdf](https://github.com/user-attachments/files/30164304/scouting-report-hughes-bratt-mantha-line_interpretive_2026-07-19.pdf)
 
 ## Why you can trust it
 
