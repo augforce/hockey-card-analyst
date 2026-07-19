@@ -66,8 +66,8 @@ card support.
 **(Using Claude Sonnet 5 with High thinking)**
 
 ### **"Give me a scouting report on how the Jack Hughes/Jesper Bratt/Anthony Mantha line will work together":**
-<img width="708" height="563" alt="Screenshot 2026-07-19 at 6 24 26 AM" src="https://github.com/user-attachments/assets/6b520c49-ab40-4e12-a944-223791364c3f" />
 <img width="700" height="803" alt="Screenshot 2026-07-19 at 6 24 12 AM" src="https://github.com/user-attachments/assets/a3143e89-6e8a-43ba-bf5e-bd8f6b0e7e04" />
+<img width="708" height="563" alt="Screenshot 2026-07-19 at 6 24 26 AM" src="https://github.com/user-attachments/assets/6b520c49-ab40-4e12-a944-223791364c3f" />
 
 ### **PDF Report:**
 
