@@ -959,7 +959,10 @@ def assess_goalie(card: GoalieCard, cfg: dict[str, Any]) -> GoalieAssessment:
         workload=_workload_note(card, cfg),
         trajectory=_goalie_trajectory(card, cfg),
         caveats=caveats,
-        summary=_goalie_summary(card, overall, strengths, weaknesses, consistency),
+        summary=_goalie_summary(
+            card, overall, strengths, weaknesses, consistency,
+            _is_climbing(card.war_per60_trend),
+        ),
     )
 
 
@@ -1071,17 +1074,49 @@ def _goalie_trajectory(card: GoalieCard, cfg: dict[str, Any]) -> Optional[str]:
     return " ".join(parts) if parts else None
 
 
-def _goalie_summary(card, overall, strengths, weaknesses, consistency) -> str:
-    strong = [f"{ordinal(card.proj_war_pct)} in projected WAR"]
+def _goalie_summary(card, overall, strengths, weaknesses, consistency, climbing) -> str:
+    """One-line goalie summary whose framing tracks the ACTUAL reads.
+
+    The closing is tier-aware (a weak season must never be told it's strong),
+    the role word is the card's own role (a backup is not a "starter"), and
+    the steep-climb clause appears only when the WAR trend really climbed.
+    """
+    pct = card.proj_war_pct
+    strong = [f"{ordinal(pct)} in projected WAR"]
     if strengths:
         strong.append(", ".join(s.label.lower() for s in strengths[:2]))
     tension = [f"consistency sits at {ordinal(consistency.percentile)}"]
     if weaknesses:
         tension.append(", ".join(f"{w.label.lower()} {ordinal(w.percentile)}" for w in weaknesses[:2]))
-    return (
-        f"{card.name} projects as {_article(overall.label)} {overall.label} starter - "
-        f"{'; '.join(strong)}. But hold that against the volatility: {'; '.join(tension)}, "
-        f"and the WAR standing climbed steeply rather than holding. The honest read: a "
-        f"genuinely strong starter whose multi-year track record is short and uneven - "
-        f"reliability over game-stealing, not a settled elite."
+    climb = ", and the WAR standing climbed steeply rather than holding" if climbing else ""
+    role_word = card.role.lower() if card.role in ("Starter", "Backup") else card.role
+
+    opening = (
+        f"{card.name} projects as {_article(overall.label)} {overall.label} {role_word} - "
+        f"{'; '.join(strong)}."
     )
+    lead = "But hold that against the volatility" if pct >= STRENGTH_MIN else "Alongside it"
+    middle = f"{lead}: {'; '.join(tension)}{climb}."
+
+    # Tier-aware closing: language that matches the verdict, not a template.
+    if pct >= 85:
+        close = "front-line goaltending, near the top of the position pool"
+    elif pct >= STRENGTH_MIN:
+        close = "a quality starter's level, comfortably above the middle of the pool"
+    elif pct >= 45:
+        close = "a serviceable option in the middle of the pool, dependable more than difference-making"
+    elif pct >= 30:  # the Below average tier band
+        close = (
+            "a below-average projection - the model sees him giving back goals "
+            "against the middle of the pool"
+        )
+    else:
+        close = "a genuinely weak projection, near the bottom of the position pool"
+    settle = ""
+    if consistency.percentile <= WEAKNESS_MAX:
+        settle = (
+            f" - and with consistency at {ordinal(consistency.percentile)}"
+            + (" and a steep recent WAR climb" if climbing else "")
+            + ", the level is less settled than the single number reads"
+        )
+    return f"{opening} {middle} The honest read: {close}{settle}."

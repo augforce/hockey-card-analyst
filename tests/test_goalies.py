@@ -133,3 +133,75 @@ def test_goalie_vs_skater_trips_the_position_guard(thompson):
     assert cmp.compatible is False
     assert cmp.edge_kind == "incompatible"
     assert load_config()["caveats"]["within_position_only"] in cmp.caveats
+
+
+# --- The summary's closing tracks the tier (fix caught via the Edge round) --
+# _goalie_summary's closing used to be hard-coded from the Thompson
+# calibration ("a genuinely strong starter..."), so a weak goalie was told he
+# was strong - the tool contradicting its own data. The closing must now read
+# consistently with the computed tier, and the "climbed steeply" clause must
+# only appear when the WAR trend actually climbed.
+
+
+def _synthetic_goalie(**over) -> GoalieCard:
+    base = dict(
+        name="Synthetic Goalie (synthetic)", age=29, role="Starter",
+        proj_war_pct=50, even_strength=50, penalty_kill=50, high_danger=50,
+        med_danger=50, low_danger=50, quality_starts=50, excellent_starts=50,
+        bad_starts=50, rebound_control=50, consistency=50,
+    )
+    base.update(over)
+    return GoalieCard(**base)
+
+
+def test_weak_goalie_summary_never_claims_strength():
+    # The synthetic Vanecek shape from the Edge round: a Below average tier.
+    a = assess_player(_synthetic_goalie(
+        name="Vitek Vanecek (synthetic)", role="Backup", proj_war_pct=30,
+        even_strength=35, high_danger=40, quality_starts=30,
+        excellent_starts=40, bad_starts=35, consistency=45,
+    ))
+    s = a.summary.lower()
+    assert "genuinely strong" not in s
+    assert "front-line" not in s
+    assert "below" in s          # the closing matches the Below average tier
+
+
+def test_elite_summary_still_holds_the_tension(thompson):
+    # Thompson keeps an elite closing AND the volatility temper: 96th WAR,
+    # 23rd consistency, steep climb - all three still in one honest summary.
+    s = assess_player(thompson).summary
+    assert "front-line" in s.lower()
+    assert "96" in s and "23" in s
+    assert "climbed steeply" in s.lower()
+    assert "genuinely weak" not in s.lower()
+
+
+@pytest.mark.parametrize(
+    "pct,expect,forbid",
+    [
+        (96, "front-line", "below"),
+        (75, "quality starter", "front-line"),
+        (50, "middle of the pool", "front-line"),
+        (35, "below-average", "quality starter"),
+        (8, "genuinely weak", "front-line"),
+    ],
+)
+def test_summary_closing_tracks_each_tier_band(pct, expect, forbid):
+    s = assess_player(_synthetic_goalie(proj_war_pct=pct)).summary.lower()
+    assert expect in s, s
+    assert forbid not in s, s
+
+
+def test_climb_clause_requires_an_actual_climb():
+    # No trend at all: the old hard-coded "climbed steeply rather than
+    # holding" must not appear.
+    s = assess_player(_synthetic_goalie(proj_war_pct=85)).summary.lower()
+    assert "climbed steeply" not in s
+
+
+def test_summary_names_the_actual_role():
+    # A backup is not told he "projects as a ... starter".
+    s = assess_player(_synthetic_goalie(role="Backup", proj_war_pct=60)).summary.lower()
+    assert "backup" in s
+    assert "starter" not in s

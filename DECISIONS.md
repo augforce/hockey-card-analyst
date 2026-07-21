@@ -1342,3 +1342,45 @@ tier, strengths, and weaknesses are byte-identical with and without it
   closing sentence ("a genuinely strong starter...") is hard-coded from the
   Thompson calibration and reads wrong for a weak goalie - pre-existing,
   out of this round's scope, flagged to Michael.
+
+## Goalie summary made tier-aware (2026-07-21)
+
+A pre-existing bug caught by the Edge round's calibration pass: the demo's
+synthetic weak-goalie card exposed that `_goalie_summary`'s closing sentence
+("a genuinely strong starter whose multi-year track record is short and
+uneven - reliability over game-stealing, not a settled elite") was hard-coded
+from the Thompson calibration and reused verbatim for every goalie - a
+30th-percentile season was being told it was strong, the tool contradicting
+its own data. Same class of bug for two neighboring clauses: "and the WAR
+standing climbed steeply rather than holding" appeared with no trend on the
+card, and "starter" was hard-coded regardless of the card's role box.
+
+- **The closing now tracks the computed tier**, five bands off
+  `proj_war_pct`: front-line (85+), a quality starter's level (70-84, the
+  STRENGTH_MIN cutoff), serviceable middle of the pool (45-69),
+  below-average (30-44, the Below average tier band), genuinely weak (below
+  30). Distinct language per band, not a tone tweak on one sentence.
+  Deliberately no "replacement level" wording: the config's 37th-percentile
+  replacement anchor is skater-derived (see the WAR-anchors entry) and
+  goalie replacement is defined differently, so the low bands say
+  "below-average" / "near the bottom of the position pool" instead of
+  borrowing a skater number.
+- **The volatility temper is data-driven, both places it appears**: the
+  climb clause requires `_is_climbing(war_per60_trend)` (the same helper the
+  consistency note already used), and the "less settled than the single
+  number reads" suffix attaches only when consistency <= WEAKNESS_MAX
+  (naming the climb only when it happened). The tension lead ("But hold
+  that against the volatility") is kept for strong verdicts and swapped for
+  a neutral "Alongside it" when the verdict is not strong - there is nothing
+  to hold it against.
+- **The role word is the card's role**: a Backup now "projects as a Below
+  average backup", not a "starter" (1A/1B pass through as-is).
+- Thompson still holds the section 12 tension, now with honest parts: Elite
+  opening, 23rd-consistency temper, real climb clause, and a front-line
+  closing that concedes the level is less settled than the number.
+
+TDD: 9 new tests in test_goalies.py (weak-goalie-never-told-strong, the
+Thompson tension preserved, a five-band closing parametrization, the
+climb-clause guard, the role-word guard) - all watched fail against the
+hard-coded sentence first. Suite 456 -> 465; demo_goalie and demo_edge
+re-run, both goalie summaries read consistently with their cards.
