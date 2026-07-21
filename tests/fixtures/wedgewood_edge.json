@@ -1,0 +1,18 @@
+{
+ "card_kind": "edge",
+ "name": "Scott Wedgewood",
+ "season": "2025-26",
+ "gp": 45,
+ "save_pct_all": {"value": 0.921, "avg": 0.896, "percentile": 99},
+ "save_pct_high_danger": {"value": 0.837, "avg": 0.811, "percentile": 81},
+ "save_pct_mid_range": {"value": 0.937, "avg": 0.884, "percentile": 99},
+ "save_pct_long_range": {"value": 0.975, "avg": 0.968, "percentile": 78},
+ "saves_all": {"value": 1007, "avg": 663, "percentile": 56},
+ "saves_high_danger": {"value": 256, "avg": 171, "percentile": 61},
+ "saves_mid_range": {"value": 254, "avg": 190, "percentile": null},
+ "saves_long_range": {"value": 236, "avg": 150, "percentile": 58},
+ "shots_against": {"value": 1093, "avg": 740, "percentile": 54},
+ "goals_against": {"value": 86, "avg": 77, "percentile": 76},
+ "high_danger_goals_against": {"value": 50, "percentile": 63},
+ "pct_starts_over_900": {"value": 74.4, "percentile": 99}
+}

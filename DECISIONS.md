@@ -1235,3 +1235,110 @@ Live use surfaced two host-behavior leaks the first pass did not stop.
 
 Guards: test_pdf_is_ask_first_never_unprompted (test_reports_tool.py) and
 a five-tool HARD STYLE RULE assertion (test_no_em_dashes.py).
+
+## NHL Edge vetting on assess_player - a third, supplemental source (2026-07-21)
+
+Schemas + config + engine (`engine/edge.py`) + server + report panels. NHL
+Edge (nhl.com/nhl-edge) is the league's own tracking, unrelated to the card's
+model. It enters ONLY as `assess_player(edge_card=...)` and vets the existing
+assessment - the exact articulation-only contract of the micro synthesis:
+`edge_vetting` (corroborations / contradictions / descriptive / caveats)
+rides on `Assessment`, `GoalieAssessment`, and `MicroAssessment`, and the
+tier, strengths, and weaknesses are byte-identical with and without it
+(asserted by test).
+
+### Scope drawn deliberately narrow (the thing future-you must not undo casually)
+- **No adjudicate_claim Edge dimensions, no compare_players support, no
+  standalone Edge report kind, no Edge-alone assessment** (`_parse_card`
+  refuses `card_kind: "edge"` as a primary with "never assessed on its own").
+  Michael scoped this round to assess_player only; extending Edge into the
+  claim vocabulary or comparisons is a separate future decision, not a gap.
+
+### The "<50th" problem and the chosen rule (decision confirmed with Michael)
+- NHL.com never prints an exact percentile below the 50th - only "<50th".
+  Option chosen (of judge-by-raw-value / descriptive-only / interpolate):
+  **judge a rate off its raw value against the comparison average printed on
+  the same page**; the exact percentile is supporting color when the site
+  gives one (51st+). Schema-enforced: `EdgeMetric.percentile` is bounded
+  50-100 and `None` IS the "<50th" bucket, so a fabricated sub-50 number is
+  structurally impossible, not just discouraged.
+- Signal hierarchy in full (config `edge_rules`, thresholds tunable):
+  rate + printed avg -> call when |value - avg| >= threshold
+  (`save_pct_gap: 0.015` splits the real sample: Wedgewood HD +.026 and
+  Markstrom HD -.018 fire, every long-range gap <= .007 stays quiet;
+  `zone_time_gap: 2.0` fires Hughes +2.0 and Miller +4.1, quiets Makar's
+  +0.7 neutral sliver). Rate + no avg -> the exact percentile may drive a
+  call. "<50th" + no avg -> direction-only ("below the league median"),
+  descriptive. Counts -> never a call, at any percentile.
+
+### The two sample-derived findings, encoded as caveats (not implicit logic)
+- **`edge_counts_workload` (the Vanecek finding).** Vanecek and Markstrom
+  posted the identical .883 save percentage, but Vanecek's goals-against
+  count reads a false 99th percentile off 22 GP while Markstrom's reads
+  below average off 44 GP / 1113 shots. So: counts (saves, shots against,
+  goals against, skater SOG - skater counts have the same disease) never
+  drive a call, count percentiles are NEVER cited anywhere in the vetting
+  (citing invites misuse), and count lines name games played. `gp` is a
+  required schema field for exactly this reason.
+- **`edge_tools_not_value` (the Makar/Miller finding).** Miller's tools
+  (23.22 mph, 96th) read nearly identical to Makar's (23.68, 99th) with
+  opposite offensive value. Tools (hardest shot, max skating speed, miles
+  skated) are style color only, mirroring the micro style-trio discipline.
+- **Kept separate on purpose:** zone-time vetting reuses the existing
+  `deployment_not_value` caveat (its canonical wording generalized to
+  "territorial reads like zone-time share" - the RAPM-round content intact),
+  while `edge_tools_not_value` stays tools-only. Michael's explicit call:
+  one caveat covering both dilutes both points.
+
+### Other calls
+- **Schema carries only what the samples show** (micro-round precedent:
+  built from real pages, not the documented list alone). Documented-but-
+  unsampled boxes (avg shot speed, zone starts, speed bursts, SOG
+  differential, shot-speed range totals, the 5v5 save% family) are
+  glossary-only entries - defined for explain_metric, no schema field, and
+  `extra="forbid"` makes a future extraction meeting one fail loudly, which
+  is the prompt to extend deliberately.
+- **Zone maps are descriptive-only by design**: their cell counts do not
+  reconcile against their own stated totals across the samples, so the
+  extraction contract (in the assess_player docstring, description-guarded)
+  says legend tables only, never the map cells.
+- **Pool guards mirror the micro synthesis**: same player (casefolded),
+  goalie primary takes only a goalie Edge page, skater/micro primary only a
+  skater page whose `position` matches the primary's pool (the SOG baseline
+  is "Avg. by Position"). The server selects the Edge schema by the primary
+  card's type, so a wrong-kind page fails validation loudly.
+- **Micro skating speed is same-source**: a forward micro card's Skating
+  Speed box is itself NHL Edge data, so when a micro card is in play the
+  vetting notes the Edge speed numbers are the same source, not independent
+  corroboration.
+- **Goalie zone mapping kept minimal**: only card `high_danger` vs Edge HD
+  save%, overall vs all-locations, and the start-quality floor (quality
+  starts, falling back to bad starts) vs %starts>.900 are vetted - Edge
+  zones are distance-based, the card's danger split is xG-based, and the
+  mapping degrades beyond HD. Mid/long-range gaps surface as descriptive
+  color. The pct_starts_over_900 glossary caveat notes the raw-.900 vs
+  GSAx-floor mismatch.
+
+### Validation and tests
+- No scouting-prose calibration source exists for goalie Edge (unlike the
+  skater micro rounds), so this round validates on INTERNAL consistency,
+  per the plan: Vanecek's false 99th can never surface as a corroboration;
+  the .883 twins read identically through the rate lens; Miller's tools
+  never generate an offense call. Hughes is the real+real golden pair - and
+  it surfaced a genuinely useful read: his 34th-percentile EV defense
+  against a favorable defensive-zone share (36.3% vs 40.1%) is an honest
+  cross-source tension, reported as a contradiction with the deployment
+  caveat attached.
+- TDD throughout: schemas (22), config/glossary (14), engine (25), server
+  wiring + description guards (9), report panels (6). Suite 380 -> 456.
+  `examples/demo_edge.py` is the new prose window; `demo_reports.py` renders
+  Hughes-with-Edge and Wedgewood-with-Edge PDFs (panel eyeballed, page 2
+  visually checked).
+
+### Deferred (deliberately, not forgotten)
+- Edge support in adjudicate_claim / compare_players; the unsampled
+  glossary-only boxes above; any goalie-Edge scouting calibration if a
+  prose source ever exists. Also noted in passing: `_goalie_summary`'s
+  closing sentence ("a genuinely strong starter...") is hard-coded from the
+  Thompson calibration and reads wrong for a weak goalie - pre-existing,
+  out of this round's scope, flagged to Michael.

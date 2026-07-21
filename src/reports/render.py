@@ -188,6 +188,7 @@ def _build_assess_skater(a: dict[str, Any]) -> dict[str, Any]:
         "caveats": a.get("caveats", []),
         "summary": a["summary"],
         "micro_insights": a.get("micro_insights"),
+        "edge_vetting": a.get("edge_vetting"),
     }
 
 
@@ -218,6 +219,7 @@ def _build_assess_micro(a: dict[str, Any]) -> dict[str, Any]:
         "deployment": a.get("deployment", []),
         "caveats": a.get("caveats", []),
         "summary": a["summary"],
+        "edge_vetting": a.get("edge_vetting"),
     }
 
 
@@ -245,6 +247,7 @@ def _build_assess_goalie(a: dict[str, Any]) -> dict[str, Any]:
         "trajectory": _trajectory(a.get("trajectory")),
         "caveats": a.get("caveats", []),
         "summary": a["summary"],
+        "edge_vetting": a.get("edge_vetting"),
     }
 
 

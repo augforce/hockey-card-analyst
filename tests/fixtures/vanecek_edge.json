@@ -1,0 +1,18 @@
+{
+ "card_kind": "edge",
+ "name": "Vitek Vanecek",
+ "season": "2025-26",
+ "gp": 22,
+ "save_pct_all": {"value": 0.883, "avg": 0.896, "percentile": null},
+ "save_pct_high_danger": {"value": 0.801, "avg": 0.811, "percentile": null},
+ "save_pct_mid_range": {"value": 0.847, "avg": 0.884, "percentile": null},
+ "save_pct_long_range": {"value": 0.966, "avg": 0.968, "percentile": null},
+ "saves_all": {"value": 447, "avg": 663, "percentile": null},
+ "saves_high_danger": {"value": 125, "avg": 171, "percentile": null},
+ "saves_mid_range": {"value": 111, "avg": 190, "percentile": null},
+ "saves_long_range": {"value": 115, "avg": 150, "percentile": null},
+ "shots_against": {"value": 506, "avg": 740, "percentile": null},
+ "goals_against": {"value": 59, "avg": 77, "percentile": 99},
+ "high_danger_goals_against": {"value": 31, "percentile": 99},
+ "pct_starts_over_900": {"value": 36.8, "percentile": null}
+}

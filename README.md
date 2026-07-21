@@ -162,6 +162,37 @@ that regime rather than papering over it:
   needs a box the supplied card doesn't carry, the answer names the card
   type that actually carries it — and says so plainly when none does.
 
+## NHL Edge vetting (optional)
+
+Alongside either card you can also drop in a screenshot of the player's
+[NHL Edge](https://www.nhl.com/nhl-edge) page — the league's own tracking,
+unrelated to HockeyStats. It is strictly supplemental: Edge data is never
+assessed on its own and never touches the claim or comparison tools; it rides
+along with an assessment and vets it, adding corroborations and contradictions
+between the card's verdicts and the tracking. The tier, strengths, and
+weaknesses never move because of it — same articulation-only contract as the
+both-cards synthesis.
+
+The reading rules are deliberate about what Edge numbers can and can't say:
+
+- **Rates drive the calls.** Save percentages, starts over .900, and zone-time
+  shares are judged off the raw value against the comparison average printed
+  on the same page (with NHL's exact percentile cited when the site gives one,
+  which it only does from the 51st up — below that it prints "<50th", and no
+  number is ever invented for that bucket).
+- **Counts never do.** Shots against, goals against, saves, shots on goal —
+  anything that accumulates with games played — is workload context only. A
+  22-game goalie can show a 99th-percentile goals-against count at the same
+  save percentage a 44-game goalie posts with a below-average one; the rate is
+  the truth, so counts stay descriptive with games played named.
+- **Tools are style.** Hardest shot, max skating speed, and miles skated are
+  physical-tools color, never evidence of offensive value — players with
+  near-identical tool readings sit at opposite ends of production.
+- **Zone time is deployment-shaped.** Territorial tilt can back (or honestly
+  contradict) an EV impact verdict, but it always carries the deployment
+  caveat: where the puck lives with a player on the ice is not an isolated
+  impact.
+
 ## PDF reports
 
 After any assess, compare, or claim-check answer, ask for a PDF (the assistant

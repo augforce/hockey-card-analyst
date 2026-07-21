@@ -1,0 +1,17 @@
+{
+ "card_kind": "edge",
+ "name": "Jack Hughes",
+ "season": "2025-26",
+ "position": "C",
+ "gp": 61,
+ "hardest_shot": {"value": 83.72, "percentile": null},
+ "max_skating_speed": {"value": 22.49, "percentile": 63},
+ "most_miles_per_game": {"value": 4.60, "percentile": 99},
+ "sog_all": {"value": 228, "avg": 86, "percentile": 97},
+ "sog_high_danger": {"value": 64, "avg": 32, "percentile": 88},
+ "sog_mid_range": {"value": 98, "avg": 27, "percentile": 98},
+ "sog_long_range": {"value": 15, "avg": 8, "percentile": 82},
+ "zone_time_defensive": {"value": 36.3, "avg": 40.1, "percentile": 93},
+ "zone_time_neutral": {"value": 18.6, "avg": 16.8, "percentile": 92},
+ "zone_time_offensive": {"value": 45.1, "avg": 43.1, "percentile": 86}
+}

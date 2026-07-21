@@ -84,3 +84,26 @@
 </div>
 {% endif %}
 {% endmacro %}
+
+{% macro edge_panel(v) %}
+{% if v %}
+<div class="panel">
+  <div class="eyebrow">// NHL Edge vetting · {{ v.season }}
+    <span class="chip" style="color: var(--text-faint); border-color: var(--border-2); margin-left: 6pt">Articulation only - the verdict above is unchanged</span>
+  </div>
+  {% for c in v.corroborations %}
+  <p class="note" style="margin-top: 3pt"><span style="color: #16a34a">✓</span> {{ c }}</p>
+  {% endfor %}
+  {% for c in v.contradictions %}
+  <p class="note" style="margin-top: 3pt"><span style="color: #dc2626">✕</span> {{ c }}</p>
+  {% endfor %}
+  {% for d in v.descriptive %}
+  <p class="note" style="margin-top: 3pt; color: var(--text-faint)">{{ d }}</p>
+  {% endfor %}
+  {% for c in v.caveats %}
+  <p class="note dashed-top" style="font-family: var(--font-mono); font-size: 7pt; color: var(--text-faint)">{{ c }}</p>
+  {% endfor %}
+  <p class="note" style="font-family: var(--font-mono); font-size: 7pt; color: var(--text-faint)">{{ v.note }}</p>
+</div>
+{% endif %}
+{% endmacro %}

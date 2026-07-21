@@ -34,8 +34,9 @@ caveats:
     play-driving impacts toward average), so when the two disagree, lean
     toward the play-driving read.
   deployment_not_value: >-
-    Competition and Teammates describe how a player is used, not how good he
-    is. They are already baked into WAR, so they are never a strength or a
+    Competition, Teammates, and territorial reads like zone-time share
+    describe how a player is used and where he plays, not how good he is. The
+    usage boxes are already baked into WAR, so they are never a strength or a
     weakness on their own. The impact components are also regression-adjusted
     for zone starts, score state, home ice, back-to-backs, and shifts that
     start off an expiring power play - so "his numbers are a deployment
@@ -82,6 +83,32 @@ caveats:
     Hits, skating speed, and forecheck involvement are style and engagement
     reads, not value. A low mark describes how he plays, never a value
     weakness - plenty of high-value players rarely hit.
+  # --- NHL Edge (supplemental tracking) caveats ----------------------------
+  edge_single_season: >-
+    NHL Edge numbers are one season of league tracking - no three-year
+    weighting, no teammate or opponent adjustment. Read them as this season's
+    shape, never as a settled level.
+  edge_different_source: >-
+    NHL Edge is the league's own tracking, unrelated to the card's model. Its
+    percentiles are NHL benchmarks (split by position only where the page says
+    so), its shot zones are distance-based (high-danger inside 29 feet of the
+    center of the goal bounded by the face-off dot lines, mid-range 29-43
+    feet, long-range beyond 43) rather than the card's expected-goals danger
+    split, and below the 50th percentile the site shows only "<50th", never an
+    exact number. A corroboration or contradiction here is a cross-check on
+    the card's verdict, never a re-scoring of it.
+  edge_counts_workload: >-
+    Raw counts on an Edge page - shots against, goals against, saves, shots on
+    goal - accumulate with games played, so a small workload can dress a count
+    up as an extreme percentile while a heavy workload drags one down at an
+    identical rate. A count never drives a vetting call on its own: only the
+    rate stats do, and counts are cited as context with games played
+    alongside.
+  edge_tools_not_value: >-
+    Hardest shot, max skating speed, and distance skated are physical tools,
+    not production: players with near-identical tool readings can sit at
+    opposite ends of offensive value. A tools read describes how he moves and
+    shoots, and it never implies anything about offensive output.
 
 # --- WAR reading anchors (TopDownHockey methodology, distilled 2026-07-18) --
 # Two anchors from the model author's own write-up. Articulation only: they
@@ -169,6 +196,22 @@ micro_rules:
     Microstats are the how, the WAR row is the how-much. Read the tracked
     columns as an explanation of a player's style and shape, and keep value
     verdicts anchored to the WAR components.
+
+# --- NHL Edge vetting rules (supplemental, articulation only) ----------------
+# assess_player's optional edge_card cross-references the card's verdicts
+# against nhl.com/nhl-edge tracking. Signal hierarchy (decided 2026-07-21):
+# a RATE with a printed comparison average drives a corroborate/contradict
+# call when the gap clears its threshold below; a rate with no printed average
+# can drive a call off its exact percentile when NHL.com gives one (51st+);
+# "<50th" is direction-only (below the league median) and stays descriptive;
+# raw COUNTS never drive a call at any percentile (they ride on games played).
+edge_rules:
+  save_pct_gap: 0.015    # save-percentage points: |value - avg| must clear this
+  zone_time_gap: 2.0     # zone-time percentage points: |value - avg| must clear this
+  note: >-
+    NHL Edge vetting is articulation only: it cross-checks the card's verdicts
+    against the league's own tracking and never moves a tier, a strength, or a
+    weakness.
 
 # --- Microstat paired profiles (articulation only) ---------------------------
 # Each family reads two (or three) microstats against each other the way the

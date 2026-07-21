@@ -25,15 +25,48 @@ from engine.common import strip_em_dashes as _scrub
 from engine.compare import compare_players as _compare
 from engine.glossary import explain_metric as _explain_metric
 from reports.save import save_report as _save_report
-from schemas import DefenseCard, DefenseMicroCard, ForwardMicroCard, GoalieCard, SkaterCard
+from schemas import (
+    DefenseCard,
+    DefenseMicroCard,
+    ForwardMicroCard,
+    GoalieCard,
+    GoalieEdgeCard,
+    SkaterCard,
+    SkaterEdgeCard,
+)
 
 mcp = FastMCP("hockey-card-analyst")
+
+
+def _parse_edge_card(edge_card: Any, primary) -> GoalieEdgeCard | SkaterEdgeCard:
+    """Validate an NHL Edge dict against the schema the PRIMARY card selects
+    (goalie primary -> goalie Edge page, skater/micro primary -> skater Edge
+    page). A wrong-kind or mis-extracted page fails loudly, never half-parses."""
+    if not isinstance(edge_card, dict):
+        raise ToolError(
+            f"`edge_card` must be a JSON object of extracted Edge legend-table "
+            f"fields, got {type(edge_card).__name__}."
+        )
+    model = GoalieEdgeCard if isinstance(primary, GoalieCard) else SkaterEdgeCard
+    try:
+        return model(**edge_card)
+    except ValidationError as exc:
+        raise ToolError(
+            f"`edge_card` failed validation as {model.__name__} (selected by the "
+            f"primary card's pool) - fix the extraction and retry, do not guess "
+            f"values, and never invent a percentile below the 50th:\n{exc}"
+        )
 
 
 def _parse_card(card: Any, which: str = "card"):
     """Validate a raw card dict into the right pydantic schema, or fail loudly."""
     if not isinstance(card, dict):
         raise ToolError(f"`{which}` must be a JSON object of extracted card fields, got {type(card).__name__}.")
+    if card.get("card_kind") == "edge":
+        raise ToolError(
+            f"`{which}`: NHL Edge data is never assessed on its own - pass it as "
+            "`edge_card` alongside the standard (or microstat) card being assessed."
+        )
     if card.get("card_kind") == "micro":
         # Microstat ($10-tier) card. It shows no position box - the pool comes
         # from the footer ("percentile ranks among forwards/defencemen"), so the
@@ -63,7 +96,11 @@ def _parse_card(card: Any, which: str = "card"):
 
 
 @mcp.tool
-def assess_player(card: dict[str, Any], micro_card: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+def assess_player(
+    card: dict[str, Any],
+    micro_card: Optional[dict[str, Any]] = None,
+    edge_card: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
     """Assess one player's card: overall tier, strengths, weaknesses, deployment, trajectory, caveats, and a one-line summary.
 
     HARD STYLE RULE: never use em dashes in anything you write to the user -
@@ -124,6 +161,34 @@ def assess_player(card: dict[str, Any], micro_card: Optional[dict[str, Any]] = N
     (season-vs-projection divergences, tracked evidence behind the verdicts).
     The tier never moves. Never pass two different players.
 
+    `edge_card` (optional): an NHL Edge tracking page (nhl.com/nhl-edge) for
+    the SAME player - the league's own tracking, unrelated to the card's
+    model. Edge data is supplemental ONLY: it is never assessed on its own and
+    is never the primary card; it rides alongside the card being assessed and
+    adds an articulation-only `edge_vetting` cross-check (corroborations,
+    contradictions, descriptive color). The tier, strengths, and weaknesses
+    never move because of it.
+    Extraction contract for an Edge screenshot: capture the LEGEND TABLES
+    (each row = the player's value, the printed comparison average when the
+    page shows one, and the percentile) - do NOT extract the zone map cell
+    counts, their numbers do not reconcile against their own totals. Below the
+    50th percentile the site prints only "<50th", never an exact number: pass
+    `percentile: null` for that bucket and NEVER invent a sub-50 number. Omit
+    `avg` when no comparison average is printed.
+    Goalie Edge page: card_kind "edge", name, season, gp, then EdgeMetric
+    objects ({value, avg?, percentile?}) for save_pct_all,
+    save_pct_high_danger, save_pct_mid_range, save_pct_long_range, saves_all,
+    saves_high_danger, saves_mid_range, saves_long_range, shots_against,
+    goals_against, high_danger_goals_against, pct_starts_over_900.
+    Skater Edge page: card_kind "edge", name, season, gp, position (F or
+    C/LW/RW; D for a defenseman - the shots-on-goal baseline splits by
+    position), then EdgeMetric objects for hardest_shot, max_skating_speed,
+    most_miles_per_game, sog_all, sog_high_danger, sog_mid_range,
+    sog_long_range, zone_time_defensive, zone_time_neutral,
+    zone_time_offensive. Save percentages as decimals (.921 -> 0.921), zone
+    time and starts-over-.900 as percentage-point numbers (45.1), speeds in
+    mph, counts as integers.
+
     All percentiles are integers 0-100, already oriented so higher is better -
     including goalie Bad Starts and Consistency; do NOT invert them. A role the
     player doesn't have (e.g. no PK) is null/NA, not 0 - NA is an absence of role,
@@ -172,8 +237,13 @@ def assess_player(card: dict[str, Any], micro_card: Optional[dict[str, Any]] = N
                 "`micro_card` must be a microstat card (card_kind \"micro\") - "
                 "pass the standard card as `card`."
             )
+    parsed_edge = None
+    if edge_card is not None:
+        parsed_edge = _parse_edge_card(edge_card, parsed)
     try:
-        return _scrub(_assess(parsed, micro_card=parsed_micro).model_dump())
+        return _scrub(
+            _assess(parsed, micro_card=parsed_micro, edge_card=parsed_edge).model_dump()
+        )
     except ValueError as exc:
         raise ToolError(str(exc))
 

@@ -1,0 +1,17 @@
+{
+ "card_kind": "edge",
+ "name": "Cale Makar",
+ "season": "2025-26",
+ "position": "D",
+ "gp": 75,
+ "hardest_shot": {"value": 98.21, "percentile": 91},
+ "max_skating_speed": {"value": 23.68, "percentile": 99},
+ "most_miles_per_game": {"value": 4.55, "percentile": 98},
+ "sog_all": {"value": 199, "avg": 62, "percentile": 98},
+ "sog_high_danger": {"value": 18, "avg": 4, "percentile": 98},
+ "sog_mid_range": {"value": 64, "avg": 13, "percentile": 98},
+ "sog_long_range": {"value": 90, "avg": 32, "percentile": 95},
+ "zone_time_defensive": {"value": 37.2, "avg": 40.9, "percentile": 89},
+ "zone_time_neutral": {"value": 17.5, "avg": 16.8, "percentile": null},
+ "zone_time_offensive": {"value": 45.3, "avg": 42.3, "percentile": 92}
+}

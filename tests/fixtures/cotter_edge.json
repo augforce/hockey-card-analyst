@@ -1,0 +1,17 @@
+{
+ "card_kind": "edge",
+ "name": "Paul Cotter",
+ "season": "2025-26",
+ "position": "F",
+ "gp": 79,
+ "hardest_shot": {"value": 91.72, "percentile": 89},
+ "max_skating_speed": {"value": 23.12, "percentile": 88},
+ "most_miles_per_game": {"value": 2.72, "percentile": null},
+ "sog_all": {"value": 61, "avg": 86, "percentile": null},
+ "sog_high_danger": {"value": 30, "avg": 32, "percentile": 52},
+ "sog_mid_range": {"value": 14, "avg": 27, "percentile": null},
+ "sog_long_range": {"value": 3, "avg": 8, "percentile": null},
+ "zone_time_defensive": {"value": 41.8, "avg": 40.1, "percentile": null},
+ "zone_time_neutral": {"value": 18.0, "avg": 16.8, "percentile": 64},
+ "zone_time_offensive": {"value": 40.2, "avg": 43.1, "percentile": null}
+}

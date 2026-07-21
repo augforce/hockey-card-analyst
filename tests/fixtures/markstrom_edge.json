@@ -1,0 +1,18 @@
+{
+ "card_kind": "edge",
+ "name": "Jacob Markstrom",
+ "season": "2025-26",
+ "gp": 44,
+ "save_pct_all": {"value": 0.883, "avg": 0.896, "percentile": null},
+ "save_pct_high_danger": {"value": 0.793, "avg": 0.811, "percentile": null},
+ "save_pct_mid_range": {"value": 0.859, "avg": 0.884, "percentile": null},
+ "save_pct_long_range": {"value": 0.962, "avg": 0.968, "percentile": null},
+ "saves_all": {"value": 983, "avg": 663, "percentile": 54},
+ "saves_high_danger": {"value": 253, "avg": 171, "percentile": 56},
+ "saves_mid_range": {"value": 263, "avg": 190, "percentile": null},
+ "saves_long_range": {"value": 256, "avg": 150, "percentile": 66},
+ "shots_against": {"value": 1113, "avg": 740, "percentile": 56},
+ "goals_against": {"value": 130, "avg": 77, "percentile": null},
+ "high_danger_goals_against": {"value": 66, "percentile": null},
+ "pct_starts_over_900": {"value": 34.9, "percentile": null}
+}

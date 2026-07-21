@@ -196,6 +196,86 @@ class DefenseMicroCard(_MicroBase):
     entry_chance_prevention: Percentile
 
 
+# --- NHL Edge tracking pages (supplemental only) ----------------------------
+#
+# nhl.com/nhl-edge league tracking - a third, optional cross-reference source,
+# unrelated to the HockeyStats/JFresh model. Edge data is NEVER assessed on its
+# own: it rides alongside a card already being assessed (assess_player's
+# `edge_card` param) and vets that card's verdicts, articulation only.
+#
+# Extraction contract: capture the legend tables (player value + printed
+# comparison average + percentile), never the zone-map cell counts - those do
+# not reconcile against their own stated totals. Below the 50th percentile the
+# site prints only "<50th", never an exact number: that bucket is
+# `percentile: null`. A sub-50 percentile must never be invented.
+
+
+class EdgeMetric(_StrictModel):
+    """One NHL Edge legend-table entry: the player's value as printed, the
+    comparison average when the page shows one, and the exact percentile when
+    NHL.com gives one (51st+). `percentile` None IS the "<50th" bucket."""
+
+    value: float
+    avg: Optional[float] = None
+    percentile: Optional[int] = Field(default=None, ge=50, le=100)
+
+
+class _EdgeBase(_StrictModel):
+    """Fields shared by the goalie and skater Edge schemas. `gp` is required
+    because raw counts accumulate with games played - the workload context is
+    load-bearing for every count read."""
+
+    card_kind: Literal["edge"]
+    name: str
+    season: str
+    gp: int = Field(ge=1, le=82)
+
+
+class GoalieEdgeCard(_EdgeBase):
+    """A goalie's NHL Edge page (save-location legend tables + start quality).
+
+    Edge zones are DISTANCE-based (high-danger: within 29 feet of the center
+    of the goal bounded by the face-off dot lines; mid-range: 29-43 feet;
+    long-range: beyond 43), not the card's expected-goals danger split. Counts
+    (saves, shots against, goals against) are shots on goal only.
+    """
+
+    save_pct_all: EdgeMetric
+    save_pct_high_danger: EdgeMetric
+    save_pct_mid_range: EdgeMetric
+    save_pct_long_range: EdgeMetric
+    saves_all: EdgeMetric
+    saves_high_danger: EdgeMetric
+    saves_mid_range: EdgeMetric
+    saves_long_range: EdgeMetric
+    shots_against: EdgeMetric
+    goals_against: EdgeMetric
+    high_danger_goals_against: EdgeMetric
+    pct_starts_over_900: EdgeMetric
+
+
+class SkaterEdgeCard(_EdgeBase):
+    """A skater's NHL Edge page (tools + shots-on-goal zones + zone time).
+
+    `position` is required because the shots-on-goal baseline is "Avg. by
+    Position (F/D)" - the pool must be stated, never defaulted. Zone-time
+    percentiles are pre-oriented like everything else (less defensive-zone
+    time than average ranks HIGH on the defensive row).
+    """
+
+    position: Literal["C", "LW", "RW", "L", "R", "F", "D"]
+    hardest_shot: EdgeMetric
+    max_skating_speed: EdgeMetric
+    most_miles_per_game: EdgeMetric
+    sog_all: EdgeMetric
+    sog_high_danger: EdgeMetric
+    sog_mid_range: EdgeMetric
+    sog_long_range: EdgeMetric
+    zone_time_defensive: EdgeMetric
+    zone_time_neutral: EdgeMetric
+    zone_time_offensive: EdgeMetric
+
+
 # --- Goalie ----------------------------------------------------------------
 
 

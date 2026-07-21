@@ -686,3 +686,156 @@ metrics:
       weak chance prevention reads as a tight gap that gets walked, while weak
       denials with strong chance prevention reads as a soft gap protecting the
       slot on purpose.
+
+  # ==========================================================================
+  # NHL Edge (nhl.com/nhl-edge) - supplemental league tracking, unrelated to
+  # the card's model, ridden alongside a card via assess_player's edge_card.
+  # Same rewording rule as everything above. Family entries cover the schema's
+  # legend-table fields via aliases (field names normalize to lookup keys); a
+  # few documented boxes not yet seen on a sampled page get definition-only
+  # entries and NO schema field - extend the schema deliberately when a real
+  # sample surfaces (see DECISIONS.md, 2026-07-21).
+  # ==========================================================================
+
+  # --- Edge: goalie -----------------------------------------------------------
+  edge_save_pct:
+    aliases:
+      ["save_pct_all", "save_pct_high_danger", "save_pct_mid_range",
+       "save_pct_long_range", "edge save percentage", "save percentage",
+       "save percentage by zone", "save locations", "save location map"]
+    definition: >-
+      The share of shots on goal a goalie stops - saves divided by shots
+      against - as shown on his NHL Edge page, overall and split by the puck's
+      release distance: high-danger inside 29 feet of the center of the goal
+      (bounded by the face-off dot lines), mid-range 29 to 43 feet, long-range
+      beyond 43. Each legend row prints the league-average rate beside the
+      player's. The zone maps alongside show save locations - the puck's
+      position at the moment of release.
+    caveat_ref: caveats.edge_different_source
+  edge_counts:
+    aliases:
+      ["saves_all", "saves_high_danger", "saves_mid_range", "saves_long_range",
+       "shots_against", "goals_against", "high_danger_goals_against",
+       "saves", "shots against", "goals against", "edge counts",
+       "high danger goals against"]
+    definition: >-
+      The raw counts on a goalie's Edge page - saves, shots against, and goals
+      against, overall and by distance zone. Shots on goal only: blocked and
+      missed shots are excluded.
+    caveat_ref: caveats.edge_counts_workload
+  pct_starts_over_900:
+    aliases:
+      ["pct starts over 900", "percentage of starts over .900",
+       "starts over 900", "starts over .900", "raw start quality"]
+    definition: >-
+      The share of a goalie's starts in which he posted a raw save percentage
+      above .900 - the Edge page's game-level floor read.
+    caveat: >-
+      Built on raw save percentage with no shot-quality adjustment - the
+      card's start-quality boxes are goals-saved-above-expected based, so the
+      two floors measure different things and can honestly disagree.
+  edge_5v5_save_pct:
+    aliases:
+      ["5 on 5 save percentage", "five on five save percentage",
+       "edge 5v5 save percentage", "5v5 save percentage close situations",
+       "5v5 shots against per 60"]
+    definition: >-
+      Documented Edge variants of save percentage restricted to 5-on-5 play -
+      including close-situation and last-10-games splits - plus 5-on-5 shots
+      against and shots against per 60. Not yet seen on a sampled page, so no
+      schema field carries them yet.
+    caveat_ref: caveats.edge_different_source
+
+  # --- Edge: skater -----------------------------------------------------------
+  hardest_shot:
+    aliases:
+      ["hardest shot", "max shot speed", "hardest recorded shot",
+       "shot speed"]
+    definition: >-
+      The fastest shot he has recorded this season, in miles per hour, from
+      NHL Edge tracking.
+    caveat_ref: caveats.edge_tools_not_value
+  avg_shot_speed:
+    aliases:
+      ["avg shot speed", "average shot speed"]
+    definition: >-
+      His average speed across all recorded shot attempts, in miles per hour.
+      Documented on NHL Edge but not yet seen on a sampled page, so no schema
+      field carries it yet.
+    caveat_ref: caveats.edge_tools_not_value
+  max_skating_speed:
+    aliases:
+      ["max skating speed", "top sustained speed", "fastest skating speed",
+       "max sustained skating speed"]
+    definition: >-
+      The fastest sustained skating speed he has recorded this season, in
+      miles per hour, from NHL Edge tracking.
+    caveat_ref: caveats.edge_tools_not_value
+  most_miles_per_game:
+    aliases:
+      ["most miles per game", "most distance skated", "distance skated",
+       "total distance skated", "miles skated", "most miles skated game"]
+    definition: >-
+      Workload and effort tracking - the most distance he has covered in a
+      single game this season (the page also lists per-period and season-total
+      variants). Shown on the page as Most Miles Skated, Game.
+    caveat_ref: caveats.edge_tools_not_value
+  edge_shots_on_goal:
+    aliases:
+      ["sog_all", "sog_high_danger", "sog_mid_range", "sog_long_range",
+       "shots on goal", "shots on goal by zone", "shot location volume"]
+    definition: >-
+      His shots on goal, overall and by release-distance zone (the same
+      high-danger, mid-range, and long-range bounds as the goalie page),
+      benchmarked against the average for his position - forwards and
+      defensemen are held to different baselines. Shots on goal only: blocked
+      and missed attempts are excluded.
+    caveat_ref: caveats.edge_counts_workload
+  zone_time:
+    aliases:
+      ["zone_time_offensive", "zone_time_defensive", "zone_time_neutral",
+       "zone time", "offensive zone time", "defensive zone time",
+       "neutral zone time"]
+    definition: >-
+      The percentage of time the puck spends in each zone while he is on the
+      ice and the clock is running, benchmarked against an NHL average that
+      itself differs slightly by position. Percentiles are pre-oriented like
+      everything else: less defensive-zone time than average ranks HIGH on the
+      defensive row.
+    caveat_ref: caveats.deployment_not_value
+  zone_starts:
+    aliases:
+      ["zone starts", "offensive zone starts", "defensive zone starts",
+       "neutral zone starts", "shift starts"]
+    definition: >-
+      Where his shifts begin - the face-off location (offensive, defensive, or
+      neutral zone) at each shift start. Documented on NHL Edge but not yet
+      seen on a sampled page, so no schema field carries it yet.
+    caveat_ref: caveats.deployment_not_value
+  skating_speed_bursts:
+    aliases:
+      ["skating speed bursts", "speed bursts", "20 mph bursts",
+       "bursts over 20"]
+    definition: >-
+      How often he hits high-speed skating bursts (the 20-plus mph events NHL
+      Edge counts). Documented on NHL Edge but not yet seen on a sampled page,
+      so no schema field carries it yet.
+    caveat_ref: caveats.edge_tools_not_value
+  shot_attempt_differential:
+    aliases:
+      ["shot attempt differential", "shots on goal differential",
+       "sog differential", "attempt differential"]
+    definition: >-
+      The difference between shot attempts (or shots on goal) for and against
+      while he is on the ice. Documented on NHL Edge but not yet seen on a
+      sampled page, so no schema field carries it yet.
+    caveat: >-
+      An on-ice differential, shaped by teammates, competition, and
+      deployment - not an isolated impact like the card's RAPM components.
+  shot_speed_range_totals:
+    aliases:
+      ["shot speed range totals", "shots by speed band"]
+    definition: >-
+      Counts of his shots grouped into speed bands. Documented on NHL Edge but
+      not yet seen on a sampled page, so no schema field carries it yet.
+    caveat_ref: caveats.edge_tools_not_value

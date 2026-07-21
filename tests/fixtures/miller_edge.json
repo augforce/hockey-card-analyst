@@ -1,0 +1,17 @@
+{
+ "card_kind": "edge",
+ "name": "K'Andre Miller",
+ "season": "2025-26",
+ "position": "D",
+ "gp": 72,
+ "hardest_shot": {"value": 92.59, "percentile": 63},
+ "max_skating_speed": {"value": 23.22, "percentile": 96},
+ "most_miles_per_game": {"value": 4.04, "percentile": 85},
+ "sog_all": {"value": 123, "avg": 62, "percentile": 87},
+ "sog_high_danger": {"value": 10, "avg": 4, "percentile": 87},
+ "sog_mid_range": {"value": 22, "avg": 13, "percentile": 77},
+ "sog_long_range": {"value": 72, "avg": 32, "percentile": 90},
+ "zone_time_defensive": {"value": 35.0, "avg": 40.9, "percentile": 98},
+ "zone_time_neutral": {"value": 18.6, "avg": 16.8, "percentile": 91},
+ "zone_time_offensive": {"value": 46.4, "avg": 42.3, "percentile": 96}
+}

@@ -14,7 +14,14 @@ from engine.adjudicate import adjudicate_claim
 from engine.assess import assess_player
 from engine.compare import compare_players
 from reports import render_pdf
-from schemas import DefenseMicroCard, ForwardMicroCard, GoalieCard, SkaterCard
+from schemas import (
+    DefenseMicroCard,
+    ForwardMicroCard,
+    GoalieCard,
+    GoalieEdgeCard,
+    SkaterCard,
+    SkaterEdgeCard,
+)
 
 FIXTURES = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
 OUT = Path(__file__).resolve().parent / "report_previews"
@@ -56,6 +63,25 @@ def main():
             None),
         "assess_goalie_thompson.pdf": (
             "assess_goalie", assess_player(thompson), None),
+        # NHL Edge vetting panels (real Edge pages; the Wedgewood standard
+        # card is synthetic - no real one exists in the fixture set).
+        "assess_skater_hughes_with_edge.pdf": (
+            "assess_skater",
+            assess_player(hughes, edge_card=_card("hughes_edge.json", SkaterEdgeCard)),
+            None),
+        "assess_goalie_wedgewood_with_edge.pdf": (
+            "assess_goalie",
+            assess_player(
+                GoalieCard(
+                    name="Scott Wedgewood", age=33, role="Starter",
+                    proj_war_pct=85, even_strength=80, penalty_kill=60,
+                    high_danger=82, med_danger=70, low_danger=65,
+                    quality_starts=88, excellent_starts=70, bad_starts=75,
+                    rebound_control=60, consistency=55,
+                ),
+                edge_card=_card("wedgewood_edge.json", GoalieEdgeCard),
+            ),
+            None),
         "compare_celebrini_vs_hughes.pdf": (
             "compare", compare_players(celebrini, hughes), None),
         "claim_check_celebrini.pdf": (

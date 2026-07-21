@@ -20,6 +20,7 @@ from pydantic import BaseModel
 
 from config import load_config
 from engine.common import LABELS, STRENGTH_MIN, WEAKNESS_MAX, ordinal
+from engine.edge import EdgeVetting, vet_edge
 from engine.tiers import classify_percentile
 from schemas import DefenseCard, DefenseMicroCard, ForwardMicroCard, GoalieCard, SkaterCard
 
@@ -131,6 +132,7 @@ class Assessment(BaseModel):
     caveats: list[str]
     summary: str
     micro_insights: Optional[MicroSynthesis] = None
+    edge_vetting: Optional[EdgeVetting] = None
 
 
 class MicroAssessment(BaseModel):
@@ -157,6 +159,7 @@ class MicroAssessment(BaseModel):
     style_reads: list[ComponentRead]
     caveats: list[str]
     summary: str
+    edge_vetting: Optional[EdgeVetting] = None
 
 
 class Profile(BaseModel):
@@ -192,15 +195,19 @@ class GoalieAssessment(BaseModel):
     trajectory: Optional[str] = None
     caveats: list[str]
     summary: str
+    edge_vetting: Optional[EdgeVetting] = None
 
 
-def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None):
+def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None, edge_card=None):
     """Assess a card into structured findings; dispatches on card type.
 
     Returns an Assessment for skaters, a GoalieAssessment for goalies, or a
     MicroAssessment for a microstat card. When BOTH cards for one player are
     supplied (standard `card` + `micro_card`), the standard assessment gains an
     articulation-only `micro_insights` synthesis - the tier never moves.
+    `edge_card` (optional, NHL Edge page for the same player) adds an
+    articulation-only `edge_vetting` cross-check on any of the three
+    assessment shapes - the tier never moves for that either.
     """
     cfg = config if config is not None else load_config()
     if isinstance(card, (ForwardMicroCard, DefenseMicroCard)):
@@ -209,14 +216,20 @@ def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None
                 "pass the STANDARD card as `card` and the microstat card as "
                 "`micro_card` - two micro cards can't be combined."
             )
-        return assess_micro(card, cfg)
+        result = assess_micro(card, cfg)
+        if edge_card is not None:
+            result.edge_vetting = vet_edge(card, edge_card, cfg)
+        return result
     if isinstance(card, GoalieCard):
         if micro_card is not None:
             raise ValueError(
                 "there is no goalie microstat card - goalies are assessed from "
                 "the standard card only."
             )
-        return assess_goalie(card, cfg)
+        result = assess_goalie(card, cfg)
+        if edge_card is not None:
+            result.edge_vetting = vet_edge(card, edge_card, cfg)
+        return result
     is_defense = isinstance(card, DefenseCard)
     excluded = set()
     if is_defense:
@@ -301,6 +314,10 @@ def assess_player(card, config: Optional[dict[str, Any]] = None, micro_card=None
         summary=summary,
         micro_insights=(
             _synthesize(card, micro_card, cfg) if micro_card is not None else None
+        ),
+        edge_vetting=(
+            vet_edge(card, edge_card, cfg, micro_companion=micro_card)
+            if edge_card is not None else None
         ),
     )
 
